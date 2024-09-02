@@ -1,4 +1,4 @@
-package com.example.client;
+package com.example.sundoboo;
 
 import android.content.Context;
 
