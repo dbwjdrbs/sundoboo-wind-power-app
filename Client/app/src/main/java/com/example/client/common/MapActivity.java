@@ -9,6 +9,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.example.client.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -17,13 +18,19 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+
+    private Marker mMarker;
+
     private FusedLocationProviderClient fusedLocationClient;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
@@ -34,7 +41,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_map);
 
         // SupportMapFragment를 찾아서 지도가 준비되었을 때 콜백을 받을 수 있도록 설정
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
 
@@ -57,6 +65,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
         }
+
+        // 지도 클릭 리스너 설정
+        mMap.setOnMapClickListener(latLng -> {
+            // 기존 마커가 있는 경우 삭제
+            if (mMarker != null) {
+                mMarker.remove();
+            }
+            // 커스텀 마커 만들기
+            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
+            mMarker = mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .title("사용자 위치")
+                    .icon(icon)  // 아이콘 설정
+                    .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+            // 클릭한 위치의 위도, 경도 정보를 DB에 저장
+            saveLocationToDatabase(latLng);
+        });
     }
 
     private void getDeviceLocation() {
@@ -71,8 +96,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     if (location != null) {
                         // 현재 위치를 LatLng 객체로 변환
                         LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-                        // 현재 위치에 마커 추가
-//                  mMap.addMarker(new MarkerOptions().position(currentLatLng).title("현재 위치"));
                         mMap.addCircle(new CircleOptions()
                                 .center(currentLatLng)
                                 .radius(10)  // 반경을  (미터 단위)
@@ -83,6 +106,40 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
                     }
                 });
+    }
+
+    private void saveLocationToDatabase(LatLng latLng) {
+        // 위도
+        double latitude = latLng.latitude;
+        // 경도
+        double longitude = latLng.longitude;
+
+        // 위도 도 분 초 변환
+        double[] latDMS = decimalToDMS(latitude);
+        // 경도 도 분 초 변환
+        double[] lonDMS = decimalToDMS(longitude);
+
+        int latDegrees = (int) latDMS[0];
+        int latMinutes = (int) latDMS[1];
+        int latSeconds = (int) latDMS[2];
+
+        int lonDegrees = (int) lonDMS[0];
+        int lonMinutes = (int) lonDMS[1];
+        int lonSeconds = (int) lonDMS[2];
+
+        // 아래에 데이터베이스에 저장하는 로직을 추가
+        // 예: SQLiteDatabase.insert(...)
+
+        Log.d("MapActivity", "Latitude DMS: " + latDegrees + "° " + latMinutes + "' " + latSeconds + "''");
+        Log.d("MapActivity", "Longitude DMS: " + lonDegrees + "° " + lonMinutes + "' " + lonSeconds + "''");
+    }
+
+    private double[] decimalToDMS(double decimal) {
+        int degrees = (int) decimal;
+        double fractional = Math.abs(decimal - degrees);
+        int minutes = (int) (fractional * 60);
+        int seconds = (int) ((fractional * 3600) % 60);
+        return new double[]{degrees, minutes, seconds};
     }
 
     @Override
@@ -97,6 +154,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
     }
+
+
+
 }
 
 
