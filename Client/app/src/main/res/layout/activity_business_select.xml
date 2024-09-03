@@ -13,7 +13,7 @@
         android:layout_height="50dp"
         android:layout_gravity="center_horizontal"
         android:layout_margin="30dp"
-        android:background="@drawable/rounded_border_black"
+        android:background="@drawable/rounded_border"
         android:cursorVisible="false"
         android:drawableStart="@drawable/ic_search"
         android:drawablePadding="5dp"
