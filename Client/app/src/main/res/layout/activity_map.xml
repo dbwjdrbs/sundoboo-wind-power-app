@@ -6,4 +6,11 @@
     android:layout_height="match_parent"
     tools:context="com.example.sundoboo.common.MapActivity">
 
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="asdasdasdsadasdasdasdasd"
+        tools:layout_editor_absoluteX="92dp"
+        tools:layout_editor_absoluteY="225dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

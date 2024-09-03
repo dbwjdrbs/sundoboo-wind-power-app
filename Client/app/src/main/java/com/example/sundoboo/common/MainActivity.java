@@ -10,6 +10,7 @@ import android.widget.Toast;
 import com.example.client.R;
 
 public class MainActivity extends AppCompatActivity {
+    // NOTE : 뒤로가기 두 번 클릭시 앱 종료  ============================================================
     private long backKeyPressedTime = 0;  // NOTE : 초 저장
 
     @Override
@@ -26,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
     }
-
+    // =============================================================================================
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
