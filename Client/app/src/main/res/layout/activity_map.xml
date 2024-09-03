@@ -6,9 +6,47 @@
     android:layout_height="match_parent"
     tools:context="com.example.client.common.MapActivity">
 
-    <fragment
-        android:id="@+id/map"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+
+        <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btn_posSelect"
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:background="@drawable/pos_menu_button_left"
+                android:text="좌표 선택" />
+
+            <Button
+                android:id="@+id/btn_posInput"
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:background="@drawable/pos_menu_button_center"
+                android:text="좌표 입력" />
+
+            <Button
+                android:id="@+id/btn_arView"
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:background="@drawable/pos_menu_button_right"
+                android:text="AR 확인" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+
 </LinearLayout>
