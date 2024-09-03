@@ -1,4 +1,4 @@
-package com.example.sundoboo.common;
+package com.example.client.common;
 
 import androidx.appcompat.app.AppCompatActivity;
 

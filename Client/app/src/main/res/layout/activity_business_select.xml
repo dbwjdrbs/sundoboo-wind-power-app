@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/business_select_background"
     android:orientation="vertical"
-    tools:context="com.example.sundoboo.common.BusinessSelectActivity">
+    tools:context="com.example.client.common.BusinessSelectActivity">
 
     <EditText
         android:layout_width="300dp"

@@ -1,4 +1,4 @@
-package com.example.sundoboo.adapter;
+package com.example.client.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,11 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.client.R;
-import com.example.sundoboo.common.BusinessSelectActivity;
-import com.example.sundoboo.common.MapActivity;
-import com.example.sundoboo.data.BusinessData;
-
-import org.w3c.dom.Text;
+import com.example.client.common.MapActivity;
+import com.example.client.data.BusinessData;
 
 import java.util.ArrayList;
 

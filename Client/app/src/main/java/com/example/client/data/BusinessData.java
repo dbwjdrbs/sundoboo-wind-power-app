@@ -1,4 +1,4 @@
-package com.example.sundoboo.data;
+package com.example.client.data;
 
 public class BusinessData {
     private String title;
