@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.sundoboo.common.MainActivity"
+    tools:context="com.example.client.common.MainActivity"
 
     android:background="@drawable/main_background">
 

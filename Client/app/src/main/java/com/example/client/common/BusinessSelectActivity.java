@@ -1,4 +1,4 @@
-package com.example.sundoboo.common;
+package com.example.client.common;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -9,13 +9,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.client.R;
-import com.example.sundoboo.adapter.BusinessSelectAdapter;
-import com.example.sundoboo.data.BusinessData;
+import com.example.client.adapter.BusinessSelectAdapter;
+import com.example.client.data.BusinessData;
 
 import java.util.ArrayList;
 
