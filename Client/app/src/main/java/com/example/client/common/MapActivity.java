@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -26,6 +28,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.client.R;
+import com.example.client.adapter.TurbinesSelectAdapter;
+import com.example.client.data.TurbinesData;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -41,14 +45,12 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
+import java.util.ArrayList;
+
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
-
     private GoogleMap mMap;
-
     private Marker mMarker;
-
     private FusedLocationProviderClient fusedLocationClient;
-
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     @Override
@@ -64,10 +66,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        // NOTE : 버튼 온클릭 리스너 선언
         findViewById(R.id.btn_posInput).setOnClickListener(this);
-
+        findViewById(R.id.btn_arView).setOnClickListener(this);
     }
 
+    // ================================================================ GoogleMap
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;  // GoogleMap 객체를 초기화
@@ -171,6 +175,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
     }
+    // ================================================================================
 
 
     @Override
@@ -180,11 +185,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
         if (v.getId() == R.id.btn_posInput) {
-            showDialog();
+            showDialog_posInput();
+        }
+
+        if (v.getId() == R.id.btn_arView) {
+            showDialog_arView();
         }
     }
 
-    private void showDialog() {
+    private void showDialog_posInput() {
         Dialog dialog;
         dialog = new Dialog(MapActivity.this);
         dialog.setContentView(R.layout.dialog_pos_input);
@@ -221,6 +230,38 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             dialog.dismiss();
             showBottomDialog_DMS();
         });
+    }
+    private ArrayList<TurbinesData> tb_list;
+
+    private void showDialog_arView() {
+        Dialog dialog;
+        dialog = new Dialog(MapActivity.this);
+        dialog.setContentView(R.layout.dialog_arview);
+
+        // NOTE : 풍력 발전기 모델 더미 데이터
+        TurbinesData data1 = new TurbinesData("두산중공업 풍력 발전기", "Doosan Wind Power Generator");
+        TurbinesData data2 = new TurbinesData("유니슨 풍력 발전기", "Unison Wind Power Generator");
+
+        tb_list = new ArrayList<>();
+        tb_list.add(data1);
+        tb_list.add(data2);
+
+        // NOTE : 리사이클러뷰 어뎁터 정의
+        TurbinesSelectAdapter adapter = new TurbinesSelectAdapter(tb_list);
+        RecyclerView recyclerView = dialog.findViewById(R.id.di_rv);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
+        recyclerView.setAdapter(adapter);
+
+        Button btn_close = dialog.findViewById(R.id.di_arview_closeButton);
+
+        // NOTE : X 버튼 클릭 시 종료 이벤트 구현
+        btn_close.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+        // TODO : 선택 버튼 클릭 이벤트 구현 하기
+
+        dialog.show();
     }
 
     private void showBottomDialog_DD() {

@@ -32,6 +32,7 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_business_select);
 
+        // NOTE : 사업 리스트 더미 데이터
         BusinessData data1 = new BusinessData("가산 해상풍력단지", "2024년 4월 24일 오전 10시 33분");
         BusinessData data2 = new BusinessData("보령 해상풍력단지", "2024년 4월 24일 오전 10시 33분");
         BusinessData data3 = new BusinessData("울산 부유식 해상풍력단지", "2024년 4월 24일 오전 10시 32분");
@@ -41,6 +42,7 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         list.add(data2);
         list.add(data3);
 
+        // NOTE : 리사이클러뷰 어뎁터 정의
         BusinessSelectAdapter adapter = new BusinessSelectAdapter(list);
         RecyclerView recyclerView = findViewById(R.id.rv_businessSelect);
 
