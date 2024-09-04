@@ -9,7 +9,7 @@ public class RestClient {
     private static final String BASE_URL = "http://10.0.2.2:8080/";
     private static Retrofit retrofit;
 
-//    API 호출할 때 사용할 Retrofit 인스턴스 생성 메서드 - 싱글톤 패턴 사용
+//  INFO :  API 호출할 때 사용할 Retrofit 인스턴스 생성 메서드 - 싱글톤 패턴 사용
     public static Retrofit getClient(){
         if(retrofit == null){
             retrofit = new Retrofit.Builder().baseUrl(BASE_URL)
