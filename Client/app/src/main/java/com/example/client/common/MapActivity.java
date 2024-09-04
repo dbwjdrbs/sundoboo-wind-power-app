@@ -28,7 +28,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.client.R;
+import com.example.client.adapter.ScoreListAdapter;
 import com.example.client.adapter.TurbinesSelectAdapter;
+import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -179,7 +181,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
     // ================================================================================
 
-
+    // INFO : 버튼 클릭 이벤트 정의 메서드
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.btn_posSelect) {
@@ -199,11 +201,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
         if (v.getId() == R.id.btn_scoreList) {
-            showDialog_scoreInput();
+            showDialog_scoreList();
         }
 
     }
 
+    // INFO : 좌표 입력 버튼 클릭 시, 나오는 팝업창
     private void showDialog_posInput() {
         Dialog dialog;
         dialog = new Dialog(MapActivity.this);
@@ -244,6 +247,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
     private ArrayList<TurbinesData> tb_list;
 
+    // INFO : AR 확인 버튼 클릭 시, 나오는 팝업창
     private void showDialog_arView() {
         Dialog dialog;
         dialog = new Dialog(MapActivity.this);
@@ -275,6 +279,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         dialog.show();
     }
 
+    // INFO : 점수 입력 버튼 클릭 시 나오는 팝업 창
     private void showDialog_scoreInput() {
         Dialog dialog;
         dialog = new Dialog(MapActivity.this);
@@ -291,6 +296,43 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         dialog.show();
     }
 
+    private ArrayList<ScoreData> sd_list;
+    // INFO : 점수 입력 **목록** 버튼 클릭시 생기는 팝업창
+    private void showDialog_scoreList() {
+        Dialog dialog;
+        dialog = new Dialog(MapActivity.this);
+        dialog.setContentView(R.layout.dialog_scorelist);
+
+        // NOTE : 풍력 발전기 모델 더미 데이터
+        ScoreData data1 = new ScoreData("강화도 A 영향 평가 3KM", "김재엽", "2024년 4월 18일 오후 2시 01분", 3,2,1,0,4);
+        ScoreData data2 = new ScoreData("강화도 A 영향 평가 5KM", "김재엽", "2024년 4월 18일 오후 3시 01분", 4,3,2,1,0);
+        ScoreData data3 = new ScoreData("강화도 A 영향 평가 7KM", "김재엽", "2024년 4월 18일 오후 4시 01분", 2,3,2,1,2);
+
+        sd_list = new ArrayList<>();
+        sd_list.add(data1);
+        sd_list.add(data2);
+        sd_list.add(data3);
+
+        // NOTE : 리사이클러뷰 어뎁터 정의
+        ScoreListAdapter adapter = new ScoreListAdapter(sd_list);
+        RecyclerView recyclerView = dialog.findViewById(R.id.dl_rv_scorelist);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
+        recyclerView.setAdapter(adapter);
+
+        Button btn_close = dialog.findViewById(R.id.dl_scorelist_closeButton);
+
+        // NOTE : X 버튼 클릭 시 종료 이벤트 구현
+        btn_close.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+
+        // TODO : 선택 버튼 클릭 이벤트 구현 하기
+
+        dialog.show();
+    }
+
+    // INFO : 좌표 입력 -> DD 클릭시 나오는 하단 팝업창
     private void showBottomDialog_DD() {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         dialog.setContentView(R.layout.dialog_dd);
@@ -354,6 +396,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         });
     }
 
+    // INFO : 좌표 입력 -> DMS 클릭시 나오는 하단 팝업창
     private void showBottomDialog_DMS() {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         dialog.setContentView(R.layout.dialog_dms);
