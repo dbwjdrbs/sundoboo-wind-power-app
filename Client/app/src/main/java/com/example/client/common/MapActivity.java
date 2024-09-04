@@ -69,6 +69,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // NOTE : 버튼 온클릭 리스너 선언
         findViewById(R.id.btn_posInput).setOnClickListener(this);
         findViewById(R.id.btn_arView).setOnClickListener(this);
+        findViewById(R.id.btn_scoreInput).setOnClickListener(this);
+        findViewById(R.id.btn_scoreList).setOnClickListener(this);
     }
 
     // ================================================================ GoogleMap
@@ -191,6 +193,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         if (v.getId() == R.id.btn_arView) {
             showDialog_arView();
         }
+
+        if (v.getId() == R.id.btn_scoreInput) {
+            showDialog_scoreInput();
+        }
+
+        if (v.getId() == R.id.btn_scoreList) {
+            showDialog_scoreInput();
+        }
+
     }
 
     private void showDialog_posInput() {
@@ -254,6 +265,22 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         recyclerView.setAdapter(adapter);
 
         Button btn_close = dialog.findViewById(R.id.di_arview_closeButton);
+
+        // NOTE : X 버튼 클릭 시 종료 이벤트 구현
+        btn_close.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+        // TODO : 선택 버튼 클릭 이벤트 구현 하기
+
+        dialog.show();
+    }
+
+    private void showDialog_scoreInput() {
+        Dialog dialog;
+        dialog = new Dialog(MapActivity.this);
+        dialog.setContentView(R.layout.dialog_score_input);
+
+        Button btn_close = dialog.findViewById(R.id.dl_score_input_closeButton);
 
         // NOTE : X 버튼 클릭 시 종료 이벤트 구현
         btn_close.setOnClickListener(v -> {
