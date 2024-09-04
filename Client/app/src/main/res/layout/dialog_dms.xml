@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#99000000"
+    android:gravity="bottom">
+
+    <LinearLayout
+        android:id="@+id/di_dms_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_border"
+        android:minWidth="300dp"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp">
+
+            <View
+                android:id="@+id/di_dms_closeBar"
+                android:layout_width="30dp"
+                android:layout_height="5dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="10dp"
+                android:background="#60A87DB0" />
+
+            <Button
+                android:id="@+id/di_dms_closeButton"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:background="@drawable/ic_close_24" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/di_dms_content1"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:minHeight="50dp"
+                android:text="Degrees : "
+                android:textAlignment="center"
+                android:textColor="#A87DB0"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/dl_dms_et1"
+                android:layout_width="115dp"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:background="@drawable/et_shadow" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" , "
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/dl_dms_et2"
+                android:layout_width="115dp"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:background="@drawable/et_shadow" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/di_dms_content2"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:minHeight="50dp"
+                android:text="Minutes : "
+                android:textAlignment="center"
+                android:textColor="#A87DB0"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/dl_dms_et3"
+                android:layout_width="115dp"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:background="@drawable/et_shadow" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" , "
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/dl_dms_et4"
+                android:layout_width="115dp"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:background="@drawable/et_shadow" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/di_dms_content3"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:minHeight="50dp"
+                android:text="Seconds : "
+                android:textAlignment="center"
+                android:textColor="#A87DB0"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/dl_dms_et5"
+                android:layout_width="115dp"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:background="@drawable/et_shadow" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" , "
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/dl_dms_et6"
+                android:layout_width="115dp"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:background="@drawable/et_shadow" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/di_dms_content4"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:minHeight="50dp"
+                android:text="Direction : "
+                android:textAlignment="center"
+                android:textColor="#A87DB0"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/di_dms_spinner1"
+                android:layout_width="110dp"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" , "
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <Spinner
+                android:id="@+id/di_dms_spinner2"
+                android:layout_width="110dp"
+                android:layout_height="wrap_content"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/di_dms_submitButton"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_gravity="end"
+            android:backgroundTint="@color/white"
+            android:text="좌표 등록"
+            android:textAlignment="textEnd"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</LinearLayout>

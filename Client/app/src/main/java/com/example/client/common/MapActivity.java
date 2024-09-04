@@ -6,10 +6,24 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.client.R;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -24,8 +38,10 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
 
     private GoogleMap mMap;
 
@@ -47,6 +63,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        findViewById(R.id.btn_posInput).setOnClickListener(this);
 
     }
 
@@ -129,9 +147,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // 아래에 데이터베이스에 저장하는 로직을 추가
         // 예: SQLiteDatabase.insert(...)
-
-        Log.d("MapActivity", "Latitude DMS: " + latDegrees + "° " + latMinutes + "' " + latSeconds + "''");
-        Log.d("MapActivity", "Longitude DMS: " + lonDegrees + "° " + lonMinutes + "' " + lonSeconds + "''");
+        Toast.makeText(this, "Latitude DMS: " + latDegrees + "° " + latMinutes + "' " + latSeconds + "''", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Longitude DMS: " + lonDegrees + "° " + lonMinutes + "' " + lonSeconds + "''", Toast.LENGTH_SHORT).show();
     }
 
     private double[] decimalToDMS(double decimal) {
@@ -156,7 +173,192 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
 
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.btn_posSelect) {
 
+        }
+
+        if (v.getId() == R.id.btn_posInput) {
+            showDialog();
+        }
+    }
+
+    private void showDialog() {
+        Dialog dialog;
+        dialog = new Dialog(MapActivity.this);
+        dialog.setContentView(R.layout.dialog_pos_input);
+
+        dialog.show();
+
+        TextView tv_title = dialog.findViewById(R.id.di_pos_title);
+        TextView tv_content = dialog.findViewById(R.id.di_pos_content);
+        Button btn_close = dialog.findViewById(R.id.di_pos_closeButton);
+        Button btn_DD = dialog.findViewById(R.id.di_pos_firstButton);
+        Button btn_DMS = dialog.findViewById(R.id.di_pos_secondButton);
+
+        tv_title.setText("좌표 입력 방식");
+        tv_content.setText("좌표 입력 방식을 선택해주세요. 소수점 형식(DD) 또는 도분초 형식(DMS)을 사용할 수 있습니다.");
+
+        btn_DD.setText("DD (위도, 경도)");
+        btn_DMS.setText("DMS (도분초)");
+
+        btn_DD.setTextColor(Color.parseColor("#478A81"));
+        btn_DMS.setTextColor(Color.parseColor("#A87DB0"));
+
+//        btn_DD.setVisibility(View.GONE);
+
+        btn_close.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+
+        btn_DD.setOnClickListener(v -> {
+            dialog.dismiss();
+            showBottomDialog_DD();
+        });
+
+        btn_DMS.setOnClickListener(v -> {
+            dialog.dismiss();
+            showBottomDialog_DMS();
+        });
+    }
+
+    private void showBottomDialog_DD() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        dialog.setContentView(R.layout.dialog_dd);
+
+        dialog.show();
+
+        LinearLayout container = dialog.findViewById(R.id.di_dd_container);
+        View closeBar = dialog.findViewById(R.id.di_dd_closeBar);
+
+        EditText et_latitude = dialog.findViewById(R.id.dl_dd_et1);
+        EditText et_longitude = dialog.findViewById(R.id.dl_dd_et2);
+
+        Button btn_close = dialog.findViewById(R.id.di_dd_closeButton);
+        Button btn_submit = dialog.findViewById(R.id.di_dd_submitButton);
+
+        FrameLayout bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(bottomSheet);
+
+        // 터치 이벤트 리스너
+        container.setOnTouchListener((v, e) -> {
+            // 터치할 때 색상 변경
+            if (e.getAction() == MotionEvent.ACTION_DOWN) {
+                closeBar.setBackgroundColor(Color.parseColor("#478A81"));
+                // 터치가 끝날 때 색상 변경
+            } else if (e.getAction() == MotionEvent.ACTION_UP) {
+                closeBar.setBackgroundColor(Color.parseColor("#60478A81"));
+            }
+            return true;
+        });
+
+        btn_close.setOnClickListener(v ->
+        {
+            dialog.dismiss();
+        });
+
+        behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState) {
+                    case BottomSheetBehavior.STATE_HIDDEN:
+                    case BottomSheetBehavior.STATE_COLLAPSED:
+                        // 다이얼로그가 닫히거나 숨겨질 때 색상 변경
+                        closeBar.setBackgroundColor(Color.parseColor("#60478A81"));
+                        break;
+                    case BottomSheetBehavior.STATE_EXPANDED:
+                        // 다이얼로그가 확장되었을 때 색상 변경
+                        closeBar.setBackgroundColor(Color.parseColor("#478A81"));
+                        break;
+                    case BottomSheetBehavior.STATE_DRAGGING:
+                    case BottomSheetBehavior.STATE_SETTLING:
+                        // 다이얼로그가 드래그되거나 정착 중일 때 색상 변경
+                        closeBar.setBackgroundColor(Color.parseColor("#478A81"));
+                        break;
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
+    }
+
+    private void showBottomDialog_DMS() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        dialog.setContentView(R.layout.dialog_dms);
+
+        dialog.show();
+
+        LinearLayout container = dialog.findViewById(R.id.di_dms_container);
+        View closeBar = dialog.findViewById(R.id.di_dms_closeBar);
+
+        EditText et_degrees1 = dialog.findViewById(R.id.dl_dms_et1);
+        EditText et_degrees2 = dialog.findViewById(R.id.dl_dms_et2);
+
+        EditText et_minutes1 = dialog.findViewById(R.id.dl_dms_et3);
+        EditText et_minutes2 = dialog.findViewById(R.id.dl_dms_et4);
+
+        EditText et_seconds1 = dialog.findViewById(R.id.dl_dms_et5);
+        EditText et_seconds2 = dialog.findViewById(R.id.dl_dms_et6);
+
+        Spinner sp_direction1 = dialog.findViewById(R.id.di_dms_spinner1);
+        Spinner sp_direction2 = dialog.findViewById(R.id.di_dms_spinner2);
+
+        Button btn_close = dialog.findViewById(R.id.di_dms_closeButton);
+        Button btn_submit = dialog.findViewById(R.id.di_dms_submitButton);
+
+        FrameLayout bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        BottomSheetBehavior<FrameLayout> behavior = BottomSheetBehavior.from(bottomSheet);
+
+        container.setOnClickListener(v -> {
+            closeBar.setBackgroundColor(Color.parseColor("#478A81"));
+        });
+
+        btn_close.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+
+        behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState) {
+                    case BottomSheetBehavior.STATE_HIDDEN:
+                    case BottomSheetBehavior.STATE_COLLAPSED:
+                        // 다이얼로그가 닫히거나 숨겨질 때 색상 변경
+                        closeBar.setBackgroundColor(Color.parseColor("#60A87DB0"));
+                        break;
+                    case BottomSheetBehavior.STATE_EXPANDED:
+                        // 다이얼로그가 확장되었을 때 색상 변경
+                        closeBar.setBackgroundColor(Color.parseColor("#A87DB0"));
+                        break;
+                    case BottomSheetBehavior.STATE_DRAGGING:
+                    case BottomSheetBehavior.STATE_SETTLING:
+                        // 다이얼로그가 드래그되거나 정착 중일 때 색상 변경
+                        closeBar.setBackgroundColor(Color.parseColor("#A87DB0"));
+                        break;
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
+
+        // 터치 이벤트 리스너
+        container.setOnTouchListener((v, e) -> {
+            // 터치할 때 색상 변경
+            if (e.getAction() == MotionEvent.ACTION_DOWN) {
+                closeBar.setBackgroundColor(Color.parseColor("#A87DB0"));
+                // 터치가 끝날 때 색상 변경
+            } else if (e.getAction() == MotionEvent.ACTION_UP) {
+                closeBar.setBackgroundColor(Color.parseColor("#60A87DB0"));
+            }
+            return true;
+        });
+    }
 }
-
 
