@@ -51,9 +51,10 @@ import java.util.ArrayList;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
     private GoogleMap mMap;
-    private Marker mMarker;
+    private Marker mMaker;
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private boolean isCreateMaker = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,10 +70,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // NOTE : 버튼 온클릭 리스너 선언
+        findViewById(R.id.btn_posSelect).setOnClickListener(this);
         findViewById(R.id.btn_posInput).setOnClickListener(this);
         findViewById(R.id.btn_arView).setOnClickListener(this);
         findViewById(R.id.btn_scoreInput).setOnClickListener(this);
         findViewById(R.id.btn_scoreList).setOnClickListener(this);
+        findViewById(R.id.btn_deleteMarker).setOnClickListener(this);
     }
 
     // ================================================================ GoogleMap
@@ -94,19 +97,20 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // 지도 클릭 리스너 설정
         mMap.setOnMapClickListener(latLng -> {
-            // 기존 마커가 있는 경우 삭제
-            if (mMarker != null) {
-                mMarker.remove();
+            if (isCreateMaker) {
+                // 커스텀 마커 만들기
+                if (mMaker != null) {
+                    mMaker.remove();
+                }
+                BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
+                mMaker = mMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .title("사용자 위치")
+                        .icon(icon)  // 아이콘 설정
+                        .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+                // 클릭한 위치의 위도, 경도 정보를 DB에 저장
+                saveLocationToDatabase(latLng);
             }
-            // 커스텀 마커 만들기
-            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
-            mMarker = mMap.addMarker(new MarkerOptions()
-                    .position(latLng)
-                    .title("사용자 위치")
-                    .icon(icon)  // 아이콘 설정
-                    .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
-            // 클릭한 위치의 위도, 경도 정보를 DB에 저장
-            saveLocationToDatabase(latLng);
         });
     }
 
@@ -184,24 +188,43 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     // INFO : 버튼 클릭 이벤트 정의 메서드
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.btn_posSelect) {
+        Button btn_posSelect = findViewById(R.id.btn_posSelect);
 
+        // INFO : 좌표 선택 버튼
+        if (v.getId() == R.id.btn_posSelect) {
+            isCreateMaker = !isCreateMaker;
+            if (isCreateMaker) {
+                btn_posSelect.setText("선택 해제");
+                btn_posSelect.setTextColor(Color.parseColor("#D1180B"));
+            } else {
+                btn_posSelect.setText("좌표 선택");
+                btn_posSelect.setTextColor(Color.parseColor("#000000"));
+            }
         }
 
+        // INFO : 좌표 입력 버튼
         if (v.getId() == R.id.btn_posInput) {
             showDialog_posInput();
         }
 
+        // INFO : AR 확인 버튼
         if (v.getId() == R.id.btn_arView) {
             showDialog_arView();
         }
 
+        // INFO : 점수 입력 버튼
         if (v.getId() == R.id.btn_scoreInput) {
             showDialog_scoreInput();
         }
 
+        // INFO : 점수 목록 버튼
         if (v.getId() == R.id.btn_scoreList) {
             showDialog_scoreList();
+        }
+
+        if (v.getId() == R.id.btn_deleteMarker) {
+            mMaker.remove();
+            Toast.makeText(this, mMaker.getId(), Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -245,6 +268,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             showBottomDialog_DMS();
         });
     }
+
     private ArrayList<TurbinesData> tb_list;
 
     // INFO : AR 확인 버튼 클릭 시, 나오는 팝업창
@@ -297,6 +321,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     private ArrayList<ScoreData> sd_list;
+
     // INFO : 점수 입력 **목록** 버튼 클릭시 생기는 팝업창
     private void showDialog_scoreList() {
         Dialog dialog;
@@ -304,9 +329,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         dialog.setContentView(R.layout.dialog_scorelist);
 
         // NOTE : 풍력 발전기 모델 더미 데이터
-        ScoreData data1 = new ScoreData("강화도 A 영향 평가 3KM", "김재엽", "2024년 4월 18일 오후 2시 01분", 3,2,1,0,4);
-        ScoreData data2 = new ScoreData("강화도 A 영향 평가 5KM", "김재엽", "2024년 4월 18일 오후 3시 01분", 4,3,2,1,0);
-        ScoreData data3 = new ScoreData("강화도 A 영향 평가 7KM", "김재엽", "2024년 4월 18일 오후 4시 01분", 2,3,2,1,2);
+        ScoreData data1 = new ScoreData("강화도 A 영향 평가 3KM", "김재엽", "2024년 4월 18일 오후 2시 01분", 3, 2, 1, 0, 4);
+        ScoreData data2 = new ScoreData("강화도 A 영향 평가 5KM", "김재엽", "2024년 4월 18일 오후 3시 01분", 4, 3, 2, 1, 0);
+        ScoreData data3 = new ScoreData("강화도 A 영향 평가 7KM", "김재엽", "2024년 4월 18일 오후 4시 01분", 2, 3, 2, 1, 2);
 
         sd_list = new ArrayList<>();
         sd_list.add(data1);
