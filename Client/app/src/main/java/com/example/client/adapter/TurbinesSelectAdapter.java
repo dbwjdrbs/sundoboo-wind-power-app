@@ -24,11 +24,11 @@ public class TurbinesSelectAdapter extends RecyclerView.Adapter<TurbinesSelectVi
         this.list = list;
     }
 
+    // INFO : 뷰 홀더에 레이아웃을 연결해주는 코드
     @NonNull
     @Override
     public TurbinesSelectViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context context = parent.getContext();
-        // NOTE : 뷰 홀더에 레이아웃을 연결해주는 코드인듯 싶다.
         // NOTE : LayoutInflater -> 레이아웃 XML 파일을 통해, View 객체를 실체화 하는 역할
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.rv_item_turbines, parent, false);
@@ -53,6 +53,7 @@ class TurbinesSelectViewHolder extends RecyclerView.ViewHolder {
     private TextView tv_engName;
     private Button btn_select;
 
+    // INFO : 뷰홀더 내부의 요소들 정의
     public TurbinesSelectViewHolder(@NonNull View itemView) {
         super(itemView);
         // NOTE : 엘리먼트들 가져오기
