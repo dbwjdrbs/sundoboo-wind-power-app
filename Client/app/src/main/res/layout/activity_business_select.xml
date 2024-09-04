@@ -9,7 +9,7 @@
     tools:context="com.example.client.common.BusinessSelectActivity">
 
     <EditText
-        android:layout_width="300dp"
+        android:layout_width="350dp"
         android:layout_height="50dp"
         android:layout_gravity="center_horizontal"
         android:layout_margin="30dp"
