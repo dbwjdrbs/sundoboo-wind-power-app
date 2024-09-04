@@ -48,6 +48,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
     private GoogleMap mMap;
@@ -94,24 +95,31 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
         }
+        // 마커 스타일
 
         // 지도 클릭 리스너 설정
         mMap.setOnMapClickListener(latLng -> {
             if (isCreateMaker) {
-                // 커스텀 마커 만들기
                 if (mMaker != null) {
                     mMaker.remove();
                 }
-                BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
-                mMaker = mMap.addMarker(new MarkerOptions()
-                        .position(latLng)
-                        .title("사용자 위치")
-                        .icon(icon)  // 아이콘 설정
-                        .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
-                // 클릭한 위치의 위도, 경도 정보를 DB에 저장
-                saveLocationToDatabase(latLng);
+              setMaker(latLng);
             }
         });
+    }
+
+    // INFO : 마커 생성 메서드
+    private void setMaker(LatLng latLng) {
+        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+
+        // 마커 생성
+        mMaker = mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .title("사용자 위치")
+                .icon(icon)  // 아이콘 설정
+                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+        // 클릭한 위치의 위도, 경도 정보를 DB에 저장
+        saveLocationToDatabase(latLng);
     }
 
     private void getDeviceLocation() {
@@ -159,8 +167,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // 아래에 데이터베이스에 저장하는 로직을 추가
         // 예: SQLiteDatabase.insert(...)
-        Toast.makeText(this, "Latitude DMS: " + latDegrees + "° " + latMinutes + "' " + latSeconds + "''", Toast.LENGTH_SHORT).show();
-        Toast.makeText(this, "Longitude DMS: " + lonDegrees + "° " + lonMinutes + "' " + lonSeconds + "''", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "Latitude DMS: " + latDegrees + "° " + latMinutes + "' " + latSeconds + "''", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "Longitude DMS: " + lonDegrees + "° " + lonMinutes + "' " + lonSeconds + "''", Toast.LENGTH_SHORT).show();
     }
 
     private double[] decimalToDMS(double decimal) {
@@ -224,7 +232,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         if (v.getId() == R.id.btn_deleteMarker) {
             mMaker.remove();
-            Toast.makeText(this, mMaker.getId(), Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -251,8 +258,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         btn_DD.setTextColor(Color.parseColor("#478A81"));
         btn_DMS.setTextColor(Color.parseColor("#A87DB0"));
-
-//        btn_DD.setVisibility(View.GONE);
 
         btn_close.setOnClickListener(v -> {
             dialog.dismiss();
@@ -388,10 +393,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             return true;
         });
 
-        btn_close.setOnClickListener(v ->
-        {
+        btn_close.setOnClickListener(v -> {
             dialog.dismiss();
         });
+
+        btn_submit.setOnClickListener(v -> {
+            setMaker(new LatLng(Double.parseDouble(String.valueOf(et_latitude.getText())), Double.parseDouble(String.valueOf(et_longitude.getText()))));
+            dialog.dismiss();
+        });
+
 
         behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
@@ -431,17 +441,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         LinearLayout container = dialog.findViewById(R.id.di_dms_container);
         View closeBar = dialog.findViewById(R.id.di_dms_closeBar);
 
-        EditText et_degrees1 = dialog.findViewById(R.id.dl_dms_et1);
-        EditText et_degrees2 = dialog.findViewById(R.id.dl_dms_et2);
+        EditText et_degrees_lat = dialog.findViewById(R.id.dl_dms_et1);
+        EditText et_degrees_lon = dialog.findViewById(R.id.dl_dms_et2);
 
-        EditText et_minutes1 = dialog.findViewById(R.id.dl_dms_et3);
-        EditText et_minutes2 = dialog.findViewById(R.id.dl_dms_et4);
+        EditText et_minutes_lat = dialog.findViewById(R.id.dl_dms_et3);
+        EditText et_minutes_lon = dialog.findViewById(R.id.dl_dms_et4);
 
-        EditText et_seconds1 = dialog.findViewById(R.id.dl_dms_et5);
-        EditText et_seconds2 = dialog.findViewById(R.id.dl_dms_et6);
+        EditText et_seconds_lat = dialog.findViewById(R.id.dl_dms_et5);
+        EditText et_seconds_lon = dialog.findViewById(R.id.dl_dms_et6);
 
-        Spinner sp_direction1 = dialog.findViewById(R.id.di_dms_spinner1);
-        Spinner sp_direction2 = dialog.findViewById(R.id.di_dms_spinner2);
+        Spinner sp_direction_lat = dialog.findViewById(R.id.di_dms_spinner1);
+        Spinner sp_direction_lon = dialog.findViewById(R.id.di_dms_spinner2);
 
         Button btn_close = dialog.findViewById(R.id.di_dms_closeButton);
         Button btn_submit = dialog.findViewById(R.id.di_dms_submitButton);
@@ -454,6 +464,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         });
 
         btn_close.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+
+        btn_submit.setOnClickListener(v -> {
+            double latDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lat), editTextStringToInt(et_minutes_lat), editTextStringToDouble(et_seconds_lat), sp_direction_lat.getSelectedItem().toString());
+            double lonDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lon), editTextStringToInt(et_minutes_lon), editTextStringToDouble(et_seconds_lon), sp_direction_lon.getSelectedItem().toString());
+            setMaker(new LatLng(latDecimal, lonDecimal));
             dialog.dismiss();
         });
 
@@ -495,6 +512,29 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
             return true;
         });
+    }
+
+    // INFO : dms to Decimal 변환
+    private double dmsToDecimal(int degrees, int minutes, double seconds, String direction) {
+        // 도, 분, 초를 소수점 형식으로 변환
+        double decimal = degrees + (minutes / 60.0) + (seconds / 3600.0);
+
+        // 방향에 따라 부호를 조정
+        if (direction.equals("S") || direction.equals("W")) {
+            decimal = -decimal;
+        }
+
+        return decimal;
+    }
+
+    // INFO : editText to Int 변환
+    private int editTextStringToInt(EditText editText) {
+        return Integer.parseInt(String.valueOf(editText.getText()));
+    }
+
+    // INFO : editText to Double 변환
+    private double editTextStringToDouble(EditText editText) {
+        return Double.parseDouble(String.valueOf(editText.getText()));
     }
 }
 

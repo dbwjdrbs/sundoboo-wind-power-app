@@ -39,6 +39,35 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:minHeight="50dp"
+                android:text="Latitude\n▼"
+                android:textAlignment="center"
+                android:textColor="#A87DB0"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:minHeight="50dp"
+                android:text="Longitude\n▼"
+                android:textAlignment="center"
+                android:textColor="#A87DB0"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <TextView
@@ -56,10 +85,10 @@
                 android:id="@+id/dl_dms_et1"
                 android:layout_width="115dp"
                 android:layout_height="wrap_content"
+                android:background="@drawable/et_shadow"
                 android:inputType="text"
-                android:singleLine="true"
                 android:maxLines="1"
-                android:background="@drawable/et_shadow" />
+                android:singleLine="true" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -73,10 +102,10 @@
                 android:id="@+id/dl_dms_et2"
                 android:layout_width="115dp"
                 android:layout_height="wrap_content"
+                android:background="@drawable/et_shadow"
                 android:inputType="text"
-                android:singleLine="true"
                 android:maxLines="1"
-                android:background="@drawable/et_shadow" />
+                android:singleLine="true" />
 
         </LinearLayout>
 
@@ -100,10 +129,10 @@
                 android:id="@+id/dl_dms_et3"
                 android:layout_width="115dp"
                 android:layout_height="wrap_content"
+                android:background="@drawable/et_shadow"
                 android:inputType="text"
-                android:singleLine="true"
                 android:maxLines="1"
-                android:background="@drawable/et_shadow" />
+                android:singleLine="true" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -117,10 +146,10 @@
                 android:id="@+id/dl_dms_et4"
                 android:layout_width="115dp"
                 android:layout_height="wrap_content"
+                android:background="@drawable/et_shadow"
                 android:inputType="text"
-                android:singleLine="true"
                 android:maxLines="1"
-                android:background="@drawable/et_shadow" />
+                android:singleLine="true" />
 
         </LinearLayout>
 
@@ -144,10 +173,10 @@
                 android:id="@+id/dl_dms_et5"
                 android:layout_width="115dp"
                 android:layout_height="wrap_content"
+                android:background="@drawable/et_shadow"
                 android:inputType="text"
-                android:singleLine="true"
                 android:maxLines="1"
-                android:background="@drawable/et_shadow" />
+                android:singleLine="true" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -161,10 +190,10 @@
                 android:id="@+id/dl_dms_et6"
                 android:layout_width="115dp"
                 android:layout_height="wrap_content"
+                android:background="@drawable/et_shadow"
                 android:inputType="text"
-                android:singleLine="true"
                 android:maxLines="1"
-                android:background="@drawable/et_shadow" />
+                android:singleLine="true" />
 
         </LinearLayout>
 
@@ -188,6 +217,7 @@
                 android:id="@+id/di_dms_spinner1"
                 android:layout_width="110dp"
                 android:layout_height="wrap_content"
+                android:entries="@array/방향"
                 android:textColor="@color/black" />
 
             <TextView
@@ -202,6 +232,7 @@
                 android:id="@+id/di_dms_spinner2"
                 android:layout_width="110dp"
                 android:layout_height="wrap_content"
+                android:entries="@array/방향"
                 android:textColor="@color/black" />
 
         </LinearLayout>
