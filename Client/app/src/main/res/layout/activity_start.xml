@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.client.common.MainActivity"
+    tools:context="com.example.client.common.StartActivity"
 
     android:background="@drawable/main_background">
 
@@ -30,7 +30,7 @@
     <Button
         android:id="@+id/btn_start"
         android:layout_width="270dp"
-        android:layout_height="80dp"
+        android:layout_height="60dp"
         android:layout_gravity="center"
         android:layout_marginTop="50dp"
         android:background="@drawable/rounded_border"

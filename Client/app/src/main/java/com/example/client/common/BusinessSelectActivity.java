@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.example.client.R;
 import com.example.client.adapter.BusinessSelectAdapter;
@@ -25,7 +24,7 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        startActivity(new Intent(BusinessSelectActivity.this, MainActivity.class));
+        startActivity(new Intent(BusinessSelectActivity.this, StartActivity.class));
     }
 
     @Override
