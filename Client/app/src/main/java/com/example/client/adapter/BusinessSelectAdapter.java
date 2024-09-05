@@ -5,11 +5,13 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.client.Interface.ItemClickListener;
 import com.example.client.R;
 import com.example.client.common.MapActivity;
 import com.example.client.data.BusinessData;
@@ -17,10 +19,12 @@ import com.example.client.data.BusinessData;
 import java.util.ArrayList;
 
 public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectViewHolder> {
-    ArrayList<BusinessData> list;
+    private ArrayList<BusinessData> list;
+    private ItemClickListener listener;
 
-    public BusinessSelectAdapter(ArrayList<BusinessData> list) {
+    public BusinessSelectAdapter(ArrayList<BusinessData> list, ItemClickListener listener) {
         this.list = list;
+        this.listener = listener;
     }
 
 
@@ -30,7 +34,7 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectVi
         Context context = parent.getContext();
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.rv_item_business, parent, false);
-        return new BusinessSelectViewHolder(view);
+        return new BusinessSelectViewHolder(view, listener);
     }
 
     @Override
@@ -48,11 +52,28 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectVi
 class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
     private TextView title;
     private TextView createdAt;
+    private CheckBox checkBox;
+    private boolean isChecked = false;
 
-    public BusinessSelectViewHolder(@NonNull View itemView) {
+    public BusinessSelectViewHolder(@NonNull View itemView, ItemClickListener listener) {
         super(itemView);
         title = itemView.findViewById(R.id.tv_businessName);
         createdAt = itemView.findViewById(R.id.tv_businessCreatedAt);
+        checkBox = itemView.findViewById(R.id.checkBox);
+
+        checkBox.setOnClickListener(v -> {
+            isChecked = !isChecked;
+            int pos = getAdapterPosition();
+            if (pos != RecyclerView.NO_POSITION) {
+                if (isChecked) {
+                    BusinessData data = new BusinessData(title.getText().toString(), createdAt.getText().toString());
+                    listener.onBusinessItemClick(data);
+                } else {
+                    listener.onBusinessItemClick(null);
+                }
+
+            }
+        });
 
         itemView.setOnClickListener(view -> {
             int pos = getAdapterPosition();
