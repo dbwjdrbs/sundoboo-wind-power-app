@@ -7,18 +7,27 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.client.R;
 import com.example.client.adapter.BusinessSelectAdapter;
+import com.example.client.api.ApiCallback;
+import com.example.client.api.ApiHandler;
+import com.example.client.api.ApiService;
+import com.example.client.api.MappingClass;
+import com.example.client.api.RestClient;
 import com.example.client.data.BusinessData;
 import com.example.client.util.MessageDialog;
 
 import java.util.ArrayList;
 
 public class BusinessSelectActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private ApiHandler apiHandler;
     private ArrayList<BusinessData> list;
     private MessageDialog messageDialog = new MessageDialog();
 
@@ -38,10 +47,14 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         BusinessData data2 = new BusinessData("보령 해상풍력단지", "2024년 4월 24일 오전 10시 33분");
         BusinessData data3 = new BusinessData("울산 부유식 해상풍력단지", "2024년 4월 24일 오전 10시 32분");
 
+
         list = new ArrayList<>();
         list.add(data1);
         list.add(data2);
         list.add(data3);
+
+        ApiService apiService = RestClient.getClient().create(ApiService.class);
+        apiHandler = new ApiHandler(apiService);
 
         // NOTE : 리사이클러뷰 어뎁터 정의
         BusinessSelectAdapter adapter = new BusinessSelectAdapter(list);
@@ -55,30 +68,41 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
 
     @Override
     public void onClick(View v) {
-        // BUG : 입력한 사업명을 추출하기 위해 View를 따로 선언했다.
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_business, null);
 
         if (v.getId() == R.id.btn_businessAdd) {
             new AlertDialog.Builder(this)
                     .setTitle("사업 추가")
-                    // BUG : dialogView 추가
                     .setView(dialogView)
                     .setNegativeButton("취소", (dialog, which) -> dialog.cancel())
                     .setPositiveButton("확인", (dialog, which) -> {
-                        // BUG : EditText 추출 및 String 값 추출
                         EditText businessTitleEt = dialogView.findViewById(R.id.et_businessTitle);
                         String businessTitle = businessTitleEt.getText().toString();
                         if (businessTitle.isEmpty()) {
                             messageDialog.simpleErrorDialog("사업명을 입력해주세요.", this);
                         } else {
-                            // TODO : 비즈니스 로직 생성
-                            messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", this);
+                            ApiService apiService = RestClient.getClient().create(ApiService.class);
+                            apiHandler = new ApiHandler(apiService);
+
+                            apiHandler.getHelloWorld(new ApiCallback<MappingClass.BusinessResponse>() {
+                                @Override
+                                public void onSuccess(MappingClass.BusinessResponse response) {
+                                    String businessName = response.getBusinessName();
+                                    Toast.makeText(BusinessSelectActivity.this, "성공: " + businessName, Toast.LENGTH_SHORT).show();
+                                }
+
+                                @Override
+                                public void onError(String errorMessage) {
+
+                                    Toast.makeText(BusinessSelectActivity.this, "오류: " + errorMessage, Toast.LENGTH_SHORT).show();
+                                }
+
+                            });
                         }
                     })
                     .show();
         }
     }
 
-    // NOTE : OnClickEvent를 Switch 문으로 일괄 처리
 
 }
