@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="방향">
+        <item>N</item>
+        <item>S</item>
+        <item>W</item>
+        <item>E</item>
+    </string-array>
+</resources>

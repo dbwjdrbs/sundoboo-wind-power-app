@@ -16,7 +16,7 @@ import com.example.client.data.BusinessData;
 
 import java.util.ArrayList;
 
-public class BusinessSelectAdapter extends RecyclerView.Adapter<CustomViewHolder> {
+public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectViewHolder> {
     ArrayList<BusinessData> list;
 
     public BusinessSelectAdapter(ArrayList<BusinessData> list) {
@@ -26,15 +26,15 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<CustomViewHolder
 
     @NonNull
     @Override
-    public CustomViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public BusinessSelectViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context context = parent.getContext();
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = inflater.inflate(R.layout.business_item_list, parent, false);
-        return new CustomViewHolder(view);
+        View view = inflater.inflate(R.layout.rv_item_business, parent, false);
+        return new BusinessSelectViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull BusinessSelectViewHolder holder, int position) {
         holder.getTitle().setText(list.get(position).getTitle());
         holder.getCreatedAt().setText("등록 일자 : " + list.get(position).getCreatedAt());
     }
@@ -45,11 +45,11 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<CustomViewHolder
     }
 }
 
-class CustomViewHolder extends RecyclerView.ViewHolder {
+class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
     private TextView title;
     private TextView createdAt;
 
-    public CustomViewHolder(@NonNull View itemView) {
+    public BusinessSelectViewHolder(@NonNull View itemView) {
         super(itemView);
         title = itemView.findViewById(R.id.tv_businessName);
         createdAt = itemView.findViewById(R.id.tv_businessCreatedAt);

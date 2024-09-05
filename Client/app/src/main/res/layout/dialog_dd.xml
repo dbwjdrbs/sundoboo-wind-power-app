@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="#99000000"
     android:gravity="bottom">
 
@@ -11,7 +11,7 @@
         android:id="@+id/di_dd_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_border"
+        android:background="@drawable/rounded_border_dialog"
         android:minWidth="300dp"
         android:orientation="vertical"
         android:padding="20dp">
@@ -57,10 +57,11 @@
                 android:id="@+id/dl_dd_et1"
                 android:layout_width="250dp"
                 android:layout_height="wrap_content"
+                android:background="@drawable/et_shadow"
+                android:digits="0123456789.-"
                 android:inputType="text"
-                android:singleLine="true"
                 android:maxLines="1"
-                android:background="@drawable/et_shadow" />
+                android:singleLine="true" />
         </LinearLayout>
 
         <LinearLayout
@@ -83,10 +84,11 @@
                 android:id="@+id/dl_dd_et2"
                 android:layout_width="250dp"
                 android:layout_height="wrap_content"
+                android:background="@drawable/et_shadow"
+                android:digits="0123456789.-"
                 android:inputType="text"
-                android:singleLine="true"
                 android:maxLines="1"
-                android:background="@drawable/et_shadow" />
+                android:singleLine="true" />
         </LinearLayout>
 
 
@@ -96,11 +98,11 @@
             android:layout_height="40dp"
             android:layout_gravity="end"
             android:backgroundTint="@color/white"
-            app:layout_constraintTop_toTopOf="parent"
             android:text="좌표 등록"
             android:textAlignment="textEnd"
             android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:layout_constraintTop_toTopOf="parent" />
 
     </LinearLayout>
 </LinearLayout>
