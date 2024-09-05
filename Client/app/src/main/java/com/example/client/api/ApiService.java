@@ -1,5 +1,7 @@
 package com.example.client.api;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
@@ -12,30 +14,30 @@ import retrofit2.http.Path;
 // Retrofit이 APiService 인터페이스를 구현해서 HTTP 요청을 처리 하고 응답을 해당 데이터 타입 으로 변환 해줌
 public interface ApiService {
     @POST("/business")
-    Call<BusinessResponse> createBusiness(@Body BusinessRequest request);
+    Call<MappingClass.BusinessResponse> createBusiness(@Body MappingClass.BusinessRequest request);
 
     @GET("/businesses/{business-id}")
-    Call<BusinessResponse> getBusiness(@Path("business-id") long businessId);
+    Call<MappingClass.BusinessResponse> getBusiness(@Path("business-id") long businessId);
 
     @DELETE("/businesses/{business-id}")
     Call<Void> deleteBusiness(@Path("business-id") long businessId);
 
     @GET("/businesses")
-    Call<List<BusinessResponse>> getBusinesses();
+    Call<List<MappingClass.BusinessResponse>> getBusinesses();
 
     @GET("/turbines/{turbine-id}")
-    Call<TurbineResponse> getTurbine(@Path("turbine-id") long turbineId);
+    Call<MappingClass.TurbineResponse> getTurbine(@Path("turbine-id") long turbineId);
 
     @GET("/turbines")
-    Call<List<TurbineResponse>> getTurbines();
+    Call<List<MappingClass.TurbineResponse>> getTurbines();
 
     @POST("/businessScore")
-    Call<BusinessScoreResponse> createBusinessScore(@Body BusinessScoreRequest request);
+    Call<MappingClass.BusinessScoreResponse> createBusinessScore(@Body MappingClass.BusinessScoreRequest request);
 
     @GET("/businessScore/{business-score-id}")
-    Call<BusinessScoreResponse> getBusinessScore(@Path("business-score-id") long businessScoreId);
+    Call<MappingClass.BusinessScoreResponse> getBusinessScore(@Path("business-score-id") long businessScoreId);
 
     @GET("/businessScore")
-    Call<List<BusinessScoreResponse>> getBusinessScores();
+    Call<List<MappingClass.BusinessScoreResponse>> getBusinessScores();
 }
 
