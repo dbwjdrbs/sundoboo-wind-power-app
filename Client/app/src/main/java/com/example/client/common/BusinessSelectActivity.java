@@ -71,8 +71,8 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                         if (businessTitle.isEmpty()) {
                             messageDialog.simpleErrorDialog("사업명을 입력해주세요.", this);
                         } else {
-                            messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", this);
                             // TODO : 비즈니스 로직 생성
+                            messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", this);
                         }
                     })
                     .show();
