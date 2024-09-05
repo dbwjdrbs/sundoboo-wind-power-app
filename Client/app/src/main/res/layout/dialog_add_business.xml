@@ -7,9 +7,10 @@
     android:paddingRight="10dp">
 
     <EditText
-        android:id="@+id/addboxdialog"
+        android:id="@+id/et_businessTitle"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:hint="사업명을 입력해주세요."
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp" />
 </LinearLayout>

@@ -11,18 +11,15 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,6 +29,7 @@ import com.example.client.adapter.ScoreListAdapter;
 import com.example.client.adapter.TurbinesSelectAdapter;
 import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
+import com.example.client.util.MessageDialog;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -48,7 +46,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
     private GoogleMap mMap;
@@ -56,17 +53,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean isCreateMaker = false;
-
+    private MessageDialog messageDialog = new MessageDialog();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+
         // SupportMapFragment를 찾아서 지도가 준비되었을 때 콜백을 받을 수 있도록 설정
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -100,26 +98,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // 지도 클릭 리스너 설정
         mMap.setOnMapClickListener(latLng -> {
             if (isCreateMaker) {
-                if (mMaker != null) {
-                    mMaker.remove();
-                }
-              setMaker(latLng);
+                setMaker(latLng);
             }
         });
-    }
-
-    // INFO : 마커 생성 메서드
-    private void setMaker(LatLng latLng) {
-        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
-
-        // 마커 생성
-        mMaker = mMap.addMarker(new MarkerOptions()
-                .position(latLng)
-                .title("사용자 위치")
-                .icon(icon)  // 아이콘 설정
-                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
-        // 클릭한 위치의 위도, 경도 정보를 DB에 저장
-        saveLocationToDatabase(latLng);
     }
 
     private void getDeviceLocation() {
@@ -197,7 +178,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     public void onClick(View v) {
         Button btn_posSelect = findViewById(R.id.btn_posSelect);
-
         // INFO : 좌표 선택 버튼
         if (v.getId() == R.id.btn_posSelect) {
             isCreateMaker = !isCreateMaker;
@@ -231,9 +211,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
         if (v.getId() == R.id.btn_deleteMarker) {
-            mMaker.remove();
+            if (mMaker != null) {
+                mMaker.remove();
+                mMaker = null;
+                messageDialog.simpleCompleteDialog("마커가 초기화 되었습니다.", this);
+            } else {
+                messageDialog.simpleErrorDialog("생성된 마커가 없습니다.", this);
+            }
         }
-
     }
 
     // INFO : 좌표 입력 버튼 클릭 시, 나오는 팝업창
@@ -314,13 +299,29 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         dialog = new Dialog(MapActivity.this);
         dialog.setContentView(R.layout.dialog_score_input);
 
-        Button btn_close = dialog.findViewById(R.id.dl_score_input_closeButton);
+        EditText et_title = dialog.findViewById(R.id.dl_score_input_et1);
+        EditText et_observerName = dialog.findViewById(R.id.dl_score_input_et2);
 
-        // NOTE : X 버튼 클릭 시 종료 이벤트 구현
+        Button btn_close = dialog.findViewById(R.id.dl_score_input_closeButton);
+        Button btn_submit = dialog.findViewById(R.id.dl_score_input_submitButton);
+
+        // INFO : X 버튼 클릭 이벤트
         btn_close.setOnClickListener(v -> {
             dialog.dismiss();
         });
-        // TODO : 선택 버튼 클릭 이벤트 구현 하기
+
+        // INFO : 점수 등록 버튼 클릭 이벤트
+        btn_submit.setOnClickListener(v -> {
+            if (et_title.getText().toString().isEmpty()) {
+                messageDialog.simpleErrorDialog("명칭을 작성해주세요.", this);
+            } else if (et_observerName.getText().toString().isEmpty()) {
+                messageDialog.simpleErrorDialog("관찰자명을 작성해주세요.", this);
+            } else {
+                messageDialog.simpleCompleteDialog("점수 등록이 완료되었습니다.", this);
+                dialog.dismiss();
+                // TODO : 점수 등록 비지니스 로직 추가
+            }
+        });
 
         dialog.show();
     }
@@ -364,7 +365,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     // INFO : 좌표 입력 -> DD 클릭시 나오는 하단 팝업창
     private void showBottomDialog_DD() {
-        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.DialogStyle);
         dialog.setContentView(R.layout.dialog_dd);
 
         dialog.show();
@@ -397,9 +398,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             dialog.dismiss();
         });
 
+        // INFO : 완료 버튼 클릭 이벤트
         btn_submit.setOnClickListener(v -> {
-            setMaker(new LatLng(Double.parseDouble(String.valueOf(et_latitude.getText())), Double.parseDouble(String.valueOf(et_longitude.getText()))));
-            dialog.dismiss();
+            // NOTE : EditText 부분이 비었을 경우를 대비한 예외 처리.
+            if (et_latitude.getText().toString().isEmpty()) {
+                messageDialog.simpleErrorDialog("Latitude를 작성해주세요.", this);
+            } else if (et_longitude.getText().toString().isEmpty()) {
+                messageDialog.simpleErrorDialog("Longitude를 작성해주세요.", this);
+            } else {
+                messageDialog.simpleCompleteDialog("마커 등록이 완료 되었습니다.", this);
+                setMaker(new LatLng(Double.parseDouble(String.valueOf(et_latitude.getText())), Double.parseDouble(String.valueOf(et_longitude.getText()))));
+                dialog.dismiss();
+            }
         });
 
 
@@ -433,7 +443,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     // INFO : 좌표 입력 -> DMS 클릭시 나오는 하단 팝업창
     private void showBottomDialog_DMS() {
-        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.DialogStyle);
         dialog.setContentView(R.layout.dialog_dms);
 
         dialog.show();
@@ -467,11 +477,27 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             dialog.dismiss();
         });
 
+        // INFO : 좌표 등록 버튼 클릭 이벤트
         btn_submit.setOnClickListener(v -> {
-            double latDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lat), editTextStringToInt(et_minutes_lat), editTextStringToDouble(et_seconds_lat), sp_direction_lat.getSelectedItem().toString());
-            double lonDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lon), editTextStringToInt(et_minutes_lon), editTextStringToDouble(et_seconds_lon), sp_direction_lon.getSelectedItem().toString());
-            setMaker(new LatLng(latDecimal, lonDecimal));
-            dialog.dismiss();
+            if (et_degrees_lat.getText().toString().isEmpty()) {
+                messageDialog.simpleErrorDialog("Latitude의 Degrees 부분을 작성해주세요.", this);
+            } else if (et_degrees_lon.getText().toString().isEmpty()) {
+                messageDialog.simpleErrorDialog("Longitude의 Degrees 부분을 작성해주세요.", this);
+            } else if (et_minutes_lat.getText().toString().isEmpty()) {
+                messageDialog.simpleErrorDialog("Latitude의 Minutes 부분을 작성해주세요.", this);
+            } else if (et_minutes_lon.getText().toString().isEmpty()) {
+                messageDialog.simpleErrorDialog("Longitude의 Minutes 부분을 작성해주세요.", this);
+            } else if (et_seconds_lat.getText().toString().isEmpty()) {
+                messageDialog.simpleErrorDialog("Latitude의 Seconds 부분을 작성해주세요.", this);
+            } else if (et_seconds_lon.getText().toString().isEmpty()) {
+                messageDialog.simpleErrorDialog("Longitude의 Seconds 부분을 작성해주세요.", this);
+            } else {
+                messageDialog.simpleCompleteDialog("마커 등록이 완료 되었습니다.", this);
+                double latDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lat), editTextStringToInt(et_minutes_lat), editTextStringToDouble(et_seconds_lat), sp_direction_lat.getSelectedItem().toString());
+                double lonDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lon), editTextStringToInt(et_minutes_lon), editTextStringToDouble(et_seconds_lon), sp_direction_lon.getSelectedItem().toString());
+                setMaker(new LatLng(latDecimal, lonDecimal));
+                dialog.dismiss();
+            }
         });
 
         behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -535,6 +561,27 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     // INFO : editText to Double 변환
     private double editTextStringToDouble(EditText editText) {
         return Double.parseDouble(String.valueOf(editText.getText()));
+    }
+
+
+    // INFO : 마커 생성 메서드
+    private void setMaker(LatLng latLng) {
+        // NOTE : 마커 스타일
+        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+
+        // NOTE : 마커가 이미 존재할 경우, 생성 되지 않도록 설계
+        if (mMaker != null) {
+            messageDialog.errorDialog("","마커가 이미 존재합니다. 오른쪽 상단에 초기화 버튼을 클릭한 뒤, 다시 생성해주세요.", this);
+        } else {
+            // 마커 생성
+            mMaker = mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .title("사업 위치")
+                    .icon(icon)  // 아이콘 설정
+                    .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+            // 클릭한 위치의 위도, 경도 정보를 DB에 저장
+            saveLocationToDatabase(latLng);
+        }
     }
 }
 
