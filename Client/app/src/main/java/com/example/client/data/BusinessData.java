@@ -4,6 +4,9 @@ public class BusinessData {
     private String title;
     private String createdAt;
 
+    public BusinessData() {
+    }
+
     public BusinessData(String title, String createdAt) {
         this.title = title;
         this.createdAt = createdAt;

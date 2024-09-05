@@ -9,6 +9,7 @@
     tools:context="com.example.client.common.BusinessSelectActivity">
 
     <EditText
+        android:id="@+id/et_business_search"
         android:layout_width="350dp"
         android:layout_height="50dp"
         android:layout_gravity="center_horizontal"
@@ -20,8 +21,8 @@
         android:hint="사업명을 입력하세요."
         android:imeOptions="actionDone"
         android:inputType="text"
-        android:maxLines="1"
-        android:paddingStart="10dp" />
+        android:paddingStart="10dp"
+        android:singleLine="true" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_businessSelect"
@@ -45,8 +46,8 @@
             android:layout_height="50dp"
             android:layout_marginRight="30dp"
             android:background="@drawable/rounded_border_lightblue"
-            android:textColor="@android:color/black"
             android:text="사업 추가"
+            android:textColor="@android:color/black"
             android:textSize="18dp" />
 
         <Button
@@ -54,8 +55,8 @@
             android:layout_width="140dp"
             android:layout_height="50dp"
             android:background="@drawable/rounded_border_lightblue"
-            android:textColor="@android:color/black"
             android:text="사업 삭제"
+            android:textColor="@android:color/black"
             android:textSize="18dp" />
     </LinearLayout>
 

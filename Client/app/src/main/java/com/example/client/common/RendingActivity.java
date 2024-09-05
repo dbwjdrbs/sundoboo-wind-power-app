@@ -73,7 +73,7 @@ public class RendingActivity extends AppCompatActivity {
     }
 
     private void performActionWithPermissions() {
-        Intent intent = new Intent(RendingActivity.this, MainActivity.class);
+        Intent intent = new Intent(RendingActivity.this, StartActivity.class);
         startActivity(intent);
         finish();
     }

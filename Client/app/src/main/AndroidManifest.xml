@@ -35,7 +35,7 @@
             android:windowSoftInputMode="adjustPan"
             android:exported="true" />
         <activity
-            android:name=".common.MainActivity"
+            android:name=".common.StartActivity"
             android:exported="false"
             android:label="@string/title_activity_start"
             android:theme="@style/Theme.Client" />
