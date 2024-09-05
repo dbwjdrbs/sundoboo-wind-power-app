@@ -9,7 +9,7 @@ import android.widget.Toast;
 
 import com.example.client.R;
 
-public class MainActivity extends AppCompatActivity {
+public class StartActivity extends AppCompatActivity {
     // NOTE : 뒤로가기 두 번 클릭시 앱 종료  ============================================================
     private long backKeyPressedTime = 0;  // NOTE : 초 저장
 
@@ -31,11 +31,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_start);
 
         Button btn_start = findViewById(R.id.btn_start);
         btn_start.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, BusinessSelectActivity.class);
+            Intent intent = new Intent(StartActivity.this, BusinessSelectActivity.class);
             startActivity(intent);
             finish();
         });
