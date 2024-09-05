@@ -8,18 +8,19 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.client.R;
 import com.example.client.adapter.BusinessSelectAdapter;
 import com.example.client.data.BusinessData;
+import com.example.client.util.MessageDialog;
 
 import java.util.ArrayList;
 
 public class BusinessSelectActivity extends AppCompatActivity implements View.OnClickListener {
     private ArrayList<BusinessData> list;
+    private MessageDialog messageDialog = new MessageDialog();
 
     @Override
     public void onBackPressed() {
@@ -54,23 +55,24 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
 
     @Override
     public void onClick(View v) {
-        final EditText input = new EditText(this);
-        input.setHint("사업명을 입력하세요"); // 힌트 설정
-
-        // EditText 크기 조정
-        input.setLayoutParams(new ViewGroup.LayoutParams(100, 100));
+        // BUG : 입력한 사업명을 추출하기 위해 View를 따로 선언했다.
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_business, null);
 
         if (v.getId() == R.id.btn_businessAdd) {
             new AlertDialog.Builder(this)
                     .setTitle("사업 추가")
-                    .setView(R.layout.addboxdialog)
+                    // BUG : dialogView 추가
+                    .setView(dialogView)
                     .setNegativeButton("취소", (dialog, which) -> dialog.cancel())
                     .setPositiveButton("확인", (dialog, which) -> {
-                        String name = input.getText().toString();
-                        if (!name.isEmpty()) {
-                            Toast.makeText(BusinessSelectActivity.this, "등록된 사업명: " + name, Toast.LENGTH_SHORT).show();
+                        // BUG : EditText 추출 및 String 값 추출
+                        EditText businessTitleEt = dialogView.findViewById(R.id.et_businessTitle);
+                        String businessTitle = businessTitleEt.getText().toString();
+                        if (businessTitle.isEmpty()) {
+                            messageDialog.simpleErrorDialog("사업명을 입력해주세요.", this);
                         } else {
-                            Toast.makeText(BusinessSelectActivity.this, "사업명을 입력해주세요.", Toast.LENGTH_SHORT).show();
+                            messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", this);
+                            // TODO : 비즈니스 로직 생성
                         }
                     })
                     .show();

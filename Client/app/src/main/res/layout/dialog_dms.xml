@@ -10,7 +10,7 @@
         android:id="@+id/di_dms_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/rounded_border"
+        android:background="@drawable/rounded_border_dialog"
         android:minWidth="300dp"
         android:orientation="vertical"
         android:padding="20dp">
@@ -86,6 +86,7 @@
                 android:layout_width="115dp"
                 android:layout_height="wrap_content"
                 android:background="@drawable/et_shadow"
+                android:digits="0123456789.-"
                 android:inputType="text"
                 android:maxLines="1"
                 android:singleLine="true" />
@@ -102,6 +103,7 @@
                 android:id="@+id/dl_dms_et2"
                 android:layout_width="115dp"
                 android:layout_height="wrap_content"
+                android:digits="0123456789.-"
                 android:background="@drawable/et_shadow"
                 android:inputType="text"
                 android:maxLines="1"
@@ -131,6 +133,7 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/et_shadow"
                 android:inputType="text"
+                android:digits="0123456789.-"
                 android:maxLines="1"
                 android:singleLine="true" />
 
@@ -147,6 +150,7 @@
                 android:layout_width="115dp"
                 android:layout_height="wrap_content"
                 android:background="@drawable/et_shadow"
+                android:digits="0123456789.-"
                 android:inputType="text"
                 android:maxLines="1"
                 android:singleLine="true" />
@@ -175,6 +179,7 @@
                 android:layout_height="wrap_content"
                 android:background="@drawable/et_shadow"
                 android:inputType="text"
+                android:digits="0123456789.-"
                 android:maxLines="1"
                 android:singleLine="true" />
 
