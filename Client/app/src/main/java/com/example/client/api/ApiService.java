@@ -29,7 +29,7 @@ public interface ApiService {
     Call<MappingClass.TurbineResponse> getTurbine(@Path("turbine-id") long turbineId);
 
     @GET("/turbines")
-    Call<List<MappingClass.TurbineResponse>> getTurbines();
+    Call<List<MappingClass.TurbineResponse>> getTurbine();
 
     @POST("/businessScore")
     Call<MappingClass.BusinessScoreResponse> createBusinessScore(@Body MappingClass.BusinessScoreRequest request);
@@ -39,5 +39,8 @@ public interface ApiService {
 
     @GET("/businessScore")
     Call<List<MappingClass.BusinessScoreResponse>> getBusinessScores();
+
+    @GET("/businesses")
+    Call<MappingClass.BusinessResponse> getHelloWorld();
 }
 

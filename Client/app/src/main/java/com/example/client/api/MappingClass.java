@@ -7,8 +7,25 @@ public class MappingClass {
         private String businessName;
     }
 
+
     public class BusinessResponse {
         private long businessId;
+        private String businessName;
+
+
+
+        public BusinessResponse(long businessId, String businessName) {
+            this.businessId = businessId;
+            this.businessName = businessName;
+        }
+
+        public String getBusinessName() {
+            return businessName;
+        }
+        public long getBusinessId() {
+            return businessId;
+        }
+
     }
 
     public class TurbineResponse {
