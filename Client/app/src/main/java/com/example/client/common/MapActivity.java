@@ -54,6 +54,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean isCreateMaker = false;
     private MessageDialog messageDialog = new MessageDialog();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -405,6 +406,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 messageDialog.simpleErrorDialog("Latitude를 작성해주세요.", this);
             } else if (et_longitude.getText().toString().isEmpty()) {
                 messageDialog.simpleErrorDialog("Longitude를 작성해주세요.", this);
+            } else if (mMaker != null) {
+                messageDialog.simpleErrorDialog("이미 마커가 존재합니다.", this);
             } else {
                 messageDialog.simpleCompleteDialog("마커 등록이 완료 되었습니다.", this);
                 setMaker(new LatLng(Double.parseDouble(String.valueOf(et_latitude.getText())), Double.parseDouble(String.valueOf(et_longitude.getText()))));
@@ -491,6 +494,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 messageDialog.simpleErrorDialog("Latitude의 Seconds 부분을 작성해주세요.", this);
             } else if (et_seconds_lon.getText().toString().isEmpty()) {
                 messageDialog.simpleErrorDialog("Longitude의 Seconds 부분을 작성해주세요.", this);
+            } else if (mMaker != null) {
+                messageDialog.simpleErrorDialog("이미 마커가 존재합니다.", this);
             } else {
                 messageDialog.simpleCompleteDialog("마커 등록이 완료 되었습니다.", this);
                 double latDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lat), editTextStringToInt(et_minutes_lat), editTextStringToDouble(et_seconds_lat), sp_direction_lat.getSelectedItem().toString());
@@ -571,7 +576,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // NOTE : 마커가 이미 존재할 경우, 생성 되지 않도록 설계
         if (mMaker != null) {
-            messageDialog.errorDialog("","마커가 이미 존재합니다. 오른쪽 상단에 초기화 버튼을 클릭한 뒤, 다시 생성해주세요.", this);
+            messageDialog.errorDialog("", "마커가 이미 존재합니다. 오른쪽 상단에 초기화 버튼을 클릭한 뒤, 다시 생성해주세요.", this);
         } else {
             // 마커 생성
             mMaker = mMap.addMarker(new MarkerOptions()
