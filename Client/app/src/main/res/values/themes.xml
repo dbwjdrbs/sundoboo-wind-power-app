@@ -1,9 +1,18 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Client" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
+    <!-- NOTE : 애플리케이션 기본 태마 -->
+<!--    <style name="Base.Theme.Client" parent="Theme.Material3.DayNight.NoActionBar">-->
+    <!-- NOTE : 하얀색 태마로 변경  -->
+    <style name="Theme.MaterialExam" parent="Theme.AppCompat.DayNight.NoActionBar">
+
+    <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
-    <style name="Theme.Client" parent="Base.Theme.Client" />
+    <style name="DialogStyle" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+    </style>
+
+    <style name="Theme.Client" parent="Theme.MaterialExam" />
 </resources>

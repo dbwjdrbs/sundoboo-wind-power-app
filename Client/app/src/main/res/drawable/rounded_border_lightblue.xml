@@ -1,0 +1,13 @@
+<!-- res/drawable/rounded_border.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 배경색 -->
+    <solid android:color="#FFFFFF" />
+
+    <!-- 테두리 -->
+    <stroke
+        android:width="2dp"
+        android:color="#8AC7D9" />
+
+    <!-- 둥근 모서리 설정 -->
+    <corners android:radius="16dp" />
+</shape>
