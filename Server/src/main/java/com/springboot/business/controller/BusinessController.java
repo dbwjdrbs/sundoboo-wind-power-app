@@ -14,9 +14,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/businesses")
 @Validated
 public class BusinessController {
-    @GetMapping()
-    public ResponseEntity helloWorld(){
-        BusinessResponseDto response = new BusinessResponseDto(1,"김영진");
-        return new ResponseEntity( response ,HttpStatus.OK);
-    }
+
 }
