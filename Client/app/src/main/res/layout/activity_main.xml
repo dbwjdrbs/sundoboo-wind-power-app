@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.example.sundoboo.common.MainActivity"
+    tools:context="com.example.client.common.MainActivity"
 
     android:background="@drawable/main_background">
 
@@ -33,7 +33,7 @@
         android:layout_height="80dp"
         android:layout_gravity="center"
         android:layout_marginTop="50dp"
-        android:backgroundTint="@color/white"
+        android:background="@drawable/rounded_border"
         android:text="평가 시작하기"
         android:textColor="@color/black"
         android:textSize="20dp"
