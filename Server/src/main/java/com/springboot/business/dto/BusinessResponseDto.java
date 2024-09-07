@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class BusinessResponseDto {
+public class
+
+BusinessResponseDto {
     private long businessId;
     private String businessName;
 }
