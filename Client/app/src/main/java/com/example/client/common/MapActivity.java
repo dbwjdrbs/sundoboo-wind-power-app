@@ -8,10 +8,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -45,16 +51,31 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener {
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, TurbinesSelectAdapter.OnItemClickListener {
     private GoogleMap mMap;
-    private Marker mMaker;
+    private Marker mMarker;
     private FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
-    private boolean isCreateMaker = false;
+    private boolean isCreateMarker = false;
+    private boolean isOnClickMarker = false;
+    private String[] currentMarkerPositions = new String[2];
     private MessageDialog messageDialog = new MessageDialog();
+    private List<Marker> markerList = new ArrayList<>();
 
+    // INFO : Unity 연동을 위한 것들
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
+    private Sensor magnetometer;
+    private float[] gravity;
+    private float[] geomagnetic;
+    private float azimuth = 0f;
+
+    // ======================================
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +89,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         // NOTE : 버튼 온클릭 리스너 선언
         findViewById(R.id.btn_posSelect).setOnClickListener(this);
@@ -98,10 +122,60 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // 지도 클릭 리스너 설정
         mMap.setOnMapClickListener(latLng -> {
-            if (isCreateMaker) {
-                setMaker(latLng);
+            if (isCreateMarker) {
+                setMarker(latLng);
             }
         });
+
+        // INFO : 마커 온클릭
+        googleMap.setOnMarkerClickListener(marker -> {
+            isOnClickMarker = true;
+            double latitude = marker.getPosition().latitude;
+            double longitude = marker.getPosition().longitude;
+            currentMarkerPositions[0] = String.valueOf(latitude);
+            currentMarkerPositions[1] = String.valueOf(longitude);
+
+            // NOTE : 마커 지역 특정 코드
+            Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
+            try {
+                // 위치에 대한 주소 정보 가져오기
+                List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address address = addresses.get(0);
+                    String fullAddress = address.getAdminArea();// 전체 주소
+                    // 예시: 서울특별시 강남구 테헤란로 123
+
+                    // 주소를 Toast로 표시
+                    Toast.makeText(MapActivity.this, "주소: " + fullAddress + "\n " + address.getLocality(), Toast.LENGTH_SHORT).show();
+                } else {
+                    // 주소를 찾지 못했을 경우
+                    Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // NOTE : true를 반환하면 기본 마커 클릭 동작(지도 중심으로 이동 등)이 막힘.
+            // NOTE : false를 반환하면 기본 동작이 실행됨.
+            return false;
+        });
+    }
+
+
+    // INFO : 마커 생성 메서드
+    private void setMarker(LatLng latLng) {
+        // NOTE : 마커 스타일
+        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+        // NOTE : 마커가 이미 존재할 경우, 생성 되지 않도록 설계
+
+        mMarker = mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .icon(icon)  // 아이콘 설정
+                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+        // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
+        markerList.add(mMarker);
+        saveLocationToDatabase(latLng);
+        messageDialog.simpleCompleteDialog("마커 등록이 완료되었습니다.", this);
     }
 
     private void getDeviceLocation() {
@@ -173,7 +247,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
     }
-    // ================================================================================
+// ================================================================================
 
     // INFO : 버튼 클릭 이벤트 정의 메서드
     @Override
@@ -181,8 +255,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Button btn_posSelect = findViewById(R.id.btn_posSelect);
         // INFO : 좌표 선택 버튼
         if (v.getId() == R.id.btn_posSelect) {
-            isCreateMaker = !isCreateMaker;
-            if (isCreateMaker) {
+            isCreateMarker = !isCreateMarker;
+            if (isCreateMarker) {
                 btn_posSelect.setText("선택 해제");
                 btn_posSelect.setTextColor(Color.parseColor("#D1180B"));
             } else {
@@ -198,7 +272,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // INFO : AR 확인 버튼
         if (v.getId() == R.id.btn_arView) {
-            showDialog_arView();
+            if (isOnClickMarker) {
+                showDialog_arView();
+            } else {
+                messageDialog.simpleErrorDialog("마커를 선택해주세요.", this);
+            }
         }
 
         // INFO : 점수 입력 버튼
@@ -212,9 +290,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
         if (v.getId() == R.id.btn_deleteMarker) {
-            if (mMaker != null) {
-                mMaker.remove();
-                mMaker = null;
+            if (mMarker != null) {
+                for (Marker marker : markerList) {
+                    marker.remove();
+                }
+                markerList.clear();
+                mMarker = null;
+                isOnClickMarker = false;
+                currentMarkerPositions = null;
                 messageDialog.simpleCompleteDialog("마커가 초기화 되었습니다.", this);
             } else {
                 messageDialog.simpleErrorDialog("생성된 마커가 없습니다.", this);
@@ -277,19 +360,20 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         tb_list.add(data2);
 
         // NOTE : 리사이클러뷰 어뎁터 정의
-        TurbinesSelectAdapter adapter = new TurbinesSelectAdapter(tb_list);
+        TurbinesSelectAdapter adapter = new TurbinesSelectAdapter(tb_list, this);
         RecyclerView recyclerView = dialog.findViewById(R.id.di_rv);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
         recyclerView.setAdapter(adapter);
 
-        Button btn_close = dialog.findViewById(R.id.di_arview_closeButton);
+        Button btn_close = dialog.findViewById(R.id.dl_arview_closeButton);
+//        Button btn_select = dialog.findViewById(R.id.di_arview_selectButton);
 
         // NOTE : X 버튼 클릭 시 종료 이벤트 구현
         btn_close.setOnClickListener(v -> {
             dialog.dismiss();
         });
-        // TODO : 선택 버튼 클릭 이벤트 구현 하기
+
 
         dialog.show();
     }
@@ -338,12 +422,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // NOTE : 풍력 발전기 모델 더미 데이터
         ScoreData data1 = new ScoreData("강화도 A 영향 평가 3KM", "김재엽", "2024년 4월 18일 오후 2시 01분", 3, 2, 1, 0, 4);
         ScoreData data2 = new ScoreData("강화도 A 영향 평가 5KM", "김재엽", "2024년 4월 18일 오후 3시 01분", 4, 3, 2, 1, 0);
-        ScoreData data3 = new ScoreData("강화도 A 영향 평가 7KM", "김재엽", "2024년 4월 18일 오후 4시 01분", 2, 3, 2, 1, 2);
 
         sd_list = new ArrayList<>();
         sd_list.add(data1);
         sd_list.add(data2);
-        sd_list.add(data3);
 
         // NOTE : 리사이클러뷰 어뎁터 정의
         ScoreListAdapter adapter = new ScoreListAdapter(sd_list);
@@ -406,11 +488,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 messageDialog.simpleErrorDialog("Latitude를 작성해주세요.", this);
             } else if (et_longitude.getText().toString().isEmpty()) {
                 messageDialog.simpleErrorDialog("Longitude를 작성해주세요.", this);
-            } else if (mMaker != null) {
-                messageDialog.simpleErrorDialog("이미 마커가 존재합니다.", this);
             } else {
                 messageDialog.simpleCompleteDialog("마커 등록이 완료 되었습니다.", this);
-                setMaker(new LatLng(Double.parseDouble(String.valueOf(et_latitude.getText())), Double.parseDouble(String.valueOf(et_longitude.getText()))));
+                setMarker(new LatLng(Double.parseDouble(String.valueOf(et_latitude.getText())), Double.parseDouble(String.valueOf(et_longitude.getText()))));
                 dialog.dismiss();
             }
         });
@@ -494,13 +574,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 messageDialog.simpleErrorDialog("Latitude의 Seconds 부분을 작성해주세요.", this);
             } else if (et_seconds_lon.getText().toString().isEmpty()) {
                 messageDialog.simpleErrorDialog("Longitude의 Seconds 부분을 작성해주세요.", this);
-            } else if (mMaker != null) {
-                messageDialog.simpleErrorDialog("이미 마커가 존재합니다.", this);
             } else {
                 messageDialog.simpleCompleteDialog("마커 등록이 완료 되었습니다.", this);
                 double latDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lat), editTextStringToInt(et_minutes_lat), editTextStringToDouble(et_seconds_lat), sp_direction_lat.getSelectedItem().toString());
                 double lonDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lon), editTextStringToInt(et_minutes_lon), editTextStringToDouble(et_seconds_lon), sp_direction_lon.getSelectedItem().toString());
-                setMaker(new LatLng(latDecimal, lonDecimal));
+                setMarker(new LatLng(latDecimal, lonDecimal));
                 dialog.dismiss();
             }
         });
@@ -549,7 +627,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private double dmsToDecimal(int degrees, int minutes, double seconds, String direction) {
         // 도, 분, 초를 소수점 형식으로 변환
         double decimal = degrees + (minutes / 60.0) + (seconds / 3600.0);
-
         // 방향에 따라 부호를 조정
         if (direction.equals("S") || direction.equals("W")) {
             decimal = -decimal;
@@ -568,25 +645,77 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         return Double.parseDouble(String.valueOf(editText.getText()));
     }
 
-
-    // INFO : 마커 생성 메서드
-    private void setMaker(LatLng latLng) {
-        // NOTE : 마커 스타일
-        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
-
-        // NOTE : 마커가 이미 존재할 경우, 생성 되지 않도록 설계
-        if (mMaker != null) {
-            messageDialog.errorDialog("", "마커가 이미 존재합니다. 오른쪽 상단에 초기화 버튼을 클릭한 뒤, 다시 생성해주세요.", this);
-        } else {
-            // 마커 생성
-            mMaker = mMap.addMarker(new MarkerOptions()
-                    .position(latLng)
-                    .title("사업 위치")
-                    .icon(icon)  // 아이콘 설정
-                    .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
-            // 클릭한 위치의 위도, 경도 정보를 DB에 저장
-            saveLocationToDatabase(latLng);
-        }
+    // INFO : AR뷰 보기
+    @Override
+    public void onArViewButtonClick(int position) {
+        getLocationAndSendToUnity();
     }
+
+    private void getLocationAndSendToUnity() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+                double currentLatitude = location.getLatitude();
+                double currentLongitude = location.getLongitude();
+
+                // 물체 위치
+                double objectLatitude = Double.parseDouble(currentMarkerPositions[0]);
+                double objectLongitude = Double.parseDouble(currentMarkerPositions[1]);
+
+                // 방향값을 계산
+                azimuth = calculateAzimuth();
+
+                // Unity에 전달
+                sendDataToUnity(currentLatitude, currentLongitude, objectLatitude, objectLongitude, azimuth);
+            }
+        });
+    }
+
+    private float calculateAzimuth() {
+        float[] R = new float[9];
+        float[] I = new float[9];
+        if (gravity != null && geomagnetic != null) {
+            boolean success = SensorManager.getRotationMatrix(R, I, gravity, geomagnetic);
+            if (success) {
+                float[] orientation = new float[3];
+                SensorManager.getOrientation(R, orientation);
+                return (float) Math.toDegrees(orientation[0]); // NOTE : 방위각
+            }
+        }
+        return 0f;
+    }
+
+    private void sendDataToUnity(double currentLat, double currentLon, double objectLat, double objectLon, float azimuth) {
+//        Intent intent = new Intent(this, UnityPlayerActivity.class);
+//        intent.putExtra("current_latitude", currentLat);
+//        intent.putExtra("current_longitude", currentLon);
+//        intent.putExtra("object_latitude", objectLat);
+//        intent.putExtra("object_longitude", objectLon);
+//        intent.putExtra("azimuth", azimuth);
+//        startActivity(intent);
+    }
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)
+            gravity = event.values;
+        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD)
+            geomagnetic = event.values;
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // 필요 시 사용
+    }
+
 }
 

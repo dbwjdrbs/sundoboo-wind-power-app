@@ -19,7 +19,7 @@
             android:layout_height="wrap_content">
 
             <TextView
-                android:id="@+id/di_arview_title"
+                android:id="@+id/dl_arview_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="50dp"
@@ -30,7 +30,7 @@
                 android:textStyle="bold" />
 
             <Button
-                android:id="@+id/di_arview_closeButton"
+                android:id="@+id/dl_arview_closeButton"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_alignParentEnd="true"

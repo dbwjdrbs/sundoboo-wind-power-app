@@ -11,7 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.client.Interface.ItemClickListener;
+import com.example.client.Interface.BusinessSelectItemClickListener;
 import com.example.client.R;
 import com.example.client.common.MapActivity;
 import com.example.client.data.BusinessData;
@@ -20,13 +20,12 @@ import java.util.ArrayList;
 
 public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectViewHolder> {
     private ArrayList<BusinessData> list;
-    private ItemClickListener listener;
+    private BusinessSelectItemClickListener listener;
 
-    public BusinessSelectAdapter(ArrayList<BusinessData> list, ItemClickListener listener) {
+    public BusinessSelectAdapter(ArrayList<BusinessData> list, BusinessSelectItemClickListener listener) {
         this.list = list;
         this.listener = listener;
     }
-
 
     @NonNull
     @Override
@@ -55,7 +54,7 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
     private CheckBox checkBox;
     private boolean isChecked = false;
 
-    public BusinessSelectViewHolder(@NonNull View itemView, ItemClickListener listener) {
+    public BusinessSelectViewHolder(@NonNull View itemView, BusinessSelectItemClickListener listener) {
         super(itemView);
         title = itemView.findViewById(R.id.tv_businessName);
         createdAt = itemView.findViewById(R.id.tv_businessCreatedAt);

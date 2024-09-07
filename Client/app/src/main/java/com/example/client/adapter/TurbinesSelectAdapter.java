@@ -1,7 +1,8 @@
 package com.example.client.adapter;
 
 import android.content.Context;
-import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,16 +13,26 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.client.R;
-import com.example.client.common.MapActivity;
 import com.example.client.data.TurbinesData;
 
 import java.util.ArrayList;
 
 public class TurbinesSelectAdapter extends RecyclerView.Adapter<TurbinesSelectViewHolder> {
-    ArrayList<TurbinesData> list;
+    public interface OnItemClickListener {
+        void onArViewButtonClick(int position);
 
-    public TurbinesSelectAdapter(ArrayList<TurbinesData> list) {
+        void onSensorChanged(SensorEvent event);
+
+        void onAccuracyChanged(Sensor sensor, int accuracy);
+    }
+
+    ArrayList<TurbinesData> list;
+    OnItemClickListener listener;
+
+
+    public TurbinesSelectAdapter(ArrayList<TurbinesData> list, OnItemClickListener listener) {
         this.list = list;
+        this.listener = listener;
     }
 
     // INFO : 뷰 홀더에 레이아웃을 연결해주는 코드
@@ -40,6 +51,12 @@ public class TurbinesSelectAdapter extends RecyclerView.Adapter<TurbinesSelectVi
         // NOTE : 뷰 홀더에 보이는 엘리먼트들을 정의해줌.
         holder.getKorName().setText(list.get(position).getTitle());
         holder.getEngName().setText(list.get(position).getEngTitle());
+
+        holder.getBtn_select().setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onArViewButtonClick(position);
+            }
+        });
     }
 
     @Override
@@ -68,5 +85,9 @@ class TurbinesSelectViewHolder extends RecyclerView.ViewHolder {
 
     public TextView getEngName() {
         return this.tv_engName;
+    }
+
+    public Button getBtn_select() {
+        return btn_select;
     }
 }

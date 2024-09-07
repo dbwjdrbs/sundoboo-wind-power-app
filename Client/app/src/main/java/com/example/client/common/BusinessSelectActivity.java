@@ -12,7 +12,7 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.example.client.Interface.ItemClickListener;
+import com.example.client.Interface.BusinessSelectItemClickListener;
 import com.example.client.R;
 import com.example.client.adapter.BusinessSelectAdapter;
 import com.example.client.data.BusinessData;
@@ -20,7 +20,7 @@ import com.example.client.util.MessageDialog;
 
 import java.util.ArrayList;
 
-public class BusinessSelectActivity extends AppCompatActivity implements View.OnClickListener, ItemClickListener {
+public class BusinessSelectActivity extends AppCompatActivity implements View.OnClickListener, BusinessSelectItemClickListener {
     private ArrayList<BusinessData> list;
     private MessageDialog messageDialog = new MessageDialog();
     private BusinessData businessData;
