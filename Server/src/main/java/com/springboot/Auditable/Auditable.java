@@ -1,24 +1,21 @@
-package com.springboot.business.dto;
+package com.springboot.Auditable;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.Column;
+import javax.persistence.EntityListeners;
+import javax.persistence.MappedSuperclass;
 import java.time.LocalDateTime;
 
-@Setter
 @Getter
-@AllArgsConstructor
-@NoArgsConstructor
-public class BusinessPostDto {
-
-    @Column(nullable = false, length = 20)
-    private String BusinessTitle;
-
+@Setter
+@MappedSuperclass
+@EntityListeners({AuditingEntityListener.class})
+public abstract class Auditable {
     @CreatedDate
     @Column(name = "CREATED_AT", updatable = false)
     private LocalDateTime createdAt;
