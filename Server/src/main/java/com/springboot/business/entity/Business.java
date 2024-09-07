@@ -1,6 +1,7 @@
 package com.springboot.business.entity;
 
-import com.springboot.businessscore.entity.BusinessScore;
+import com.springboot.Auditable.Auditable;
+import com.springboot.businessscore.entity.Score;
 import com.springboot.location.entity.Location;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.List;
 @Setter
 @Entity
 @NoArgsConstructor
-public class Business {
+public class Business extends Auditable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,6 +24,7 @@ public class Business {
 
     @Column(nullable = false, length = 100)
     private String businessTitle;
+
 
     // 비지니스 수정과 삭제 갱신 등등 전부 다 로케인션과 정보를 건드는거
     @OneToMany(mappedBy = "business", cascade = CascadeType.ALL)
@@ -36,12 +38,12 @@ public class Business {
     }
 
     @OneToMany(mappedBy = "business", cascade = CascadeType.ALL)
-    private List<BusinessScore> businessScores = new ArrayList<>();
+    private List<Score> scores = new ArrayList<>();
 
-    public void addBusinessScores(BusinessScore businessScore) {
-        this.businessScores.add(businessScore);
-        if (businessScore.getBusiness() != this){
-            businessScore.addBusiness(this);
+    public void addBusinessScores(Score score) {
+        this.scores.add(score);
+        if (score.getBusiness() != this){
+            score.addBusiness(this);
         }
     }
 
