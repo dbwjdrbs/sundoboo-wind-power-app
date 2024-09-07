@@ -17,28 +17,25 @@ public class BusinessScore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
     private long businessScore;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 20)
     private String businessScoreTitle;
 
     @Column(nullable = false, length = 20)
     private String observerName;
 
-    @Column(nullable = false)
-    private int score1;
+    private int scoreList1 = 1;
 
-    @Column(nullable = false)
-    private int score2;
+    private int scoreList2 = 1;
 
-    @Column(nullable = false)
-    private int Score3;
+    private int ScoreList3 = 1;
 
-    @Column(nullable = false)
-    private int Score4;
+    private int ScoreList4 = 1;
 
-    @Column(nullable = false)
-    private LocalDateTime modifiedAt = LocalDateTime.now();
+    LocalDateTime createdAt = LocalDateTime.now();
+    LocalDateTime deletedAt = LocalDateTime.now();
 
     @ManyToOne
     @JoinColumn(name = "Business_ID")
