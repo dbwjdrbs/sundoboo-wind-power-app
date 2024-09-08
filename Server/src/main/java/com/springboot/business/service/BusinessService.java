@@ -38,6 +38,7 @@ public class BusinessService {
         }
     }
     public Business findverifyExistBusiness(long businessId){
+        // 객체로 받아야지만 널포인트 안터지는거 명심! 컨트롤러에 객체로 전달해주는 로직임
         Optional<Business> business = businessRepository.findById(businessId);
         return business.orElseThrow(() -> new BusinessLogicException(ExceptionCode.BUSINESS_NOT_FOUND));
     }

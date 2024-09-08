@@ -20,7 +20,7 @@ public class Business extends Auditable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
-    private long BusinessesId;
+    private long businessesId;
 
     @Column(nullable = false, length = 100)
     private String businessTitle;

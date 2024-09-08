@@ -1,6 +1,5 @@
 package com.springboot.businessscore.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,11 +10,11 @@ import org.springframework.data.annotation.LastModifiedDate;
 import javax.persistence.Column;
 import java.time.LocalDateTime;
 
-@Setter
 @Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ScorePostDto {
+public class ScoreResponseDto {
 
     @Column(nullable = false)
     private long businessId;
@@ -23,13 +22,13 @@ public class ScorePostDto {
     @Column(nullable = false, length = 20)
     private String businessScoreTitle;
 
-    private int scoreList1;
+    private int ScoreList1;
 
-    private int scoreList2;
+    private int ScoreList2;
 
-    private int scoreList3;
+    private int ScoreList3;
 
-    private int scoreList4;
+    private int ScoreList4;
 
     @Column(nullable = false, length = 20)
     private String observerName;
@@ -41,5 +40,4 @@ public class ScorePostDto {
     @LastModifiedDate
     @Column(name = "LAST_MODIFIED_AT")
     private LocalDateTime modifiedAt;
-
 }
