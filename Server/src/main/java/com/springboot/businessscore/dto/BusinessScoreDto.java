@@ -3,6 +3,8 @@ package com.springboot.businessscore.dto;
 import com.springboot.utils.validator.NotSpace;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotNull;
@@ -10,7 +12,8 @@ import javax.validation.constraints.Positive;
 
 public class BusinessScoreDto {
     @Getter
-    @AllArgsConstructor
+    @Setter
+    @NoArgsConstructor
     public static class Post{
 
         @Positive
