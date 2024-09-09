@@ -76,5 +76,6 @@ public class RendingActivity extends AppCompatActivity {
         Intent intent = new Intent(RendingActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
+        // TODO: 전체조회 비즈니스로직 가져오기.
     }
 }
