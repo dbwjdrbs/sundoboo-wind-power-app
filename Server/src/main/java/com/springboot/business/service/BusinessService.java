@@ -27,11 +27,11 @@ public class BusinessService {
 
 
     public Business createdBusiness(Business business){
-                    verifyExistBusinessId(business.getBusinessTitle());
+        verifyExistBusinessTitle(business.getBusinessTitle());
                     return businessRepository.save(business);
     }
 
-    public void verifyExistBusinessId(String businessTitle){
+    public void verifyExistBusinessTitle(String businessTitle){
         Optional<Business> findByBusinessTitle = businessRepository.findByBusinessTitle(businessTitle);
         if (findByBusinessTitle.isPresent()){
             throw new BusinessLogicException(ExceptionCode.BUSINESS_EXISTS);

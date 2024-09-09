@@ -1,4 +1,4 @@
-package com.springboot.businessscore.dto;
+package com.springboot.location.dto;
 
 
 import lombok.AllArgsConstructor;
@@ -15,24 +15,31 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ScorePostDto {
+public class LocationPostDto {
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private long businessId;
 
+    // 이거는 후순위로 넣는건가? 애매띠
     @Column(nullable = false, length = 20)
-    private String businessScoreTitle;
+    private long turbineId;
 
-    private int scoreList1;
+    private String businessTitle;
 
-    private int scoreList2;
+    private String modelName;
 
-    private int scoreList3;
+    @Column(length = 100)
+    private String latitude;
 
-    private int scoreList4;
+    @Column(length = 100)
+    private String longitude;
 
-    @Column(nullable = false, length = 20)
-    private String observerName;
+    @Column(length = 20)
+    private String city;
+
+    @Column(length = 20)
+    private String island;
+
 
     @CreatedDate
     @Column(name = "CREATED_AT", updatable = false)
@@ -41,5 +48,9 @@ public class ScorePostDto {
     @LastModifiedDate
     @Column(name = "LAST_MODIFIED_AT")
     private LocalDateTime modifiedAt;
+
+
+
+
 
 }

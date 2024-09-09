@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity(name = "SCORE")
 @NoArgsConstructor
-public class Score extends Auditable{
+public class BusinessScore extends Auditable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,8 +51,8 @@ public class Score extends Auditable{
 
     public void addBusiness(Business business) {
         this.business = business;
-        if(!this.business.getScores().contains(this)){
-            this.business.getScores().add(this);
+        if(!this.business.getBusinessScores().contains(this)){
+            this.business.getBusinessScores().add(this);
         }
     }
 

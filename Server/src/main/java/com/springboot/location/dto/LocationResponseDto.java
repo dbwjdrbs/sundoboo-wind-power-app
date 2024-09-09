@@ -1,9 +1,6 @@
-package com.springboot.location.entity;
+package com.springboot.location.dto;
 
 
-import com.springboot.Auditable.Auditable;
-import com.springboot.business.entity.Business;
-import com.springboot.turbines.entity.Turbine;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,19 +8,28 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
-import javax.persistence.*;
+import javax.persistence.Column;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@Entity
 @AllArgsConstructor
-public class Location extends Auditable{
+@NoArgsConstructor
+public class LocationResponseDto {
+    @Column(nullable = false, length = 20)
+    private long businessId;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    // 이거는 후순위로 넣는건가? 애매띠
+    @Column(nullable = false, length = 20)
+    private long turbineId;
+
+    @Column(nullable = false, length = 20)
     private long locationId;
+
+    private String businessTitle;
+
+    private String modelName;
 
     @Column(length = 100)
     private String latitude;
@@ -45,22 +51,5 @@ public class Location extends Auditable{
     @LastModifiedDate
     @Column(name = "LAST_MODIFIED_AT")
     private LocalDateTime modifiedAt;
-
-    @ManyToOne
-    @JoinColumn(name = "TURBINE_ID")
-    private Turbine turbine;
-
-
-    @ManyToOne
-    @JoinColumn(name = "BUSINESS_ID")
-    private Business business;
-
-
-    public void addBusiness(Business business){
-        this.business = business;
-        if (!business.getLocations().contains(this)){
-            this.business.getLocations().add(this);
-        }
-    }
 
 }

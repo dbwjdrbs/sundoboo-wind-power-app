@@ -1,4 +1,5 @@
-package com.springboot.businessscore.dto;
+package com.springboot.location.dto;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,28 +11,32 @@ import org.springframework.data.annotation.LastModifiedDate;
 import javax.persistence.Column;
 import java.time.LocalDateTime;
 
-@Getter
+
 @Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ScoreResponseDto {
-
-    @Column(nullable = false)
-    private long businessId;
-
+public class LocationPatchDto {
     @Column(nullable = false, length = 20)
-    private String businessScoreTitle;
+    private long locationId;
 
-    private int ScoreList1;
-
-    private int ScoreList2;
-
-    private int ScoreList3;
-
-    private int ScoreList4;
-
+    // 이거는 후순위로 넣는건가? 애매띠
     @Column(nullable = false, length = 20)
-    private String observerName;
+    private long turbineId;
+
+
+    @Column(length = 100)
+    private String latitude;
+
+    @Column(length = 100)
+    private String longitude;
+
+    @Column(length = 20)
+    private String city;
+
+    @Column(length = 20)
+    private String island;
+
 
     @CreatedDate
     @Column(name = "CREATED_AT", updatable = false)

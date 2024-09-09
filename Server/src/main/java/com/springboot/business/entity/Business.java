@@ -1,7 +1,7 @@
 package com.springboot.business.entity;
 
 import com.springboot.Auditable.Auditable;
-import com.springboot.businessscore.entity.Score;
+import com.springboot.businessscore.entity.BusinessScore;
 import com.springboot.location.entity.Location;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,12 +38,12 @@ public class Business extends Auditable{
     }
 
     @OneToMany(mappedBy = "business", cascade = CascadeType.ALL)
-    private List<Score> scores = new ArrayList<>();
+    private List<BusinessScore> businessScores = new ArrayList<>();
 
-    public void addBusinessScores(Score score) {
-        this.scores.add(score);
-        if (score.getBusiness() != this){
-            score.addBusiness(this);
+    public void addBusinessScores(BusinessScore businessScore) {
+        this.businessScores.add(businessScore);
+        if (businessScore.getBusiness() != this){
+            businessScore.addBusiness(this);
         }
     }
 
