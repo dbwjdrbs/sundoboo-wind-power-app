@@ -22,7 +22,7 @@ public class Business extends Auditable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long businessId;
 
-    @Column(nullable = true, length = 20)
+    @Column(nullable = false, length = 20)
     private String businessTitle;
 
     @OneToMany(mappedBy = "business", cascade = {CascadeType.PERSIST, CascadeType.MERGE})

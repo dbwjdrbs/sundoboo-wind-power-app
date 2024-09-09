@@ -29,9 +29,13 @@ public class BusinessScoreDto {
         private int scoreList3;
         @Range(min = 1, max = 5)
         private int scoreList4;
+        @NotSpace
+        @NotNull
         private String observerName;
 
     }
+
+
 
 
 }
