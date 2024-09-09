@@ -41,4 +41,11 @@ public class BusinessScore extends Auditable {
     @Column(nullable = false, length = 20)
     private String observerName;
 
+
+    public void addBusiness(Business business) {
+        this.business = business;
+        if(!this.business.getBusinessScoreList().contains(this)){
+            this.business.getBusinessScoreList().add(this);
+        }
+    }
 }
