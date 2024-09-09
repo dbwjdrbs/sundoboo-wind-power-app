@@ -49,6 +49,7 @@ public class BusinessController {
         return new ResponseEntity(new SingleResponseDto<>(businessMapper.businessToBusinessResponseDto(getBusiness)), HttpStatus.OK);
     }
 
+    
     @GetMapping()
     public ResponseEntity getBusinesses(@Positive @RequestParam int page,
                                       @Positive @RequestParam int size,

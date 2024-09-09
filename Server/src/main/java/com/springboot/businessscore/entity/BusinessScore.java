@@ -48,7 +48,7 @@ public class BusinessScore extends Auditable{
     @ManyToOne
     @JoinColumn(name = "BUSINESS_ID")
     private Business business;
-
+    
     public void addBusiness(Business business) {
         this.business = business;
         if(!this.business.getBusinessScores().contains(this)){
