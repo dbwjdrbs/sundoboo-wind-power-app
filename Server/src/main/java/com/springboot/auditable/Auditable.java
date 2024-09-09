@@ -28,5 +28,4 @@ public abstract class Auditable {
     @Column(name = "DELETED_AT")
     private LocalDateTime deletedAt;
 
-
 }
