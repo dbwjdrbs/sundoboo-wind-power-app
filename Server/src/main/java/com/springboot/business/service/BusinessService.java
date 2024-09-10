@@ -22,6 +22,7 @@ public class BusinessService {
     }
 
     public Business createBusiness(Business business) {
+        businessTitleNotBlank(business.getBusinessTitle());
         verifyBusinessTitle(business.getBusinessTitle());
         return businessRepository.save(business);
     }
@@ -82,5 +83,14 @@ public class BusinessService {
         }
 
         return businessList;
+    }
+
+    public void businessTitleNotBlank(String businessTitle){
+        if (businessTitle.isEmpty()){
+            throw new BusinessLogicException(ExceptionCode.BUSINESS_TITLE_NOT_NULL);
+        }
+        if (businessTitle.length() > 20){
+            throw new BusinessLogicException(ExceptionCode.BUSINESS_TITLE_TOO_LONG);
+        }
     }
 }
