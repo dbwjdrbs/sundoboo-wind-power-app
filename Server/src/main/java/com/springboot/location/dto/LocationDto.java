@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
+import java.time.LocalDateTime;
 
 public class LocationDto {
 
@@ -35,6 +36,8 @@ public class LocationDto {
 
         @Column(length = 20)
         private String island;
+
+        private LocalDateTime deletedAt;
     }
     @Getter
     @Setter
@@ -47,6 +50,10 @@ public class LocationDto {
         @Column(nullable = false, length = 20)
         private long turbineId;
 
+        @Column(nullable = false)
+        private long businessId;
+
+        private String modelName;
 
         @Column(length = 100)
         private String latitude;
@@ -90,5 +97,7 @@ public class LocationDto {
 
         @Column(length = 20)
         private String island;
+
+        private LocalDateTime deletedAt;
     }
 }

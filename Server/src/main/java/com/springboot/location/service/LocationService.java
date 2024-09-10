@@ -26,7 +26,6 @@ public class LocationService {
     private final LocationRepository locationRepository;
     private final TurbineRepository turbineRepository;
 
-    @Autowired
     public LocationService(BusinessService businessService, LocationRepository locationRepository, TurbineRepository turbineRepository) {
         this.businessService = businessService;
         this.locationRepository = locationRepository;
@@ -51,59 +50,69 @@ public class LocationService {
         location.setTurbine(findTurbine); // 실제 Turbine 설정
 
         // 널에 안걸렸다면 찾은 비지니스 아이디를 findBusiness 할당
-        Business findBusiness = businessService.findverifyExistBusiness(location.getBusiness().getBusinessId());
+        Business findBusiness = businessService.verifyExistBusiness(location.getBusiness().getBusinessId());
         location.addBusiness(findBusiness);
         return locationRepository.save(location);
     }
 
-//    public Location patchLocation(Location location){
-//
-//
-//        Location findLocation = findVerifyExistLocation(location.getLocationId());
-//        // 비지니스아디 검증하는 로직 필요할까? 쳐피 로케이션 한번 누르고 이후 재검증할 때 하는건디.. 우선 주석 처리
-//        Business business = businessService.findverifyExistBusiness(location.getBusiness().getBusinessId());
-//        location.setBusiness(business);
-//
-//        // Turbine ID가 유효한 경우에만 조회
-//        if (location.getTurbine() != null && location.getTurbine().getTurbineId() > 0) {
-//            Turbine turbine = turbineRepository.findById(location.getTurbine().getTurbineId())
-//                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND));
-//            findLocation.setTurbine(turbine);
-//        } else {
-//            // Turbine이 없으면 예외 처리
-//            throw new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND);
-//        }
-//
-//        Optional.ofNullable(location.getLatitude())
-//                .ifPresent(latitude -> findLocation.setLatitude(latitude));
-//        Optional.ofNullable(location.getLongitude())
-//                .ifPresent(longitude -> findLocation.setLongitude(longitude));
-//        Optional.ofNullable(location.getCity())
-//                .ifPresent(city -> findLocation.setCity(city));
-//        Optional.ofNullable(location.getIsland())
-//                .ifPresent(island -> findLocation.setIsland(island));
-//
-//        findLocation.setModifiedAt(LocalDateTime.now());
-//        return locationRepository.save(findLocation);
-//
-//
-//    }
-//
-//    public Location findVerifyExistLocation(long locationId){
-//        Optional<Location> location = locationRepository.findById(locationId);
-//        return location.orElseThrow(() -> new BusinessLogicException(ExceptionCode.LOCATION_NOT_FOUND));
-//    }
-//    public Page<Location> findLocation(long businessId, int page, int size){
-//
-//
-//        return locationRepository.findByBusinessId(businessId, PageRequest.of(page, size, Sort.by("business_id").descending()));
-//
-//    }
+    public Location patchLocation(Location location){
+
+
+        Location findLocation = findVerifyExistLocation(location.getLocationId());
+        // 비지니스아디 검증하는 로직 필요할까? 쳐피 로케이션 한번 누르고 이후 재검증할 때 하는건디.. 우선 주석 처리
+        Business business = businessService.verifyExistBusiness(location.getBusiness().getBusinessId());
+        findLocation.setBusiness(business);
+
+        // Turbine ID가 유효한 경우에만 조회
+        if (location.getTurbine() != null && location.getTurbine().getTurbineId() > 0) {
+            Turbine turbine = turbineRepository.findById(location.getTurbine().getTurbineId())
+                    .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND));
+            findLocation.setTurbine(turbine);
+        } else {
+            // Turbine이 없으면 예외 처리
+            throw new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND);
+        }
+
+        Optional.ofNullable(location.getLatitude())
+                .ifPresent(latitude -> findLocation.setLatitude(latitude));
+        Optional.ofNullable(location.getLongitude())
+                .ifPresent(longitude -> findLocation.setLongitude(longitude));
+        Optional.ofNullable(location.getCity())
+                .ifPresent(city -> findLocation.setCity(city));
+        Optional.ofNullable(location.getIsland())
+                .ifPresent(island -> findLocation.setIsland(island));
+
+        findLocation.setModifiedAt(LocalDateTime.now());
+        return locationRepository.save(findLocation);
+
+
+    }
+
+    public Location findVerifyExistLocation(long locationId){
+        Optional<Location> optionalLocation = locationRepository.findById(locationId);
+
+        Location findByLocationId =
+                optionalLocation.orElseThrow(() -> new BusinessLogicException(ExceptionCode.LOCATION_NOT_FOUND));
+        if (findByLocationId.getDeletedAt() != null){
+          throw new BusinessLogicException(ExceptionCode.LOCATION_NOT_FOUND);
+        }
+        return findByLocationId;
+    }
 
 
     public Page<Location> findLocations(int page, int size){
         return locationRepository.findAll( PageRequest.of(page, size, Sort.by("createdAt").descending()));
     }
+    // 어쳐피 같은 비지니스 아이디를 받으니까 정렬할 때는 로케이션 아이디 기준으로 정렬
+    public Page<Location> findLocation(long businessId, int page, int size){
+        Business findBusiness = businessService.verifyExistBusiness(businessId);
+        return locationRepository.findByBusiness(findBusiness, PageRequest.of(page, size, Sort.by("locationId").descending()));
 
+    }
+    public void deleteLocation(long locationId) {
+        Location findLocation = findVerifyExistLocation(locationId);
+//        findLocation.setDeletedAt(LocalDateTime.now());
+        locationRepository.delete(findLocation);
+    }
 
 }

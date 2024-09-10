@@ -45,37 +45,42 @@ public class BusinessService {
     //    검증메서드, 삭제내역, 아이디가 없을 시 예외 처리
     public Business verifyExistBusiness(long businessId) {
         Optional<Business> optionalBusiness = businessRepository.findById(businessId);
+
         Business findByBusinessId =
                 optionalBusiness.orElseThrow(() -> new BusinessLogicException(ExceptionCode.BUSINESS_NOT_FOUND));
+
         if (findByBusinessId.getDeletedAt() != null) {
-            new BusinessLogicException(ExceptionCode.BUSINESS_NOT_FOUND);
+            throw new BusinessLogicException(ExceptionCode.BUSINESS_NOT_FOUND);
         }
+
         return findByBusinessId;
     }
 
-    public Business findverifyExistBusiness(long businessId) {
-        // 객체로 받아야지만 널포인트 안터지는거 명심! 컨트롤러에 객체로 전달해주는 로직임
-        Optional<Business> business = businessRepository.findById(businessId);
-        return business.orElseThrow(() -> new BusinessLogicException(ExceptionCode.BUSINESS_NOT_FOUND));
-    }
+//    public Business findverifyExistBusiness(long businessId) {
+//        // 객체로 받아야지만 널포인트 안터지는거 명심! 컨트롤러에 객체로 전달해주는 로직임
+//        Optional<Business> business = businessRepository.findById(businessId);
+//
+//        return business.orElseThrow(() -> new BusinessLogicException(ExceptionCode.BUSINESS_NOT_FOUND));
+//    }
 
     public Page<Business> getBusinesses(int page, int size, String direction) {
         PageDirection enumDirection = PageDirection.valueOf(direction);
 
         Page<Business> businessList;
+
         switch (enumDirection) {
             case PAGE_CREATEDATASC:
-                businessList = businessRepository.findAll(
+                businessList = businessRepository.findByDeletedAtIsNull(
                         PageRequest.of(page, size, Sort.by("businessTitle").descending()));
                 break;
             case PAGE_CREATEDATDESC:
-                businessList = businessRepository.findAll(
+                businessList = businessRepository.findByDeletedAtIsNull(
                         PageRequest.of(page, size, Sort.by("businessTitle").ascending()));
                 break;
             default:
                 throw new IllegalArgumentException("Invalid direction parameter: " + direction);
         }
-        return businessList;
 
+        return businessList;
     }
 }

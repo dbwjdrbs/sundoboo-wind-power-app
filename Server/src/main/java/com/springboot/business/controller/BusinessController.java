@@ -46,7 +46,7 @@ public class BusinessController {
 
     @GetMapping("/{business-id}")
     public ResponseEntity getBusiness(@PathVariable("business-id") @Positive long businessId){
-        Business getBusiness = businessService.findverifyExistBusiness(businessId);
+        Business getBusiness = businessService.verifyExistBusiness(businessId);
         return new ResponseEntity(new SingleResponseDto<>(businessMapper.businessToBusinessResponseDto(getBusiness)), HttpStatus.OK);
     }
 
@@ -56,6 +56,7 @@ public class BusinessController {
                                         @Positive @RequestParam int size,
                                         @RequestParam String direction){
         Page<Business> businessPage = businessService.getBusinesses( page -1, size, direction);
+
         return new ResponseEntity(
                 new MultiResponseDto<>(
                         businessMapper.businessToBusinessResponseDtos(businessPage.getContent()), businessPage), HttpStatus.OK);
