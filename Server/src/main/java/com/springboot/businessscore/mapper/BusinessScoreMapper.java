@@ -17,25 +17,25 @@ public interface BusinessScoreMapper {
     @Mapping(source = "businessId", target = "business.businessId")
     BusinessScore businessScorePostDtoToBusinessScore(BusinessScoreDto.Post requestBody);
 
-    default BusinessScore businessScorePostDtoToScore(BusinessScoreDto.Post requestBody) {
-        Business business = new Business();
-        business.setBusinessId(requestBody.getBusinessId());
-        BusinessScore businessScore = new BusinessScore();
-        businessScore.setBusiness(business);
-        businessScore.setBusinessScoreTitle(requestBody.getBusinessScoreTitle());
-        businessScore.setScoreList1(requestBody.getScoreList1());
-        businessScore.setScoreList2(requestBody.getScoreList2());
-        businessScore.setScoreList3(requestBody.getScoreList3());
-        businessScore.setScoreList4(requestBody.getScoreList4());
-        businessScore.setObserverName(requestBody.getObserverName());
-
-
-        return businessScore;
-    }
+//    default BusinessScore businessScorePostDtoToScore(BusinessScoreDto.Post requestBody) {
+//        Business business = new Business();
+//        business.setBusinessId(requestBody.getBusinessId());
+//        BusinessScore businessScore = new BusinessScore();
+//        businessScore.setBusiness(business);
+//        businessScore.setBusinessScoreTitle(requestBody.getBusinessScoreTitle());
+//        businessScore.setScoreList1(requestBody.getScoreList1());
+//        businessScore.setScoreList2(requestBody.getScoreList2());
+//        businessScore.setScoreList3(requestBody.getScoreList3());
+//        businessScore.setScoreList4(requestBody.getScoreList4());
+//        businessScore.setObserverName(requestBody.getObserverName());
+//
+//
+//        return businessScore;
+//    }
 
     default BusinessScoreDto.Response businessScoreToBusinessScoreResponseDto(BusinessScore businessScore) {
         BusinessScoreDto.Response responseDto = new BusinessScoreDto.Response();
-        responseDto.setScoreId(businessScore.getBusinessScoreId());
+        responseDto.setBusinessScoreId(businessScore.getBusinessScoreId());
         responseDto.setBusinessId(businessScore.getBusiness().getBusinessId());
         responseDto.setBusinessScoreTitle(businessScore.getBusinessScoreTitle());
         responseDto.setScoreList1(businessScore.getScoreList1());

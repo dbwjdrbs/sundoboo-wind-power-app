@@ -17,9 +17,13 @@ import java.util.stream.Collectors;
 public interface BusinessMapper {
     Business businessPostDtoToBusiness(BusinessDto.Post requestBody);
 
+    // 매핑이 자동으로 안되는거는 어노테이션으로 따로 ㄱ
     @Mapping( source = "turbine.turbineId", target = "turbineId")
     @Mapping( source = "business.businessId", target = "businessId")
+    @Mapping( source = "turbine.modelName", target = "modelName")
+    @Mapping( source = "business.businessTitle", target = "businessTitle")
     LocationDto.Response locationToLocationResponseDto(Location location);
+
 
     @Mapping(source = "business.businessId", target = "businessId" )
     BusinessScoreDto.Response businessScoreToBusinessScoreResponseDto(BusinessScore businessScore);
@@ -30,6 +34,8 @@ public interface BusinessMapper {
         BusinessDto.Response responseDto = new BusinessDto.Response();
         responseDto.setBusinessTitle(business.getBusinessTitle());
         responseDto.setBusinessId(business.getBusinessId());
+        responseDto.setCreatedAt(business.getCreatedAt());
+        responseDto.setDeletedAt(business.getDeletedAt());
         // 위처럼 넣으면 타입이 안맞아서 리스트 객체로 받는 코드 설정
 
         List<BusinessScoreDto.Response> businessScoreResponseDtos = business.getBusinessScoreList().stream()

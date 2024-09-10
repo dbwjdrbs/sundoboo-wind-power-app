@@ -40,9 +40,9 @@ public class LocationController {
     }
 
     @PostMapping
-    public ResponseEntity postLocation(@Valid @RequestBody LocationDto.Post requestBody) {
+    public ResponseEntity postLocation(@Valid @RequestBody LocationDto.Post requestBody){
 
-        Business business = businessService.findverifyExistBusiness(requestBody.getBusinessId());
+        Business business = businessService.verifyExistBusiness(requestBody.getBusinessId());
 
         Location location = locationMapper.locationPostDtoToLocation(requestBody);
         location.setBusiness(business);
@@ -53,45 +53,53 @@ public class LocationController {
         return ResponseEntity.created(uri).build();
     }
 
-    //
-//    @PatchMapping
-//    public ResponseEntity patch(@Valid @RequestBody LocationDto.Patch requestBody){
-//
-//        // 디버깅코드
-//        System.out.println("Received locationId: " + requestBody.getLocationId());
-//        // patchLocations 예외처리 메서드 포함
-//        Location location = locationService.patchLocation(locationMapper.locationPatchDtoToLocation(requestBody));
-//
-//        return new ResponseEntity<>(
-//                new SingleResponseDto<>(locationMapper.locationDtoToLocationResponseDto(location))
-//                , HttpStatus.OK);
-//
-//    }
+    @PatchMapping
+    public ResponseEntity patch(@Valid @RequestBody LocationDto.Patch requestBody){
+
+        // 디버깅코드
+        System.out.println("Received locationId: " + requestBody.getLocationId());
+        // patchLocations 예외처리 메서드 포함
+        Location location = locationService.patchLocation(locationMapper.locationPatchDtoToLocation(requestBody));
+
+        return new ResponseEntity<>(
+                new SingleResponseDto<>(locationMapper.locationDtoToLocationResponseDto(location))
+                , HttpStatus.OK);
+
+    }
     // 비지니스 아이디가 있어야지 조회할 수 있으니까 걍 PathVariable로 api변경
     @GetMapping()
     public ResponseEntity getLocations(@Positive @RequestParam int page,
-                                       @Positive @RequestParam int size) {
+                                      @Positive @RequestParam int size){
         //Page<Location> 객체는 해당 페이지에 있는 모든 Score 객체를 포함
-        Page<Location> pageLocation = locationService.findLocations(page - 1, size);
+        Page<Location> pageLocation = locationService.findLocations(page-1, size);
         // getContent()는 현재 페이지에 포함된 여러 개의 Location 객체를 리스트 형태로 반환해서 Location 객체들의 리스트임
         List<Location> locationList = pageLocation.getContent();
         return new ResponseEntity<>(
                 new MultiResponseDto(locationMapper.locationToLocationsResponseDto(locationList), pageLocation),
                 HttpStatus.OK);
     }
-}
+    @GetMapping("/{businessId}")
+    public ResponseEntity getLocation(@PathVariable("businessId") @Positive long businessId,
+                                      @Positive @RequestParam int page,
+                                      @Positive @RequestParam int size) {
 
-//    @GetMapping("/{businessId}")
-//    public ResponseEntity getLocation(@PathVariable("businessId") @Positive long businessId,
-//                                      @Positive @RequestParam int page,
-//                                      @Positive @RequestParam int size) {
-//
-//
-//        Page<Location> pageLocation = locationService.findLocation(businessId,page-1, size);
-//        List<Location> locationList = pageLocation.getContent();
-//        return new ResponseEntity(
-//                new MultiResponseDto(locationMapper.locationToLocationsResponseDto(locationList), pageLocation),
-//                HttpStatus.OK);
-//
-//    }
-//}
+
+        Page<Location> pageLocation = locationService.findLocation(businessId,page-1, size);
+        List<Location> locationList = pageLocation.getContent();
+        return new ResponseEntity(
+                new MultiResponseDto(locationMapper.locationToLocationsResponseDto(locationList), pageLocation),
+                HttpStatus.OK);
+
+    }
+
+    @DeleteMapping("/{location-id}/businesses/{business-id}")
+    public ResponseEntity deletedLocation(@Positive @PathVariable("location-id") @Positive long locationId,
+                                          @Positive @PathVariable("business-id") @Positive long businessId){
+        Location findLocation = locationService.findVerifyExistLocation(locationId);
+        businessService.verifyExistBusiness(findLocation.getBusiness().getBusinessId());
+        locationService.deleteLocation(findLocation.getLocationId());
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+    }
+}

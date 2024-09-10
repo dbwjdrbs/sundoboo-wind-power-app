@@ -41,14 +41,20 @@ public interface LocationMapper {
 
 
     default Location locationPatchDtoToLocation(LocationDto.Patch requestBody) {
+        Business business = new Business();
+        business.setBusinessId(requestBody.getBusinessId());
+        //비지니스 타이틀은 여기서 변경 안하게 맵핑 안시킴
 
         Location location = new Location();
+        location.setLocationId(requestBody.getLocationId());
         location.setLatitude(requestBody.getLatitude());
         location.setLongitude(requestBody.getLongitude());
         location.setCity(requestBody.getCity());
         location.setIsland(requestBody.getIsland());
+        location.setBusiness(business);
 
         Turbine turbine = new Turbine();
+        turbine.setModelName(requestBody.getModelName());
         turbine.setTurbineId(requestBody.getTurbineId());
         location.setTurbine(turbine);
 
@@ -69,7 +75,8 @@ public interface LocationMapper {
                 location.getLatitude(),                  // 위도
                 location.getLongitude(),                 // 경도
                 location.getCity(),                      // 도시
-                location.getIsland()                     // 섬
+                location.getIsland(),                     // 섬
+                location.getDeletedAt()
         );
 
         return responseDto; // responseDto 반환
