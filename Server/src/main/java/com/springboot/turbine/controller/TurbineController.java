@@ -20,7 +20,7 @@ import java.util.List;
 @Validated
 @Slf4j
 public class TurbineController {
-    public static final String SCORE_DEFAULT_URL = "/turbine";
+    public static final String SCORE_DEFAULT_URL = "/turbines";
 
     private final TurbineRepository turbineRepository;
     private final TurbineService turbineService;

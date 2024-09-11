@@ -92,9 +92,8 @@ public class LocationController {
 
     }
 
-    @DeleteMapping("/{location-id}/businesses/{business-id}")
-    public ResponseEntity deletedLocation(@Positive @PathVariable("location-id") @Positive long locationId,
-                                          @Positive @PathVariable("business-id") @Positive long businessId){
+    @DeleteMapping("/{location-id}")
+    public ResponseEntity deletedLocation(@Positive @PathVariable("location-id") @Positive long locationId){
         Location findLocation = locationService.findVerifyExistLocation(locationId);
         businessService.verifyExistBusiness(findLocation.getBusiness().getBusinessId());
         locationService.deleteLocation(findLocation.getLocationId());

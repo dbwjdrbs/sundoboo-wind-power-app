@@ -69,13 +69,13 @@ public class BusinessService {
         Page<Business> businessList;
 
         switch (enumDirection) {
-            case PAGE_CREATEDATASC:
+            case PAGE_CREATEDAT_ASC:
                 businessList = businessRepository.findByDeletedAtIsNull(
-                        PageRequest.of(page, size, Sort.by("businessTitle").descending()));
+                        PageRequest.of(page, size, Sort.by("createdAt").ascending()));
                 break;
-            case PAGE_CREATEDATDESC:
+            case PAGE_CREATEDAT_DESC:
                 businessList = businessRepository.findByDeletedAtIsNull(
-                        PageRequest.of(page, size, Sort.by("businessTitle").ascending()));
+                        PageRequest.of(page, size, Sort.by("createdAt").descending()));
                 break;
             default:
                 throw new IllegalArgumentException("Invalid direction parameter: " + direction);
