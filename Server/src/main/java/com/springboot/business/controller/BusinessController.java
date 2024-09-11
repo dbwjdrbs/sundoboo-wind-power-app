@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import java.net.URI;
 
@@ -28,7 +29,7 @@ public class BusinessController {
     }
 
     @PostMapping("/registration")
-    public ResponseEntity createBusiness(@RequestBody BusinessDto.Post requestBody){
+    public ResponseEntity createBusiness(@Valid @RequestBody BusinessDto.Post requestBody){
         Business business = businessMapper.businessPostDtoToBusiness(requestBody);
         Business createdBusiness = businessService.createBusiness(business);
         URI location = UriCreator.createUri(DEFAULT_BUSINESS_URL,createdBusiness.getBusinessId());
