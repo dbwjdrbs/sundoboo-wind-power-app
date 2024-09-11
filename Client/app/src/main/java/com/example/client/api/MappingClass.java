@@ -30,8 +30,6 @@ public class MappingClass {
         private int score2 = 1;
         private int score3 = 1;
         private int score4 = 1;
-        private int score5 = 1;
-
         private LocalDateTime createdAt;
 
     }
