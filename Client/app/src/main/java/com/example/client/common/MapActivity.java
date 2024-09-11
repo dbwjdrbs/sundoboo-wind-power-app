@@ -27,6 +27,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TextView;
@@ -141,25 +142,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             currentMarkerPositions[0] = String.valueOf(latitude);
             currentMarkerPositions[1] = String.valueOf(longitude);
 
-            // NOTE : 마커 지역 특정 코드
-            Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
-            try {
-                // 위치에 대한 주소 정보 가져오기
-                List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-                if (addresses != null && !addresses.isEmpty()) {
-                    Address address = addresses.get(0);
-                    String fullAddress = address.getAdminArea();// 전체 주소
-                    // 예시: 서울특별시 강남구 테헤란로 123
-
-                    // 주소를 Toast로 표시
-                    Toast.makeText(MapActivity.this, "주소: " + fullAddress + "\n " + address.getLocality(), Toast.LENGTH_SHORT).show();
-                } else {
-                    // 주소를 찾지 못했을 경우
-                    Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Toast.makeText(MapActivity.this, "위도경도 " + latitude + longitude, Toast.LENGTH_SHORT).show();
 
             // NOTE : true를 반환하면 기본 마커 클릭 동작(지도 중심으로 이동 등)이 막힘.
             // NOTE : false를 반환하면 기본 동작이 실행됨.
@@ -172,7 +155,27 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private void setMarker(LatLng latLng) {
         // NOTE : 마커 스타일
         BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
-        // NOTE : 마커가 이미 존재할 경우, 생성 되지 않도록 설계
+
+        // NOTE : 마커 지역 특정 코드
+        Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
+        try {
+            // 위치에 대한 주소 정보 가져오기
+            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            if (addresses != null && !addresses.isEmpty()) {
+                Address address = addresses.get(0);
+                String adminArea = address.getAdminArea();// 전체 주소
+                String local = address.getLocality();
+                // 예시: 서울특별시 강남구 테헤란로 123
+
+                // 주소를 Toast로 표시
+                Toast.makeText(MapActivity.this, "주소: " + adminArea + local, Toast.LENGTH_SHORT).show();
+            } else {
+                // 주소를 찾지 못했을 경우
+                Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         mMarker = mMap.addMarker(new MarkerOptions()
                 .position(latLng)
@@ -202,7 +205,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                                 .strokeColor(Color.BLUE)  // 원 테두리 색상
                                 .fillColor(0x220000FF)    // 원 내부 색상 (반투명 파란색)
                                 .strokeWidth(5));  // 테두리 두께
-//                        // 카메라를 현재 위치로 이동 및 확대
+                        // 카메라를 현재 위치로 이동 및 확대
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15));
                     }
                 });
@@ -360,10 +363,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // NOTE : 풍력 발전기 모델 더미 데이터
         TurbinesData data1 = new TurbinesData("두산중공업 풍력 발전기", "Doosan Wind Power Generator");
         TurbinesData data2 = new TurbinesData("유니슨 풍력 발전기", "Unison Wind Power Generator");
+        TurbinesData data3 = new TurbinesData("유니슨 풍력 발전기", "Unison Wind Power Generator");
+        TurbinesData data4 = new TurbinesData("유니슨 풍력 발전기", "Unison Wind Power Generator");
 
         tb_list = new ArrayList<>();
         tb_list.add(data1);
         tb_list.add(data2);
+        tb_list.add(data3);
+        tb_list.add(data4);
 
         // NOTE : 리사이클러뷰 어뎁터 정의
         TurbinesSelectAdapter adapter = new TurbinesSelectAdapter(tb_list, this);
@@ -396,6 +403,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Button btn_close = dialog.findViewById(R.id.dl_score_input_closeButton);
         Button btn_submit = dialog.findViewById(R.id.dl_score_input_submitButton);
 
+        SeekBar score1 = dialog.findViewById(R.id.seekBar_score1);
+        SeekBar score2 = dialog.findViewById(R.id.seekBar_score2);
+        SeekBar score3 = dialog.findViewById(R.id.seekBar_score3);
+        SeekBar score4 = dialog.findViewById(R.id.seekBar_score4);
+
         // INFO : X 버튼 클릭 이벤트
         btn_close.setOnClickListener(v -> {
             dialog.dismiss();
@@ -425,7 +437,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         dialog = new Dialog(MapActivity.this);
         dialog.setContentView(R.layout.dialog_scorelist);
 
-        // NOTE : 풍력 발전기 모델 더미 데이터
+        // NOTE : 점수 목록 보기 더미 데이터
         ScoreData data1 = new ScoreData("강화도 A 영향 평가 3KM", "김재엽", "2024년 4월 18일 오후 2시 01분", 3, 2, 1, 0, 4);
         ScoreData data2 = new ScoreData("강화도 A 영향 평가 5KM", "김재엽", "2024년 4월 18일 오후 3시 01분", 4, 3, 2, 1, 0);
 

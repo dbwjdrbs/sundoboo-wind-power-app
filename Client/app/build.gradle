@@ -3,9 +3,6 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
 android {
     namespace 'com.example.client'
     compileSdk 33
@@ -16,13 +13,6 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
-        // 구글맵 API키
-        buildConfigField "String", "MAP_API_KEY", "\"${project.properties['MAP_API_KEY']}\""
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        vectorDrawables {
-            useSupportLibrary true
-        }
     }
 
     buildTypes {
@@ -40,6 +30,7 @@ android {
     }
     buildFeatures {
         compose true
+        buildConfig = true;
     }
     composeOptions {
         kotlinCompilerExtensionVersion '1.4.3'
