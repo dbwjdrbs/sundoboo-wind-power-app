@@ -59,6 +59,7 @@ import com.unity3d.player.UnityPlayerActivity;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -137,12 +138,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // INFO : 마커 온클릭
         googleMap.setOnMarkerClickListener(marker -> {
             isOnClickMarker = true;
+
             double latitude = marker.getPosition().latitude;
             double longitude = marker.getPosition().longitude;
             currentMarkerPositions[0] = String.valueOf(latitude);
             currentMarkerPositions[1] = String.valueOf(longitude);
-
-            Toast.makeText(MapActivity.this, "위도경도 " + latitude + longitude, Toast.LENGTH_SHORT).show();
 
             // NOTE : true를 반환하면 기본 마커 클릭 동작(지도 중심으로 이동 등)이 막힘.
             // NOTE : false를 반환하면 기본 동작이 실행됨.
@@ -298,6 +298,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             showDialog_scoreList();
         }
 
+        // INFO : 마커 삭제 구현
         if (v.getId() == R.id.btn_deleteMarker) {
             if (mMarker != null) {
                 for (Marker marker : markerList) {
@@ -306,7 +307,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 markerList.clear();
                 mMarker = null;
                 isOnClickMarker = false;
-                currentMarkerPositions = null;
+                Arrays.fill(currentMarkerPositions, null);
                 messageDialog.simpleCompleteDialog("마커가 초기화 되었습니다.", this);
             } else {
                 messageDialog.simpleErrorDialog("생성된 마커가 없습니다.", this);
@@ -507,7 +508,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             } else if (et_longitude.getText().toString().isEmpty()) {
                 messageDialog.simpleErrorDialog("Longitude를 작성해주세요.", this);
             } else {
-                messageDialog.simpleCompleteDialog("마커 등록이 완료 되었습니다.", this);
                 setMarker(new LatLng(Double.parseDouble(String.valueOf(et_latitude.getText())), Double.parseDouble(String.valueOf(et_longitude.getText()))));
                 dialog.dismiss();
             }
@@ -593,7 +593,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             } else if (et_seconds_lon.getText().toString().isEmpty()) {
                 messageDialog.simpleErrorDialog("Longitude의 Seconds 부분을 작성해주세요.", this);
             } else {
-                messageDialog.simpleCompleteDialog("마커 등록이 완료 되었습니다.", this);
                 double latDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lat), editTextStringToInt(et_minutes_lat), editTextStringToDouble(et_seconds_lat), sp_direction_lat.getSelectedItem().toString());
                 double lonDecimal = dmsToDecimal(editTextStringToInt(et_degrees_lon), editTextStringToInt(et_minutes_lon), editTextStringToDouble(et_seconds_lon), sp_direction_lon.getSelectedItem().toString());
                 setMarker(new LatLng(latDecimal, lonDecimal));
