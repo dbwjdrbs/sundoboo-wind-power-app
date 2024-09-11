@@ -1,27 +1,35 @@
 package com.example.client.adapter;
 
 import android.content.Context;
-import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.client.R;
-import com.example.client.common.MapActivity;
 import com.example.client.data.TurbinesData;
 
 import java.util.ArrayList;
 
 public class TurbinesSelectAdapter extends RecyclerView.Adapter<TurbinesSelectViewHolder> {
-    ArrayList<TurbinesData> list;
+    public interface OnItemClickListener {
+        void onSelectModel(int position, int direction);
+    }
 
-    public TurbinesSelectAdapter(ArrayList<TurbinesData> list) {
+    ArrayList<TurbinesData> list;
+    OnItemClickListener listener;
+
+
+    public TurbinesSelectAdapter(ArrayList<TurbinesData> list, OnItemClickListener listener) {
         this.list = list;
+        this.listener = listener;
     }
 
     // INFO : 뷰 홀더에 레이아웃을 연결해주는 코드
@@ -40,6 +48,12 @@ public class TurbinesSelectAdapter extends RecyclerView.Adapter<TurbinesSelectVi
         // NOTE : 뷰 홀더에 보이는 엘리먼트들을 정의해줌.
         holder.getKorName().setText(list.get(position).getTitle());
         holder.getEngName().setText(list.get(position).getEngTitle());
+
+        holder.getBtn_select().setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onSelectModel(position, holder.getDirection());
+            }
+        });
     }
 
     @Override
@@ -52,6 +66,7 @@ class TurbinesSelectViewHolder extends RecyclerView.ViewHolder {
     private TextView tv_korName;
     private TextView tv_engName;
     private Button btn_select;
+    private EditText editText;
 
     // INFO : 뷰홀더 내부의 요소들 정의
     public TurbinesSelectViewHolder(@NonNull View itemView) {
@@ -60,6 +75,7 @@ class TurbinesSelectViewHolder extends RecyclerView.ViewHolder {
         tv_korName = itemView.findViewById(R.id.tv_turbineKorName);
         tv_engName = itemView.findViewById(R.id.tv_turbineEngName);
         btn_select = itemView.findViewById(R.id.btn_turbineSelect);
+        editText = itemView.findViewById(R.id.et_direction);
     }
 
     public TextView getKorName() {
@@ -68,5 +84,17 @@ class TurbinesSelectViewHolder extends RecyclerView.ViewHolder {
 
     public TextView getEngName() {
         return this.tv_engName;
+    }
+
+    public Button getBtn_select() {
+        return btn_select;
+    }
+
+    public int getDirection() {
+        if (editText.getText().toString().isEmpty()) {
+            return 1;
+        } else {
+            return Integer.parseInt(editText.getText().toString());
+        }
     }
 }

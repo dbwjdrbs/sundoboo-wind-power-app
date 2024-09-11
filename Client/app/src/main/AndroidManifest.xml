@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.client"
-    xmlns:tools="http://schemas.android.com/tools">
-    <!-- NOTE : 카메라가 없어도 상관없다라는 부분 -->
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.client">
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" /> <!-- NOTE : 카메라 권한 선언 -->
     <uses-permission android:name="android.permission.CAMERA" /> <!-- NOTE : GPS와 네트워크 권한 선언 -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- NOTE : 기기의 대략적인 위치 파악 권한 선언 -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
     <application
         android:allowBackup="true"
-        android:networkSecurityConfig="@xml/network_security_config"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -26,14 +22,18 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value=""/>
+            android:value="${MAP_API_KEY}" />
+
         <activity
             android:name=".common.MapActivity"
             android:exported="false" />
         <activity
+            android:name=".common.UnityPlayerActivity"
+            android:exported="false" />
+        <activity
             android:name=".common.BusinessSelectActivity"
-            android:windowSoftInputMode="adjustPan"
-            android:exported="true" />
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".common.StartActivity"
             android:exported="false"
@@ -49,5 +49,9 @@
             </intent-filter>
         </activity>
     </application>
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
 </manifest>

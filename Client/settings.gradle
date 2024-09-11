@@ -5,13 +5,24 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
+rootProject.name = "Client"
+include ':app'
+
+include ':unityLibrary'
+project(':unityLibrary').projectDir=new File('../UnityProject/unityLibrary')
+
+include ':unityLibrary:xrmanifest.androidlib'
+project(':unityLibrary:xrmanifest.androidlib').projectDir=new File('../UnityProject/unityLibrary/xrmanifest.androidlib')
+
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
+        flatDir {
+            dirs "${project(':unityLibrary').projectDir}/libs"
+        }
     }
 }
-
-rootProject.name = "Client"
-include ':app'
