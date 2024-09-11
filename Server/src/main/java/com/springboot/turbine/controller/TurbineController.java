@@ -2,7 +2,7 @@ package com.springboot.turbine.controller;
 
 import com.springboot.dto.MultiResponseDto;
 import com.springboot.dto.SingleResponseDto;
-import com.springboot.turbine.entity.Turbine;
+import com.springboot.turbine.entitiy.Turbine;
 import com.springboot.turbine.repository.TurbineRepository;
 import com.springboot.turbine.service.TurbineService;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.Positive;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/turbines")

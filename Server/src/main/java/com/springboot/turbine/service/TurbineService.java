@@ -2,7 +2,7 @@ package com.springboot.turbine.service;
 
 import com.springboot.exception.BusinessLogicException;
 import com.springboot.exception.ExceptionCode;
-import com.springboot.turbine.entity.Turbine;
+import com.springboot.turbine.entitiy.Turbine;
 import com.springboot.turbine.repository.TurbineRepository;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
