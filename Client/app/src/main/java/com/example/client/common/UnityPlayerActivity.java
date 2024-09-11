@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.OnBackPressedDispatcher;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.client.R;
@@ -19,10 +22,10 @@ import java.util.concurrent.TimeUnit;
 
 
 public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity {
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_rending);
 
         Intent intent = getIntent();
 
@@ -36,13 +39,7 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
     }
 
     private void sendMessageToUnity(String objectLat, String objectLon, String direction, String distance, String modelNumber) {
-        float scale = 30;
         UnityPlayer.UnitySendMessage("Compass", "ReceiveDataFromAndroid", objectLat + "," + objectLon);
-        UnityPlayer.UnitySendMessage("Turbine", "ReceiveDataFromAndroid", distance + "," + direction + "," + modelNumber);
-
-//        new Handler(message -> {
-//            startActivity(new Intent(UnityPlayerActivity.this, com.unity3d.player.UnityPlayerActivity.class));
-//            finish();
-//        }, 0, 9000);
+        UnityPlayer.UnitySendMessage("Turbine", "ReceiveDataFromAndroid", distance + "," + direction + "," + modelNumber + ",20");
     }
 }
