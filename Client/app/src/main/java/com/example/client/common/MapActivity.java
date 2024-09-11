@@ -163,7 +163,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
             if (addresses != null && !addresses.isEmpty()) {
                 Address address = addresses.get(0);
-                String adminArea = address.getAdminArea();// 전체 주소
+                String adminArea = address.getAdminArea(); // 전체 주소
                 String local = address.getLocality();
                 // 예시: 서울특별시 강남구 테헤란로 123
 
