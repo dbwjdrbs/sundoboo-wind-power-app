@@ -39,7 +39,7 @@ public class LocationController {
         this.locationMapper = locationMapper;
     }
 
-    @PostMapping
+    @PostMapping()
     public ResponseEntity postLocation(@Valid @RequestBody LocationDto.Post requestBody){
 
         Business business = businessService.verifyExistBusiness(requestBody.getBusinessId());
@@ -78,7 +78,7 @@ public class LocationController {
                 new MultiResponseDto(locationMapper.locationToLocationsResponseDto(locationList), pageLocation),
                 HttpStatus.OK);
     }
-    @GetMapping("/{businessId}")
+    @GetMapping("/search/{businessId}")
     public ResponseEntity getLocation(@PathVariable("businessId") @Positive long businessId,
                                       @Positive @RequestParam int page,
                                       @Positive @RequestParam int size) {

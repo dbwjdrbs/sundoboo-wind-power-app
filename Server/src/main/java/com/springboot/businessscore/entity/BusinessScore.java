@@ -27,16 +27,16 @@ public class BusinessScore extends Auditable {
     private String businessScoreTitle;
 
     @Column
-    private int scoreList1 = 1;
+    private int scoreList1;
 
     @Column
-    private int scoreList2 = 1;
+    private int scoreList2;
 
     @Column
-    private int scoreList3 = 1;
+    private int scoreList3;
 
     @Column
-    private int scoreList4 = 1;
+    private int scoreList4;
 
     @Column(nullable = false, length = 20)
     private String observerName;
