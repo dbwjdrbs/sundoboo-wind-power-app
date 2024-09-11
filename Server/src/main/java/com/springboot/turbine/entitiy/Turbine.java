@@ -1,5 +1,4 @@
-package com.springboot.turbine.entity;
-
+package com.springboot.turbine.entitiy;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
