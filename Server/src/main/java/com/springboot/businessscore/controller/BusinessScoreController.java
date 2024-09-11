@@ -42,7 +42,7 @@ public class BusinessScoreController {
     }
 
     // 비지니스 아이디가 있어야지 조회할 수 있으니까 걍 PathVariable로 api변경
-    @GetMapping("/business-id/{businessId}")
+    @GetMapping("/search/{businessId}")
     public ResponseEntity getScores(@PathVariable("businessId") @Positive long businessId,
                                     @Positive @RequestParam int page,
                                     @Positive @RequestParam int size){
