@@ -41,12 +41,9 @@ public class LocationController {
 
     @PostMapping()
     public ResponseEntity postLocation(@Valid @RequestBody LocationDto.Post requestBody){
-
         Business business = businessService.verifyExistBusiness(requestBody.getBusinessId());
-
         Location location = locationMapper.locationPostDtoToLocation(requestBody);
         location.setBusiness(business);
-
         Location savedLocation = locationService.postLocation(location);
         URI uri = UriCreator.createUri(SCORE_DEFAULT_URL, savedLocation.getLocationId());
 
