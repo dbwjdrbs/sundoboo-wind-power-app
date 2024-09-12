@@ -58,11 +58,10 @@ public class LocationService {
 
 
         Location findLocation = findVerifyExistLocation(location.getLocationId());
-        // 비지니스아디 검증하는 로직 필요할까? 쳐피 로케이션 한번 누르고 이후 재검증할 때 하는건디.. 우선 주석 처리
+
         Business business = businessService.verifyExistBusiness(location.getBusiness().getBusinessId());
         findLocation.setBusiness(business);
 
-        // Turbine ID가 유효한 경우에만 조회
         if (location.getTurbine() != null && location.getTurbine().getTurbineId() > 0) {
             Turbine turbine = turbineRepository.findById(location.getTurbine().getTurbineId())
                     .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND));
