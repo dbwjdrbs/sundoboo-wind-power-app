@@ -28,9 +28,8 @@ import java.util.List;
 import retrofit2.Call;
 
 public class RendingActivity extends AppCompatActivity {
-    private static final int REQUEST_CODE_PERMISSIONS = 100;  // NOTE : 카메라 펄미션 요청 코드
+    private static final int REQUEST_CODE_PERMISSIONS  = 100;  // NOTE : 카메라 펄미션 요청 코드
     private long backKeyPressedTime = 0;  // NOTE : 초 저장
-
     @Override
     public void onBackPressed() {
         // NOTE : 2000은 밀리초이다.
@@ -66,7 +65,7 @@ public class RendingActivity extends AppCompatActivity {
                             Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION
                     },
-                    REQUEST_CODE_PERMISSIONS);
+                    REQUEST_CODE_PERMISSIONS );
         } else {
             // NOTE : 권한이 이미 있는 경우, 다음 작업을 진행 하도록 하는 매서드
             performActionWithPermissions();
@@ -89,6 +88,35 @@ public class RendingActivity extends AppCompatActivity {
     }
 
     private void performActionWithPermissions() {
+//        ApiService apiService = RestClient.getClient().create(ApiService.class);
+//        ApiHandler apiHandler = new ApiHandler(apiService,this);
+//
+//        apiHandler.getBusinesses(1, 10, "PAGE_CREATED_AT_DESC", new ApiCallback<List<MappingClass.BusinessResponse>>() {
+//            @Override
+//            public void onSuccess(List<MappingClass.BusinessResponse> response) {
+//                // Log the response
+//                for (MappingClass.BusinessResponse business : response) {
+//                    Log.d("BusinessResponse", "Business ID: " + business.getBusinessId());
+//                    Log.d("BusinessResponse", "Business Title: " + business.getBusinessTitle());
+//                    Log.d("BusinessResponse", "Created At: " + business.getCreatedAt());
+//                    Log.d("BusinessResponse", "Deleted At: " + business.getDeletedAt());
+//                }
+//
+//                Gson gson = new Gson();
+//                String jsonBusinessList = gson.toJson(response);
+//
+                Intent intent = new Intent(RendingActivity.this, StartActivity.class);
+//                intent.putExtra("businessListJson", jsonBusinessList);
+                startActivity(intent);
+//                finish();
+            }
+
+//            @Override
+//            public void onError(String errorMessage) {
+//                Toast.makeText(RendingActivity.this, "Error: " + errorMessage, Toast.LENGTH_LONG).show();
+//            }
+//        });
+//    }
         ApiService apiService = RestClient.getClient().create(ApiService.class);
         ApiHandler apiHandler = new ApiHandler(apiService,this);
 
