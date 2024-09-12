@@ -45,13 +45,10 @@ public class BusinessScoreDto {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Response{
-        @Column(nullable = false)
         private long businessId;
 
-        @Column(nullable = false)
         private long businessScoreId;
 
-        @Column(nullable = false, length = 20)
         private String businessScoreTitle;
 
         private int ScoreList1;
@@ -65,12 +62,8 @@ public class BusinessScoreDto {
         @Column(nullable = false, length = 20)
         private String observerName;
 
-        @CreatedDate
-        @Column(name = "CREATED_AT", updatable = false)
         private LocalDateTime createdAt;
 
-        @LastModifiedDate
-        @Column(name = "LAST_MODIFIED_AT")
         private LocalDateTime modifiedAt;
     }
 
