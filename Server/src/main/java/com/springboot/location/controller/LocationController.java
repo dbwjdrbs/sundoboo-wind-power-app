@@ -80,6 +80,7 @@ public class LocationController {
     }
 
     @GetMapping("/search/{business-id}")
+
     public ResponseEntity getLocation(@PathVariable("businessId") @Positive long businessId,
                                       @Positive @RequestParam int page,
                                       @Positive @RequestParam int size) {
