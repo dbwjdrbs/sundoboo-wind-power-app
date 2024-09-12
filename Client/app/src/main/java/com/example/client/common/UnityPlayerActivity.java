@@ -39,7 +39,8 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
     }
 
     private void sendMessageToUnity(String objectLat, String objectLon, String direction, String distance, String modelNumber) {
-        UnityPlayer.UnitySendMessage("Compass", "ReceiveDataFromAndroid", objectLat + "," + objectLon);
-        UnityPlayer.UnitySendMessage("Turbine", "ReceiveDataFromAndroid", distance + "," + direction + "," + modelNumber + ",20");
+//        UnityPlayer.UnitySendMessage("Compass", "ReceiveDataFromAndroid", objectLat + "," + objectLon);
+//        UnityPlayer.UnitySendMessage("Turbine", "ReceiveDataFromAndroid", distance + "," + direction + "," + modelNumber + ",20");
+        UnityPlayer.UnitySendMessage("AndroidReceiveMessageManager", "ReceiveDataFromAndroidStudio", objectLat + "," + objectLon + "," + direction + "," + modelNumber + "," + "20");
     }
 }
