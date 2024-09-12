@@ -362,10 +362,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         dialog.setContentView(R.layout.dialog_arview);
 
         // NOTE : 풍력 발전기 모델 더미 데이터
-        TurbinesData data1 = new TurbinesData("두산중공업 풍력 발전기", "Doosan Wind Power Generator");
-        TurbinesData data2 = new TurbinesData("유니슨 풍력 발전기", "Unison Wind Power Generator");
-        TurbinesData data3 = new TurbinesData("유니슨 풍력 발전기", "Unison Wind Power Generator");
-        TurbinesData data4 = new TurbinesData("유니슨 풍력 발전기", "Unison Wind Power Generator");
+        TurbinesData data1 = new TurbinesData("두산 WinDS3000", "Doosan WinDS3000");
+        TurbinesData data2 = new TurbinesData("두산 WinDS3300", "Doosan WinDS3300");
+        TurbinesData data3 = new TurbinesData("두산 WinDS5500", "Doosan WinDS5500");
+        TurbinesData data4 = new TurbinesData("두산 WinDS205-8MW", "WinDS205-8MW");
 
         tb_list = new ArrayList<>();
         tb_list.add(data1);
