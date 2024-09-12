@@ -40,8 +40,6 @@ public class BusinessScoreService {
         businessScore.setScoreList4(requestBody.getScoreList4());
         businessScore.setObserverName(requestBody.getObserverName());
 
-
-
         return businessScoreRepository.save(businessScore);
 
     }
@@ -65,6 +63,5 @@ public class BusinessScoreService {
     // 빈데이터 응답 처리기 때문에 없는 아이디 입력하면 빈화면 나와서 따로 예외 안던짐
     public Page<BusinessScore> findScore(long businessId, int page, int size){
         return businessScoreRepository.findByBusiness_BusinessId(businessId, PageRequest.of(page, size, Sort.by("createdAt").descending()));
-
     }
 }

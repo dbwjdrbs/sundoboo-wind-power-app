@@ -40,6 +40,7 @@ public class BusinessScoreDto {
         private String observerName;
 
     }
+
     @Getter
     @Setter
     @AllArgsConstructor
@@ -59,15 +60,11 @@ public class BusinessScoreDto {
 
         private int ScoreList4;
 
-        @Column(nullable = false, length = 20)
         private String observerName;
 
         private LocalDateTime createdAt;
 
         private LocalDateTime modifiedAt;
     }
-
-
-
 
 }
