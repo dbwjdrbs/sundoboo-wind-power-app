@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">풍력발전기 평가앱</string>
+    <string name="app_name">터빈 인사이트</string>
     <string name="title_activity_start">StartActivity</string>
     <string name="game_view_content_description">Game view</string>
 </resources>

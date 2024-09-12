@@ -15,8 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.client.R;
 import com.example.client.data.TurbinesData;
+import com.google.android.gms.maps.model.Circle;
 
 import java.util.ArrayList;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class TurbinesSelectAdapter extends RecyclerView.Adapter<TurbinesSelectViewHolder> {
     public interface OnItemClickListener {
@@ -48,6 +51,7 @@ public class TurbinesSelectAdapter extends RecyclerView.Adapter<TurbinesSelectVi
         // NOTE : 뷰 홀더에 보이는 엘리먼트들을 정의해줌.
         holder.getKorName().setText(list.get(position).getTitle());
         holder.getEngName().setText(list.get(position).getEngTitle());
+        holder.getCircleImageView().setImageResource(getImageResource(position));
 
         holder.getBtn_select().setOnClickListener(v -> {
             if (listener != null) {
@@ -60,6 +64,15 @@ public class TurbinesSelectAdapter extends RecyclerView.Adapter<TurbinesSelectVi
     public int getItemCount() {
         return list.size();
     }
+
+    private int getImageResource(int position) {
+        if(position == 0) return R.drawable.turbine1;
+        if(position == 1) return R.drawable.turbine2;
+        if(position == 2) return R.drawable.turbine3;
+        if(position == 3) return R.drawable.turbine4;
+
+        return 0;
+    }
 }
 
 class TurbinesSelectViewHolder extends RecyclerView.ViewHolder {
@@ -67,6 +80,7 @@ class TurbinesSelectViewHolder extends RecyclerView.ViewHolder {
     private TextView tv_engName;
     private Button btn_select;
     private EditText editText;
+    private CircleImageView circleImageView;
 
     // INFO : 뷰홀더 내부의 요소들 정의
     public TurbinesSelectViewHolder(@NonNull View itemView) {
@@ -76,6 +90,7 @@ class TurbinesSelectViewHolder extends RecyclerView.ViewHolder {
         tv_engName = itemView.findViewById(R.id.tv_turbineEngName);
         btn_select = itemView.findViewById(R.id.btn_turbineSelect);
         editText = itemView.findViewById(R.id.et_direction);
+        circleImageView = itemView.findViewById(R.id.img_turbine);
     }
 
     public TextView getKorName() {
@@ -96,5 +111,9 @@ class TurbinesSelectViewHolder extends RecyclerView.ViewHolder {
         } else {
             return Integer.parseInt(editText.getText().toString());
         }
+    }
+
+    public CircleImageView getCircleImageView() {
+        return circleImageView;
     }
 }

@@ -78,6 +78,7 @@ public class LocationController {
                 new MultiResponseDto(locationMapper.locationToLocationsResponseDto(locationList), pageLocation),
                 HttpStatus.OK);
     }
+
     @GetMapping("/search/{business-id}")
     public ResponseEntity getLocation(@PathVariable("businessId") @Positive long businessId,
                                       @Positive @RequestParam int page,
