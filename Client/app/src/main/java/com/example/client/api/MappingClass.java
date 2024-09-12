@@ -1,6 +1,8 @@
 package com.example.client.api;
 
-import java.time.LocalDateTime;
+
+import org.threeten.bp.LocalDateTime;
+
 import java.util.List;
 
 public class MappingClass {
@@ -134,7 +136,7 @@ public class MappingClass {
         }
     }
 
-    public class BusinessScoreResponse {
+    public class BusinessScoreResponse  {
         private long businessId;
         private long businessScoreId;
         private String businessScoreTitle;
@@ -143,8 +145,8 @@ public class MappingClass {
         private int scoreList3;
         private int scoreList4;
         private String observerName;
-        private String createdAt;
-        private String modifiedAt;
+        private LocalDateTime createdAt;
+        private LocalDateTime modifiedAt;
 
         public long getBusinessId() {
             return businessId;
@@ -210,19 +212,19 @@ public class MappingClass {
             this.observerName = observerName;
         }
 
-        public String getCreatedAt() {
+        public LocalDateTime getCreatedAt() {
             return createdAt;
         }
 
-        public void setCreatedAt(String createdAt) {
+        public void setCreatedAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
         }
 
-        public String getModifiedAt() {
+        public LocalDateTime getModifiedAt() {
             return modifiedAt;
         }
 
-        public void setModifiedAt(String modifiedAt) {
+        public void setModifiedAt(LocalDateTime modifiedAt) {
             this.modifiedAt = modifiedAt;
         }
 
@@ -312,7 +314,6 @@ public class MappingClass {
         private long locationId;
         private long turbineId;
         private long businessId;
-        private String modelName;
         private String latitude;
         private String longitude;
         private String city;
@@ -342,13 +343,6 @@ public class MappingClass {
             this.businessId = businessId;
         }
 
-        public String getModelName() {
-            return modelName;
-        }
-
-        public void setModelName(String modelName) {
-            this.modelName = modelName;
-        }
 
         public String getLatitude() {
             return latitude;

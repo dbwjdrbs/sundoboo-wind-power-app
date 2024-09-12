@@ -16,7 +16,7 @@ public class LocationDto {
     public static class Post{
         private long businessId;
 
-        private long turbineId;
+        private long turbineId = 1;
 
         private String businessTitle;
 
@@ -41,8 +41,6 @@ public class LocationDto {
 
         private long businessId;
 
-        private String modelName;
-
         private String latitude;
 
         private String longitude;
@@ -51,9 +49,6 @@ public class LocationDto {
 
         private String island;
 
-        private LocalDateTime createdAt;
-
-        private LocalDateTime modifiedAt;
     }
 
     @Getter

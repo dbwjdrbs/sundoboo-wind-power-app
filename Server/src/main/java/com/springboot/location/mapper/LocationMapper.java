@@ -54,7 +54,6 @@ public interface LocationMapper {
         location.setBusiness(business);
 
         Turbine turbine = new Turbine();
-        turbine.setModelName(requestBody.getModelName());
         turbine.setTurbineId(requestBody.getTurbineId());
         location.setTurbine(turbine);
 
@@ -76,7 +75,8 @@ public interface LocationMapper {
                 location.getLongitude(),                 // 경도
                 location.getCity(),                      // 도시
                 location.getIsland(),                     // 섬
-                location.getDeletedAt()
+                location.getModifiedAt(),
+                location.getCreatedAt()
         );
 
         return responseDto; // responseDto 반환
