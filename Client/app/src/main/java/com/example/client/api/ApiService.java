@@ -8,6 +8,7 @@ import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 // 실제 HTTP 요청을 생성하는 부분
 // 엔드포인트에 대한 요청을 메서드로 정의
@@ -23,7 +24,11 @@ public interface ApiService {
     Call<Void> deleteBusiness(@Path("business-id") long businessId);
 
     @GET("/businesses")
-    Call<List<MappingClass.BusinessResponse>> getBusinesses();
+    Call<BusinessResponseWrapper> getBusinesses(
+            @Query("page") int page,
+            @Query("size") int size,
+            @Query("direction") String direction
+    );
 
     @GET("/turbines/{turbine-id}")
     Call<MappingClass.TurbineResponse> getTurbine(@Path("turbine-id") long turbineId);

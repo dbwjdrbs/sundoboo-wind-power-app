@@ -69,11 +69,11 @@ public class BusinessService {
         Page<Business> businessList;
 
         switch (enumDirection) {
-            case PAGE_CREATEDAT_ASC:
+            case PAGE_CREATED_AT_ASC:
                 businessList = businessRepository.findByDeletedAtIsNull(
                         PageRequest.of(page, size, Sort.by("createdAt").ascending()));
                 break;
-            case PAGE_CREATEDAT_DESC:
+            case PAGE_CREATED_AT_DESC:
                 businessList = businessRepository.findByDeletedAtIsNull(
                         PageRequest.of(page, size, Sort.by("createdAt").descending()));
                 break;

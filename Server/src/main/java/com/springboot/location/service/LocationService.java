@@ -34,6 +34,7 @@ public class LocationService {
     public Location postLocation(Location location){
 
         // Business가 null인지 체크하고 예외 던지는 로직
+
         if (location.getBusiness() == null ||  location.getBusiness().getBusinessId() == 0) {
             throw new BusinessLogicException(ExceptionCode.BUSINESS_NOT_FOUND); // 적절한 예외를 발생시킴
         }
@@ -79,7 +80,7 @@ public class LocationService {
                 .ifPresent(city -> findLocation.setCity(city));
         Optional.ofNullable(location.getIsland())
                 .ifPresent(island -> findLocation.setIsland(island));
-
+        
         findLocation.setModifiedAt(LocalDateTime.now());
         return locationRepository.save(findLocation);
 
@@ -95,6 +96,15 @@ public class LocationService {
           throw new BusinessLogicException(ExceptionCode.LOCATION_NOT_FOUND);
         }
         return findByLocationId;
+    }
+
+    public void verifyLocation(Location location){
+        Location findLocation = findVerifyExistLocation(location.getLocationId());
+        String findLatitude = findLocation.getLatitude();
+        String findLongitude = findLocation.getLongitude();
+        if (location.getLatitude().equals(findLatitude) && location.getLongitude().equals(findLongitude)){
+            throw new BusinessLogicException(ExceptionCode.ALREADY_LOCATION_EXISTS);
+        }
     }
 
 

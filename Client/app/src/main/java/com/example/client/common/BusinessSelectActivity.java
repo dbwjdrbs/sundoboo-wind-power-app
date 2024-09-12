@@ -42,6 +42,7 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         BusinessData data2 = new BusinessData("보령 해상풍력단지", "2024년 4월 24일 오전 10시 33분");
         BusinessData data3 = new BusinessData("울산 부유식 해상풍력단지", "2024년 4월 24일 오전 10시 32분");
 
+
         list = new ArrayList<>();
         list.add(data1);
         list.add(data2);

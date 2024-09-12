@@ -53,7 +53,7 @@ public class LocationController {
         return ResponseEntity.created(uri).build();
     }
 
-    @PatchMapping
+    @PatchMapping()
     public ResponseEntity patch(@Valid @RequestBody LocationDto.Patch requestBody){
 
         // 디버깅코드
