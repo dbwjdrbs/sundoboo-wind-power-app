@@ -99,6 +99,7 @@ public class LocationService {
 
         Location findByLocationId =
                 optionalLocation.orElseThrow(() -> new BusinessLogicException(ExceptionCode.LOCATION_NOT_FOUND));
+
         if (findByLocationId.getDeletedAt() != null){
           throw new BusinessLogicException(ExceptionCode.LOCATION_NOT_FOUND);
         }
@@ -124,10 +125,24 @@ public class LocationService {
         return locationRepository.findByBusiness(findBusiness, PageRequest.of(page, size, Sort.by("locationId").descending()));
 
     }
+    public void deleteAllLocationsByBusinessId(long businessId) {
+        // 비즈니스가 존재하는지 확인
+        Business findBusiness = businessService.verifyExistBusiness(businessId);
+
+        // 비즈니스에 연결된 모든 Location을 조회
+        List<Location> locations = findBusiness.getLocations();
+
+        // 각 Location 삭제
+        for (Location location : locations) {
+            locationRepository.delete(location);
+        }
+    }
+
+    // 위치를 삭제하는 기존 메서드
     public void deleteLocation(long locationId) {
         Location findLocation = findVerifyExistLocation(locationId);
-//        findLocation.setDeletedAt(LocalDateTime.now());
         locationRepository.delete(findLocation);
     }
 
 }
+

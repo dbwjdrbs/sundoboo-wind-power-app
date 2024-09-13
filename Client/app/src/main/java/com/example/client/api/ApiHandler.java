@@ -89,6 +89,27 @@ public class ApiHandler {
         });
     }
 
+    public void deleteLocationsByBusinessId(long businessId) {
+        Call<Void> deletecall = apiService.deleteLocationsByBusinessId(businessId);
+        deletecall.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+
+                    System.out.println("Locations deleted successfully.");
+                } else {
+                    // 요청 실패
+                    System.out.println("Failed to delete locations. Status code: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                t.printStackTrace();
+                System.out.println("Failed to delete locations. Error: " + t.getMessage());
+            }
+        });
+    }
 
     public void getBusinesses(int page, int size, String direction, ApiCallback<List<MappingClass.BusinessResponse>> callback) {
         Call<BusinessResponseWrapper> call = apiService.getBusinesses(page, size, direction);

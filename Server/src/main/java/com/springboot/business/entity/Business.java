@@ -26,7 +26,7 @@ public class Business extends Auditable {
     @Column(nullable = false, length = 20)
     private String businessTitle;
 
-    @OneToMany(mappedBy = "business", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "business", cascade = CascadeType.REMOVE)
     private List<Location> locations = new ArrayList<>();
 
     public void addLocations(Location location){

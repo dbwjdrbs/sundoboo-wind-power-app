@@ -90,14 +90,9 @@ public class LocationController {
                 HttpStatus.OK);
 
     }
-
-    @DeleteMapping("/{location-id}")
-    public ResponseEntity deletedLocation(@Positive @PathVariable("location-id") @Positive long locationId){
-        Location findLocation = locationService.findVerifyExistLocation(locationId);
-        businessService.verifyExistBusiness(findLocation.getBusiness().getBusinessId());
-        locationService.deleteLocation(findLocation.getLocationId());
-
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-
-    }
+    @DeleteMapping("/business/{business-id}")
+    public ResponseEntity<Void> deleteLocationsByBusinessId(@PathVariable("business-id") long businessId) {
+        locationService.deleteAllLocationsByBusinessId(businessId);
+        return ResponseEntity.noContent().build();
+}
 }
