@@ -1,6 +1,7 @@
 package com.springboot.location.service;
 
 import com.springboot.business.entity.Business;
+import com.springboot.business.repository.BusinessRepository;
 import com.springboot.business.service.BusinessService;
 import com.springboot.exception.BusinessLogicException;
 import com.springboot.exception.ExceptionCode;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -30,6 +32,7 @@ public class LocationService {
         this.locationRepository = locationRepository;
         this.turbineRepository = turbineRepository;
     }
+
 
     public Location postLocation(Location location){
 
@@ -51,7 +54,11 @@ public class LocationService {
 
         // 널에 안걸렸다면 찾은 비지니스 아이디를 findBusiness 할당
         Business findBusiness = businessService.verifyExistBusiness(location.getBusiness().getBusinessId());
+        location.setLatitude(location.getLatitude());
+        location.setLongitude(location.getLongitude());
+        findBusiness.addLocations(location);
         location.addBusiness(findBusiness);
+
         return locationRepository.save(location);
     }
 

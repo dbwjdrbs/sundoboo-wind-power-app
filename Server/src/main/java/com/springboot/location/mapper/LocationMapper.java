@@ -5,6 +5,7 @@ import com.springboot.location.dto.LocationDto;
 import com.springboot.location.entity.Location;
 import com.springboot.turbine.entitiy.Turbine;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,26 +17,10 @@ import java.util.stream.Collectors;
 //  매핑되지 않는 필드 처리: 이 속성은 매핑 메서드에서 소스 객체의 필드가 대상 객체에 매핑되지 않을 경우의 정책을 설정
 @Mapper(componentModel = "spring")
 public interface LocationMapper {
-    default Location locationPostDtoToLocation(LocationDto.Post requestBody) {
-        Business business = new Business();
-        business.setBusinessId(requestBody.getBusinessId());
 
-        Turbine turbine = new Turbine();
-        turbine.setTurbineId(requestBody.getTurbineId());
-
-        Location location = new Location();
-        location.setLatitude(location.getLatitude());
-        location.setLongitude(location.getLongitude());
-        location.setCity(location.getCity());
-        location.setIsland(location.getIsland());
-        location.setCreatedAt(location.getCreatedAt());
-        location.setModifiedAt(location.getModifiedAt());
-        location.setBusiness(business);
-        location.setTurbine(turbine);
-
-
-        return location;
-    }
+    @Mapping(source = "businessId", target = "business.businessId")
+    @Mapping(source = "turbineId", target = "turbine.turbineId")
+    Location locationPostDtoToLocation(LocationDto.Post requestBody);
 
 
     default Location locationPatchDtoToLocation(LocationDto.Patch requestBody) {
