@@ -205,7 +205,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 //        fix 마커를 생성할 떄 위도 경도 까지 넣어주기로 변경
 
         MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
-        request.setBusinessId(2);
+        request.setBusinessId(1);
         request.setTurbineId(1);
         String latitude = String.valueOf(latLng.latitude);
         String longitude = String.valueOf(latLng.longitude);
@@ -214,7 +214,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         ApiService apiService = RestClient.getClient().create(ApiService.class);
         ApiHandler apiHandler = new ApiHandler(apiService, this);
+
         apiHandler.createLocation(request, new ApiCallback<Void>() {
+
             @Override
             public void onSuccess(Void response) {
 
