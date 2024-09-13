@@ -38,7 +38,7 @@ public class BusinessController {
         URI location = UriCreator.createUri(DEFAULT_BUSINESS_URL,createdBusiness.getBusinessId());
         return ResponseEntity.created(location).build();
     }
-
+    
     @DeleteMapping("/{business-id}")
     public ResponseEntity deleteBusiness(@Positive @PathVariable("business-id") long businessId){
         businessService.deleteBusiness(businessId);

@@ -7,6 +7,8 @@ import org.threeten.bp.LocalDateTime;
 
 import java.util.Date;
 
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -17,14 +19,22 @@ public class RestClient {
 
     public static Retrofit getClient() {
         if (retrofit == null) {
+
             Gson gson = new GsonBuilder()
                     .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
                     .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeSerializer())
                     .create();
 
+            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+            OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
+            httpClient.addInterceptor(logging);
+
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create(gson))
+                    .client(httpClient.build())
                     .build();
         }
         return retrofit;

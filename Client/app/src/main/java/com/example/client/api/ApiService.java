@@ -15,7 +15,7 @@ import retrofit2.http.Query;
 // Retrofit이 APiService 인터페이스를 구현해서 HTTP 요청을 처리 하고 응답을 해당 데이터 타입 으로 변환 해줌
 public interface ApiService {
     @POST("/businesses/registration")
-    Call<MappingClass.BusinessResponse> createBusiness(@Body MappingClass.BusinessRequest request);
+    Call<MappingClass.EmptyResponse> createBusiness(@Body MappingClass.BusinessRequest request);
 
     @GET("/businesses/{business-id}")
     Call<MappingClass.BusinessResponse> getBusiness(@Path("business-id") long businessId);
@@ -37,7 +37,7 @@ public interface ApiService {
     Call<List<MappingClass.TurbineResponse>> getTurbines();
 
     @POST("/scores/registration")
-    Call<MappingClass.BusinessScoreResponse> createBusinessScore(@Body MappingClass.BusinessScoreRequest request);
+    Call<MappingClass.BusinessScoreResponse> createBusinessScore(@Body MappingClass.BusinessScorePost request);
 
     @GET("/scores/search/{business-id}")
     Call<MappingClass.BusinessScoreResponse> getBusinessScore(@Path("business-id") long businessScoreId);

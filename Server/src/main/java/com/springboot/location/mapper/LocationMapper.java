@@ -19,10 +19,8 @@ public interface LocationMapper {
     default Location locationPostDtoToLocation(LocationDto.Post requestBody) {
         Business business = new Business();
         business.setBusinessId(requestBody.getBusinessId());
-        business.setBusinessTitle(requestBody.getBusinessTitle());
 
         Turbine turbine = new Turbine();
-        turbine.setModelName(requestBody.getModelName());
         turbine.setTurbineId(requestBody.getTurbineId());
 
         Location location = new Location();
