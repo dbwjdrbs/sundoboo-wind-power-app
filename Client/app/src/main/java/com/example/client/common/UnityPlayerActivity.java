@@ -33,14 +33,17 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
         double objectLon = intent.getDoubleExtra("objectLon", 0.0);
         float direction = intent.getFloatExtra("direction", 0.0f);
         double distance = intent.getDoubleExtra("distance", 0.0);
+        double azimuth = intent.getDoubleExtra("azimuth", 0.0);
+        double elevation = intent.getDoubleExtra("elevation", 0.0);
+        double scale = intent.getFloatExtra("scale", 0.0f);
         int modelNumber = intent.getIntExtra("number", 0);
 
-        sendMessageToUnity(String.valueOf(objectLat), String.valueOf(objectLon), String.valueOf(direction), String.valueOf(distance), String.valueOf(modelNumber));
+        sendMessageToUnity(String.valueOf(objectLat), String.valueOf(objectLon), String.valueOf(direction),
+                String.valueOf(distance), String.valueOf(azimuth), String.valueOf(elevation), String.valueOf(scale), String.valueOf(modelNumber));
     }
 
-    private void sendMessageToUnity(String objectLat, String objectLon, String direction, String distance, String modelNumber) {
-//        UnityPlayer.UnitySendMessage("Compass", "ReceiveDataFromAndroid", objectLat + "," + objectLon);
-//        UnityPlayer.UnitySendMessage("Turbine", "ReceiveDataFromAndroid", distance + "," + direction + "," + modelNumber + ",20");
-        UnityPlayer.UnitySendMessage("AndroidReceiveMessageManager", "ReceiveDataFromAndroidStudio", objectLat + "," + objectLon + "," + direction + "," + modelNumber + "," + "20");
+    private void sendMessageToUnity(String objectLat, String objectLon, String direction, String distance, String azimuth, String elevation, String scale, String modelNumber) {
+        UnityPlayer.UnitySendMessage("AndroidReceiveMessageManager", "ReceiveDataFromAndroidStudio",
+                objectLat + "," + objectLon + "," + direction + "," + modelNumber + "," + scale + "," + distance + "," + azimuth + "," + elevation);
     }
 }
