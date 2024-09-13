@@ -86,10 +86,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private Sensor magnetometer;
-    private float[] gravity;
-    private float[] geomagnetic;
-    private float azimuth = 0f;
-
+    private double myElevation;
+    private double objElevation;
     // ======================================
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,14 +149,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             currentMarkerPositions[0] = String.valueOf(latitude);
             currentMarkerPositions[1] = String.valueOf(longitude);
 
-//            // NOTE : 고도 API 호출
-//            new ElevationGetter(latitude, longitude, elevation -> {
-//                if (elevation != null) {
-//                    Toast.makeText(MapActivity.this, "Elevation: " + elevation + " meters", Toast.LENGTH_LONG).show();
-//                } else {
-//                    Toast.makeText(MapActivity.this, "Failed to fetch elevation", Toast.LENGTH_LONG).show();
-//                }
-//            }).execute();
+            // NOTE : 고도 API 호출
+            new ElevationGetter(latitude, longitude, elevation -> {
+                if (elevation != null) {
+                    objElevation = elevation;
+                }
+            }).execute();
 
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
@@ -733,6 +729,44 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         return 6371.0 * c; // EARTH_RADIUS_KM -> 6371.0
     }
 
+    private double azimuthCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
+        double lat1Rad = Math.toRadians(currentLat);
+        double lon1Rad = Math.toRadians(currentLon);
+        double lat2Rad = Math.toRadians(objectLat);
+        double lon2Rad = Math.toRadians(objectLon);
+
+        // 경도 차이
+        double dLon = lon2Rad - lon1Rad;
+
+        // 방위각 계산
+        double y = Math.sin(dLon) * Math.cos(lat2Rad);
+        double x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+        double azimuthRad = Math.atan2(y, x);
+
+        // 라디안에서 도로 변환
+        double azimuth = Math.toDegrees(azimuthRad);
+
+        // 방위각을 0에서 360도 범위로 변환
+        if (azimuth < 0) {
+            azimuth += 360;
+        }
+
+        return azimuth;
+    }
+
+    private double elevationCalc(double currentElevation, double objectElevation) {
+        // 현재 고도와 물체의 고도 차이를 계산하여 보정된 물체의 고도를 반환
+        double elevationDifference = objectElevation - currentElevation;
+        double correctedElevation = objectElevation - elevationDifference;
+
+        return correctedElevation;
+    }
+
+    private float scaler(float distance) {
+        float scale = 2.0f;
+        return scale / distance;
+    }
+
     private void getLocationAndSendToUnity(int modelNumber, int direction) { // NOTE : 나중에 position 별로 터빈 나누기!!!
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -754,19 +788,32 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 double objectLatitude = Double.parseDouble(currentMarkerPositions[0]);
                 double objectLongitude = Double.parseDouble(currentMarkerPositions[1]);
 
+                // NOTE : 고도 API 호출
+            new ElevationGetter(currentLatitude, currentLongitude, elevation -> {
+                if (elevation != null) {
+                    myElevation = elevation;
+                }
+            }).execute();
+
                 double distance = distanceCalc(currentLatitude, currentLongitude, objectLatitude, objectLongitude);
-                launchUnityAppWithData(objectLatitude, objectLongitude, direction, distance, modelNumber);
+                double azimuth = azimuthCalc(currentLatitude, currentLongitude, objectLatitude, objectLongitude);
+                double elevation = elevationCalc(myElevation, objElevation);
+                float scale = scaler(direction);
+                launchUnityAppWithData(objectLatitude, objectLongitude, direction, distance, azimuth, elevation, scale, modelNumber);
             }
         });
     }
 
     // INFO : Unity에 데이터 전달
-    private void launchUnityAppWithData(double objectLat, double objectLon, float direction, double distance, int modelNumber) {
+    private void launchUnityAppWithData(double objectLat, double objectLon, float direction, double distance, double azimuth, double elevation, float scale, int modelNumber) {
         Intent intent = new Intent(MapActivity.this, com.example.client.common.UnityPlayerActivity.class);
         intent.putExtra("objectLat", objectLat);
         intent.putExtra("objectLon", objectLon);
         intent.putExtra("direction", direction);
         intent.putExtra("distance", distance);
+        intent.putExtra("azimuth", azimuth);
+        intent.putExtra("elevation", elevation);
+        intent.putExtra("scale", scale);
         intent.putExtra("number", modelNumber);
 
         startActivity(intent);
