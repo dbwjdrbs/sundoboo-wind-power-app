@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum PageDirection {
-    PAGE_CREATEDAT_DESC,
-    PAGE_CREATEDAT_ASC;
+    PAGE_CREATED_AT_DESC,
+    PAGE_CREATED_AT_ASC;
 
 }

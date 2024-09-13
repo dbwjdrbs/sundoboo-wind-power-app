@@ -12,7 +12,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -26,21 +28,18 @@ public class BusinessScoreService {
         this.businessScoreRepository = businessScoreRepository;
     }
 
-    public BusinessScore createBusinessScore(BusinessScoreDto.Post requestBody) {
+    public BusinessScore createBusinessScore(BusinessScore businessScore) {
         // 검증 로직 추가 가능
-        Business findBusiness = businessService.verifyExistBusiness(requestBody.getBusinessId());
-        verifyBusinessScoreTitle(requestBody.getBusinessScoreTitle());
+        Business findBusiness = businessService.verifyExistBusiness(businessScore.getBusiness().getBusinessId());
 
-        BusinessScore businessScore = new BusinessScore();
-        businessScore.setBusiness(findBusiness);
-        businessScore.setBusinessScoreTitle(requestBody.getBusinessScoreTitle());
-        businessScore.setScoreList1(requestBody.getScoreList1());
-        businessScore.setScoreList2(requestBody.getScoreList2());
-        businessScore.setScoreList3(requestBody.getScoreList3());
-        businessScore.setScoreList4(requestBody.getScoreList4());
-        businessScore.setObserverName(requestBody.getObserverName());
-
-
+        BusinessScore businessScore1 = new BusinessScore();
+        businessScore1.setBusiness(findBusiness);
+        businessScore1.setBusinessScoreTitle(businessScore.getBusinessScoreTitle());
+        businessScore1.setScoreList1(businessScore.getScoreList1());
+        businessScore1.setScoreList2(businessScore.getScoreList2());
+        businessScore1.setScoreList3(businessScore.getScoreList3());
+        businessScore1.setScoreList4(businessScore.getScoreList4());
+        businessScore1.setObserverName(businessScore.getObserverName());
 
         return businessScoreRepository.save(businessScore);
 
@@ -54,17 +53,8 @@ public class BusinessScoreService {
 //        });
 //    }
 
-//  사업에 대한 평가를 평가명으로 한정할 경우.
-    public void verifyBusinessScoreTitle(String businessScoreTitle){
-        Optional<BusinessScore> optionalBusinessScore = businessScoreRepository.findByBusinessScoreTitle(businessScoreTitle);
-        optionalBusinessScore.ifPresent(BusinessScore -> {
-            throw new BusinessLogicException(ExceptionCode.BUSINESS_SCORE_TITLE_ALREADY_EXISTS);
-        });
-    }
-
     // 빈데이터 응답 처리기 때문에 없는 아이디 입력하면 빈화면 나와서 따로 예외 안던짐
     public Page<BusinessScore> findScore(long businessId, int page, int size){
         return businessScoreRepository.findByBusiness_BusinessId(businessId, PageRequest.of(page, size, Sort.by("createdAt").descending()));
-
     }
 }

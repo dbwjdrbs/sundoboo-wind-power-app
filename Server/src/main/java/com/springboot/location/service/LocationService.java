@@ -34,19 +34,20 @@ public class LocationService {
     public Location postLocation(Location location){
 
         // Business가 null인지 체크하고 예외 던지는 로직
+
         if (location.getBusiness() == null ||  location.getBusiness().getBusinessId() == 0) {
             throw new BusinessLogicException(ExceptionCode.BUSINESS_NOT_FOUND); // 적절한 예외를 발생시킴
         }
-        // Turbine이 null인지 체크하고 예외 던지는 로직
-        if (location.getTurbine() == null || location.getTurbine().getTurbineId() <= 0) {
-            throw new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND);
-        }
+//        // Turbine이 null인지 체크하고 예외 던지는 로직
+//        if (location.getTurbine() == null || location.getTurbine().getTurbineId() <= 0) {
+//            throw new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND);
+//        }
+//
+//        // Turbine이 실제 데이터베이스에 존재하는지 확인
+//        Turbine findTurbine = turbineRepository.findById(location.getTurbine().getTurbineId())
+//                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND));
 
-        // Turbine이 실제 데이터베이스에 존재하는지 확인
-        Turbine findTurbine = turbineRepository.findById(location.getTurbine().getTurbineId())
-                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND));
-
-        location.setTurbine(findTurbine); // 실제 Turbine 설정
+//        location.setTurbine(findTurbine); // 실제 Turbine 설정
 
         // 널에 안걸렸다면 찾은 비지니스 아이디를 findBusiness 할당
         Business findBusiness = businessService.verifyExistBusiness(location.getBusiness().getBusinessId());
@@ -58,11 +59,10 @@ public class LocationService {
 
 
         Location findLocation = findVerifyExistLocation(location.getLocationId());
-        // 비지니스아디 검증하는 로직 필요할까? 쳐피 로케이션 한번 누르고 이후 재검증할 때 하는건디.. 우선 주석 처리
+
         Business business = businessService.verifyExistBusiness(location.getBusiness().getBusinessId());
         findLocation.setBusiness(business);
 
-        // Turbine ID가 유효한 경우에만 조회
         if (location.getTurbine() != null && location.getTurbine().getTurbineId() > 0) {
             Turbine turbine = turbineRepository.findById(location.getTurbine().getTurbineId())
                     .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND));
@@ -80,7 +80,7 @@ public class LocationService {
                 .ifPresent(city -> findLocation.setCity(city));
         Optional.ofNullable(location.getIsland())
                 .ifPresent(island -> findLocation.setIsland(island));
-
+        
         findLocation.setModifiedAt(LocalDateTime.now());
         return locationRepository.save(findLocation);
 
@@ -96,6 +96,15 @@ public class LocationService {
           throw new BusinessLogicException(ExceptionCode.LOCATION_NOT_FOUND);
         }
         return findByLocationId;
+    }
+
+    public void verifyLocation(Location location){
+        Location findLocation = findVerifyExistLocation(location.getLocationId());
+        String findLatitude = findLocation.getLatitude();
+        String findLongitude = findLocation.getLongitude();
+        if (location.getLatitude().equals(findLatitude) && location.getLongitude().equals(findLongitude)){
+            throw new BusinessLogicException(ExceptionCode.ALREADY_LOCATION_EXISTS);
+        }
     }
 
 

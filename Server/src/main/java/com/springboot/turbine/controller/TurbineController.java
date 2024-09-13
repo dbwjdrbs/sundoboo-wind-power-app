@@ -30,7 +30,7 @@ public class TurbineController {
         this.turbineService = turbineService;
     }
 
-    @GetMapping("/{turbineId}")
+    @GetMapping("/{turbine-id}")
     public ResponseEntity getTurbine(@PathVariable("turbineId") @Positive long turbineId){
         Turbine findTurbine = turbineService.findTurbine(turbineId);
         return new ResponseEntity(new SingleResponseDto<>(findTurbine), HttpStatus.OK);

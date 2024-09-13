@@ -50,7 +50,6 @@ public class Location extends Auditable {
     @JoinColumn(name = "TURBINE_ID")
     private Turbine turbine;
 
-
     @ManyToOne
     @JoinColumn(name = "BUSINESS_ID")
     private Business business;

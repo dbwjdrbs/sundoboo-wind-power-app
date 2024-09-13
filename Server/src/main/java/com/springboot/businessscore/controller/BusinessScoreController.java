@@ -40,14 +40,14 @@ public class BusinessScoreController {
     @PostMapping("/registration")
     public ResponseEntity postScore(@Valid @RequestBody BusinessScoreDto.Post requestBody){
         BusinessScore businessScore = businessScoreMapper.businessScorePostDtoToBusinessScore(requestBody);
-        BusinessScore createdBusinessScore = businessScoreService.createBusinessScore(requestBody);
+        BusinessScore createdBusinessScore = businessScoreService.createBusinessScore(businessScore);
         URI location = UriCreator.createUri(DEFAULT_BUSINESS_SCORE_URL,createdBusinessScore.getBusinessScoreId());
         return ResponseEntity.created(location).build();
     }
 
-    // 비지니스 아이디가 있어야지 조회할 수 있으니까 걍 PathVariable로 api변경
-    @GetMapping("/search/{businessId}")
-    public ResponseEntity getScores(@PathVariable("businessId") @Positive long businessId,
+
+    @GetMapping("/search/{business-id}")
+    public ResponseEntity getScores(@PathVariable("business-id") @Positive long businessId,
                                     @Positive @RequestParam int page,
                                     @Positive @RequestParam int size){
         Business findBusiness = businessService.verifyExistBusiness(businessId);

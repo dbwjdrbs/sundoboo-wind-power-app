@@ -39,21 +39,18 @@ public class LocationController {
         this.locationMapper = locationMapper;
     }
 
-    @PostMapping
+    @PostMapping()
     public ResponseEntity postLocation(@Valid @RequestBody LocationDto.Post requestBody){
-
         Business business = businessService.verifyExistBusiness(requestBody.getBusinessId());
-
         Location location = locationMapper.locationPostDtoToLocation(requestBody);
         location.setBusiness(business);
-
         Location savedLocation = locationService.postLocation(location);
         URI uri = UriCreator.createUri(SCORE_DEFAULT_URL, savedLocation.getLocationId());
 
         return ResponseEntity.created(uri).build();
     }
 
-    @PatchMapping
+    @PatchMapping()
     public ResponseEntity patch(@Valid @RequestBody LocationDto.Patch requestBody){
 
         // 디버깅코드
@@ -78,7 +75,9 @@ public class LocationController {
                 new MultiResponseDto(locationMapper.locationToLocationsResponseDto(locationList), pageLocation),
                 HttpStatus.OK);
     }
-    @GetMapping("/{businessId}")
+
+    @GetMapping("/search/{business-id}")
+
     public ResponseEntity getLocation(@PathVariable("businessId") @Positive long businessId,
                                       @Positive @RequestParam int page,
                                       @Positive @RequestParam int size) {

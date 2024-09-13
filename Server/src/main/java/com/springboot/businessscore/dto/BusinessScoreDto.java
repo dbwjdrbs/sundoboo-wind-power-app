@@ -25,33 +25,31 @@ public class BusinessScoreDto {
         private long businessId;
         @NotNull
         @NotSpace
-        @Pattern(regexp = "^[가-힣]{1,20}$", message = "BusinessTitle은 1자에서 20자 사이의 한글만 입력할 수 있습니다.")
+        @Pattern(regexp = "^[가-힣a-zA-Z0-9]{1,20}$")
         private String businessScoreTitle;
-        @Range(min = 1, max = 5)
+        @Range(min = 0, max = 4)
         private int scoreList1;
-        @Range(min = 1, max = 5)
+        @Range(min = 0, max = 4)
         private int scoreList2;
-        @Range(min = 1, max = 5)
+        @Range(min = 0, max = 4)
         private int scoreList3;
-        @Range(min = 1, max = 5)
+        @Range(min = 0, max = 4)
         private int scoreList4;
         @NotSpace
         @NotNull
         private String observerName;
 
     }
+
     @Getter
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Response{
-        @Column(nullable = false)
         private long businessId;
 
-        @Column(nullable = false)
         private long businessScoreId;
 
-        @Column(nullable = false, length = 20)
         private String businessScoreTitle;
 
         private int ScoreList1;
@@ -62,19 +60,11 @@ public class BusinessScoreDto {
 
         private int ScoreList4;
 
-        @Column(nullable = false, length = 20)
         private String observerName;
 
-        @CreatedDate
-        @Column(name = "CREATED_AT", updatable = false)
         private LocalDateTime createdAt;
 
-        @LastModifiedDate
-        @Column(name = "LAST_MODIFIED_AT")
         private LocalDateTime modifiedAt;
     }
-
-
-
 
 }

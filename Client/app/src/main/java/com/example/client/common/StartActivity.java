@@ -9,6 +9,16 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.client.R;
+import com.example.client.api.LocalDateTimeDeserializer;
+import com.example.client.api.MappingClass;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
+import org.threeten.bp.LocalDateTime;
+
+import java.lang.reflect.Type;
+import java.util.List;
 
 public class StartActivity extends AppCompatActivity {
     // NOTE : 뒤로가기 두 번 클릭시 앱 종료  ============================================================
@@ -28,18 +38,45 @@ public class StartActivity extends AppCompatActivity {
             finish();
         }
     }
-    // =============================================================================================
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
-        Button btn_start = findViewById(R.id.btn_start);
-        btn_start.setOnClickListener(view -> {
-            Intent intent = new Intent(StartActivity.this, BusinessSelectActivity.class);
-            startActivity(intent);
-            finish();
-        });
+//         Intent로부터 JSON 문자열을 가져옵니다
+        Intent intent = getIntent();
+        String jsonBusinessList = intent.getStringExtra("businessListJson");
+
+        // Gson 객체 생성 및 역직렬화 설정
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
+                .create();
+
+        // JSON 문자열을 BusinessResponse 객체 리스트로 변환
+        Type businessListType = new TypeToken<List<MappingClass.BusinessResponse>>() {}.getType();
+        List<MappingClass.BusinessResponse> businessList = gson.fromJson(jsonBusinessList, businessListType);
+
+        // 필요한 데이터만 추출
+        for (MappingClass.BusinessResponse business : businessList) {
+            long businessId = business.getBusinessId();
+            String businessTitle = business.getBusinessTitle();
+            LocalDateTime createdAt = LocalDateTime.parse(business.getCreatedAt());
+
+            // 필요한 데이터 로그로 확인
+            Log.d("BusinessResponse", "Business ID: " + businessId);
+            Log.d("BusinessResponse", "Business Title: " + businessTitle);
+            Log.d("BusinessResponse", "Created At: " + createdAt);
+        }
+
+        start();
     }
 
+    // 시작 버튼.
+    private void start() {
+        Button btn_start = findViewById(R.id.btn_start);
+        btn_start.setOnClickListener(v -> {
+            startActivity(new Intent(StartActivity.this, BusinessSelectActivity.class));
+        });
+    }
 }

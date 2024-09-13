@@ -1,0 +1,9 @@
+{
+  "Messages": [
+    {
+      "Type": 1,
+      "Text": "Unity.IL2CPP.Building.BuilderFailedException: Build failed with 0 successful nodes and 0 failed ones\r\nError: Internal build system error. Backend exited with code 2.\ntundra: error: Failed to open file \u0022C:/Users/klolp/sundo-project/sundoboo-wind-power-app/UnityProject/unityLibrary/build/il2cpp_armeabi-v7a_Release/il2cpp_cache/buildstate/tundra.log.json\u0022 for structured logging\r\n\r\n   at il2cpp.Program.DoRun(TinyProfiler2 tinyProfiler, String[] args, RuntimePlatform platform, Il2CppCommandLineArguments il2CppCommandLineArguments, BuildingOptions buildingOptions, Boolean throwExceptions)"
+    }
+  ],
+  "CommandLine": "--compile-cpp --platform=Android --architecture=armv7 --outputpath=C:/project/sundoboo-wind-power-app/UnityProject/unityLibrary/src/main/jniLibs/armeabi-v7a/libil2cpp.so --baselib-directory=C:/project/sundoboo-wind-power-app/UnityProject/unityLibrary/src/main/jniStaticLibs/armeabi-v7a --incremental-g-c-time-slice=3 --configuration=Release --dotnetprofile=unityaot-linux --profiler-report --profiler-output-file=C:/project/sundoboo-wind-power-app/UnityProject/unityLibrary/build/il2cpp_armeabi-v7a_Release/il2cpp_conv.traceevents --print-command-line --data-folder=C:/project/sundoboo-wind-power-app/UnityProject/unityLibrary/src/main/Il2CppOutputProject/Source/il2cppOutput/data --generatedcppdir=C:/project/sundoboo-wind-power-app/UnityProject/unityLibrary/src/main/Il2CppOutputProject/Source/il2cppOutput --cachedirectory=C:/project/sundoboo-wind-power-app/UnityProject/unityLibrary/build/il2cpp_armeabi-v7a_Release/il2cpp_cache --tool-chain-path=C:\\Program Files\\Unity\\Hub\\Editor\\2022.3.44f1\\Editor\\Data\\PlaybackEngines\\AndroidPlayer\\NDK"
+}

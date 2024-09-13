@@ -15,6 +15,11 @@ import android.widget.Toast;
 import com.example.client.Interface.BusinessSelectItemClickListener;
 import com.example.client.R;
 import com.example.client.adapter.BusinessSelectAdapter;
+import com.example.client.api.ApiCallback;
+import com.example.client.api.ApiHandler;
+import com.example.client.api.ApiService;
+import com.example.client.api.MappingClass;
+import com.example.client.api.RestClient;
 import com.example.client.data.BusinessData;
 import com.example.client.util.MessageDialog;
 
@@ -41,6 +46,7 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         BusinessData data1 = new BusinessData("가산 해상풍력단지", "2024년 4월 24일 오전 10시 33분");
         BusinessData data2 = new BusinessData("보령 해상풍력단지", "2024년 4월 24일 오전 10시 33분");
         BusinessData data3 = new BusinessData("울산 부유식 해상풍력단지", "2024년 4월 24일 오전 10시 32분");
+
 
         list = new ArrayList<>();
         list.add(data1);
@@ -76,24 +82,38 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
     // INFO : 온 클릭 이벤트 처리
     @Override
     public void onClick(View v) {
-        // BUG : 입력한 사업명을 추출하기 위해 View를 따로 선언했다.
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_business, null);
 
         if (v.getId() == R.id.btn_businessAdd) {
             new AlertDialog.Builder(this)
                     .setTitle("사업 추가")
-                    // BUG : dialogView 추가
                     .setView(dialogView)
                     .setNegativeButton("취소", (dialog, which) -> dialog.cancel())
                     .setPositiveButton("확인", (dialog, which) -> {
-                        // BUG : EditText 추출 및 String 값 추출
                         EditText businessTitleEt = dialogView.findViewById(R.id.et_businessTitle);
                         String businessTitle = businessTitleEt.getText().toString();
                         if (businessTitle.isEmpty()) {
                             messageDialog.simpleErrorDialog("사업명을 입력해주세요.", this);
                         } else {
-                            // TODO : 비즈니스 로직 생성
-                            messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", this);
+                            MappingClass.BusinessRequest request = new MappingClass.BusinessRequest();
+                            request.setBusinessTitle(businessTitle);
+
+                            ApiService apiService = RestClient.getClient().create(ApiService.class);
+                            ApiHandler apiHandler = new ApiHandler(apiService, this);
+
+                            apiHandler.createBusiness(request, new ApiCallback<Void>() {
+                                @Override
+                                public void onSuccess(Void response) {
+                                    // 요청 성공 처리
+                                    messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", BusinessSelectActivity.this);
+                                }
+
+                                @Override
+                                public void onError(String errorMessage) {
+                                    // 요청 실패 처리
+                                    messageDialog.simpleErrorDialog(errorMessage, BusinessSelectActivity.this);
+                                }
+                            });
                         }
                     })
                     .show();
@@ -102,9 +122,9 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         if (v.getId() == R.id.btn_businessDelete) {
             if (isChecked) {
                 messageDialog.simpleCompleteDialog("사업 삭제가 완료되었습니다.", this);
-                // TODO : 비즈니스 로직 생성
+                // TODO : 비즈니스 삭제 로직
             } else {
-                messageDialog.simpleErrorDialog("사업이 선택 되지 않았습니다.", this);
+                messageDialog.simpleErrorDialog("사업이 선택되지 않았습니다.", this);
             }
         }
     }
