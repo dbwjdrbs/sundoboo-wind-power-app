@@ -6,8 +6,12 @@ import org.threeten.bp.LocalDateTime;
 import java.util.List;
 
 public class MappingClass {
-    public class BusinessRequest {
-        private String businessName;
+
+    public class EmptyResponse{};
+    public static class BusinessRequest {
+        private String businessTitle;
+        public String getBusinessTitle() { return businessTitle; }
+        public void setBusinessTitle(String businessTitle) { this.businessTitle = businessTitle; }
     }
 
     public class BusinessResponse {
@@ -70,7 +74,7 @@ public class MappingClass {
     public class TurbineResponse {
     }
 
-    public static class BusinessScoreRequest {
+    public static class BusinessScorePost {
         private long businessId;
         private String businessScoreTitle;
         private int scoreList1;
@@ -235,13 +239,6 @@ public class MappingClass {
     public static class LocationPostRequest {
         private long businessId;
         private long turbineId;
-        private String businessTitle;
-        private String modelName;
-        private String latitude;
-        private String longitude;
-        private String city;
-        private String island;
-
 
         // Getters and Setters
         public long getBusinessId() {
@@ -260,53 +257,6 @@ public class MappingClass {
             this.turbineId = turbineId;
         }
 
-        public String getBusinessTitle() {
-            return businessTitle;
-        }
-
-        public void setBusinessTitle(String businessTitle) {
-            this.businessTitle = businessTitle;
-        }
-
-        public String getModelName() {
-            return modelName;
-        }
-
-        public void setModelName(String modelName) {
-            this.modelName = modelName;
-        }
-
-        public String getLatitude() {
-            return latitude;
-        }
-
-        public void setLatitude(String latitude) {
-            this.latitude = latitude;
-        }
-
-        public String getLongitude() {
-            return longitude;
-        }
-
-        public void setLongitude(String longitude) {
-            this.longitude = longitude;
-        }
-
-        public String getCity() {
-            return city;
-        }
-
-        public void setCity(String city) {
-            this.city = city;
-        }
-
-        public String getIsland() {
-            return island;
-        }
-
-        public void setIsland(String island) {
-            this.island = island;
-        }
 
     }
 
