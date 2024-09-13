@@ -13,6 +13,7 @@ public class LocationDto {
     @Getter
     @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class Post{
         private long businessId;
 
@@ -26,6 +27,7 @@ public class LocationDto {
     @Getter
     @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class Patch {
         private long locationId;
 
