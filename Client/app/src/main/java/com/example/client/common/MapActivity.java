@@ -202,7 +202,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 //        이때 로케이션 post 요청을 보내야함 -> 해당 비즈니스 ID를 입력하여 로케이션 생성하게 만들 어둠
 //        위치는 결국 풍력 발전기를 선택하고 나서 줘야 넣어야 하므로 일단 생성만 해둔다.
 //        fix 마커를 생성할 떄 위도 경도 까지 넣어주기로 변경
-//        TODO : setBusinessId 안에 해당 사업을 눌렀을 때 가져온 BusinessId를 매개변수에 넣어줘야한다.
+//        TODO : setBusinessId 안에 해당 사업을 눌렀을 때 가져온 BusinessId를 매개 변수에 넣어줘야한다.
         MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
         request.setBusinessId(1);
         request.setTurbineId(1);
@@ -347,7 +347,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 for (Marker marker : markerList) {
                     marker.remove();
                 }
-//                TODO :
+//                TODO : 로케이션 삭제 로직 DeleteLocationsByBusinessId() 해당 사업 id에 있는 로케이션들을 삭제
+
+                MappingClass.DeleteLocationsByBusinessId request = new MappingClass.DeleteLocationsByBusinessId();
+                request.setBusinessId(1);
+                ApiService apiService = RestClient.getClient().create(ApiService.class);
+                ApiHandler apiHandler = new ApiHandler(apiService, this);
+                apiHandler.deleteLocationsByBusinessId(request.getBusinessId());
+
                 markerList.clear();
                 mMarker = null;
                 isOnClickMarker = false;

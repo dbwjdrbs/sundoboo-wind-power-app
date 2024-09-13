@@ -43,4 +43,7 @@ public interface ApiService {
     Call<MappingClass.BusinessScoreResponse> getBusinessScore(@Path("business-id") long businessScoreId);
     @POST("/locations")
     Call<Void> createLocation(@Body MappingClass.LocationPostRequest request);
+
+    @DELETE("/locations/business/{business-id}")
+    Call<Void> deleteLocationsByBusinessId(@Path("business-id") long businessId);
 }

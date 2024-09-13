@@ -470,9 +470,8 @@ public class MappingClass {
             this.businessId = businessId;
         }
     }
-}
 
-    public static class DeleteBusiness{
+    public static class DeleteLocationsByBusinessId{
         private long businessId;
 
         public long getBusinessId() {
