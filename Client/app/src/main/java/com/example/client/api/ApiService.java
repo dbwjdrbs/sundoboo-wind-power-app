@@ -41,6 +41,5 @@ public interface ApiService {
 
     @GET("/scores/search/{business-id}")
     Call<MappingClass.BusinessScoreResponse> getBusinessScore(@Path("business-id") long businessScoreId);
-
 }
 

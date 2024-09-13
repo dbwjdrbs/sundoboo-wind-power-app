@@ -38,6 +38,7 @@ import com.example.client.adapter.ScoreListAdapter;
 import com.example.client.adapter.TurbinesSelectAdapter;
 import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
+import com.example.client.util.ElevationGetter;
 import com.example.client.util.MessageDialog;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -56,6 +57,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.unity3d.player.UnityPlayer;
 import com.unity3d.player.UnityPlayerActivity;
 
+import java.io.DataOutput;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -139,14 +141,21 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // INFO : 마커 온클릭
         googleMap.setOnMarkerClickListener(marker -> {
             isOnClickMarker = true;
-
             double latitude = marker.getPosition().latitude;
             double longitude = marker.getPosition().longitude;
             currentMarkerPositions[0] = String.valueOf(latitude);
             currentMarkerPositions[1] = String.valueOf(longitude);
 
-            // NOTE : true를 반환하면 기본 마커 클릭 동작(지도 중심으로 이동 등)이 막힘.
-            // NOTE : false를 반환하면 기본 동작이 실행됨.
+            // NOTE : 고도 API 호출
+            new ElevationGetter(latitude, longitude, elevation -> {
+                if (elevation != null) {
+                    Toast.makeText(MapActivity.this, "Elevation: " + elevation + " meters", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MapActivity.this, "Failed to fetch elevation", Toast.LENGTH_LONG).show();
+                }
+            }).execute();
+
+            // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
         });
     }
@@ -700,8 +709,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 double currentLongitude = location.getLongitude();
 
                 // 물체 위치
-                double objectLatitude = Math.round(Double.parseDouble(currentMarkerPositions[0]) * 10000.0) / 10000.0;
-                double objectLongitude = Math.round(Double.parseDouble(currentMarkerPositions[1]) * 10000.0) / 10000.0;
+                double objectLatitude = Double.parseDouble(currentMarkerPositions[0]);
+                double objectLongitude = Double.parseDouble(currentMarkerPositions[1]);
 
                 double distance = distanceCalc(currentLatitude, currentLongitude, objectLatitude, objectLongitude);
                 launchUnityAppWithData(objectLatitude, objectLongitude, direction, distance, modelNumber);

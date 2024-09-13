@@ -481,5 +481,12 @@ public class MappingClass {
             this.modifiedAt = modifiedAt;
         }
     }
+
+    public static class ElevationResponse {
+        private double elevation;
+        public double getElevation() {
+            return elevation;
+        }
+    }
 }
 
