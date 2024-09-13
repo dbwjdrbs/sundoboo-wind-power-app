@@ -46,6 +46,14 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectVi
     public int getItemCount() {
         return list.size();
     }
+
+    public void addItem(BusinessData businessData) {
+        list.add(businessData);
+    }
+
+    public void removeItem(int position) {
+        list.remove(position);
+    }
 }
 
 class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
@@ -66,9 +74,9 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
             if (pos != RecyclerView.NO_POSITION) {
                 if (isChecked) {
                     BusinessData data = new BusinessData(title.getText().toString(), createdAt.getText().toString());
-                    listener.onBusinessItemClick(data);
+                    listener.onBusinessItemClick(data, pos);
                 } else {
-                    listener.onBusinessItemClick(null);
+                    listener.onBusinessItemClick(null, 0);
                 }
 
             }

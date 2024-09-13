@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.client.data.BusinessData;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -23,16 +24,17 @@ public class ApiHandler {
         this.context = context;
     }
 
-    public Call<MappingClass.EmptyResponse> createBusiness(MappingClass.BusinessRequest request, final ApiCallback<Void> callback) {
-        Call<MappingClass.EmptyResponse> call = apiService.createBusiness(request);
-        call.enqueue(new Callback<MappingClass.EmptyResponse>() {
+    public Call<Void> createBusiness(MappingClass.BusinessRequest request, final ApiCallback<Void> callback) {
+        Call<Void> call = apiService.createBusiness(request);
+        call.enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Call<MappingClass.EmptyResponse> call, Response<MappingClass.EmptyResponse> response) {
+            public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
 
                     callback.onSuccess(null);
                 } else {
                     try {
+                        System.out.println(response);
                         String errorMessage = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
                         callback.onError("Error : " + errorMessage);
                     } catch (IOException e) {
@@ -43,8 +45,30 @@ public class ApiHandler {
             }
 
             @Override
-            public void onFailure(Call<MappingClass.EmptyResponse> call, Throwable t) {
+            public void onFailure(Call<Void> call, Throwable t) {
                 callback.onError("Failure : " + t.getMessage());
+            }
+        });
+        return call;
+    }
+
+    public Call<Void> createLocation(MappingClass.LocationPostRequest request, final ApiCallback<Void> callback) {
+        Call<Void> call = apiService.createLocation(request);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                } else {
+                    try {
+                        String errorMessage = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+
             }
         });
         return call;
@@ -56,15 +80,11 @@ public class ApiHandler {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(context, "Business deleted successfully", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(context, "Failed to delete business", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(context, "Failure : " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -90,6 +110,31 @@ public class ApiHandler {
             @Override
             public void onFailure(Call<BusinessResponseWrapper> call, Throwable t) {
                 callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+
+    public void fetchBusinesses(int page, int size, String direction, final ApiCallback<BusinessResponseWrapper> callback) {
+        Call<BusinessResponseWrapper> call = apiService.getBusinesses(page, size, direction);
+        call.enqueue(new Callback<BusinessResponseWrapper>() {
+            @Override
+            public void onResponse(Call<BusinessResponseWrapper> call, Response<BusinessResponseWrapper> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(response.body());
+                } else {
+                    try {
+                        String errorMessage = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                        callback.onError("Error : " + errorMessage);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        callback.onError("Error : Unable to parse error body");
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<BusinessResponseWrapper> call, Throwable t) {
+                callback.onError("Failure : " + t.getMessage());
             }
         });
     }

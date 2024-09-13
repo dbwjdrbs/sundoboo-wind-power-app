@@ -239,6 +239,26 @@ public class MappingClass {
     public static class LocationPostRequest {
         private long businessId;
         private long turbineId;
+        private String latitude;
+        private String longitude;
+
+        public String getLatitude() {
+            return latitude;
+        }
+
+        public void setLatitude(String latitude) {
+            this.latitude = latitude;
+        }
+
+        public String getLongitude() {
+            return longitude;
+        }
+
+        public void setLongitude(String longitude) {
+            this.longitude = longitude;
+        }
+
+
 
         // Getters and Setters
         public long getBusinessId() {
@@ -438,5 +458,16 @@ public class MappingClass {
             return elevation;
         }
     }
-}
 
+    public static class DeleteBusiness{
+        private long businessId;
+
+        public long getBusinessId() {
+            return businessId;
+        }
+
+        public void setBusinessId(long businessId) {
+            this.businessId = businessId;
+        }
+    }
+}

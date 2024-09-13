@@ -36,6 +36,11 @@ import android.widget.Toast;
 import com.example.client.R;
 import com.example.client.adapter.ScoreListAdapter;
 import com.example.client.adapter.TurbinesSelectAdapter;
+import com.example.client.api.ApiCallback;
+import com.example.client.api.ApiHandler;
+import com.example.client.api.ApiService;
+import com.example.client.api.MappingClass;
+import com.example.client.api.RestClient;
 import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
 import com.example.client.util.ElevationGetter;
@@ -146,14 +151,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             currentMarkerPositions[0] = String.valueOf(latitude);
             currentMarkerPositions[1] = String.valueOf(longitude);
 
-            // NOTE : 고도 API 호출
-            new ElevationGetter(latitude, longitude, elevation -> {
-                if (elevation != null) {
-                    Toast.makeText(MapActivity.this, "Elevation: " + elevation + " meters", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(MapActivity.this, "Failed to fetch elevation", Toast.LENGTH_LONG).show();
-                }
-            }).execute();
+//            // NOTE : 고도 API 호출
+//            new ElevationGetter(latitude, longitude, elevation -> {
+//                if (elevation != null) {
+//                    Toast.makeText(MapActivity.this, "Elevation: " + elevation + " meters", Toast.LENGTH_LONG).show();
+//                } else {
+//                    Toast.makeText(MapActivity.this, "Failed to fetch elevation", Toast.LENGTH_LONG).show();
+//                }
+//            }).execute();
 
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
@@ -178,7 +183,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 // 예시: 서울특별시 강남구 테헤란로 123
 
                 // 주소를 Toast로 표시
-                Toast.makeText(MapActivity.this, "주소: " + adminArea + local, Toast.LENGTH_SHORT).show();
             } else {
                 // 주소를 찾지 못했을 경우
                 Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
@@ -194,6 +198,35 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
         markerList.add(mMarker);
         saveLocationToDatabase(latLng);
+
+//        이때 로케이션 post 요청을 보내야함 -> 해당 비즈니스 ID를 입력하여 로케이션 생성하게 만들 어둠
+//        위치는 결국 풍력 발전기를 선택하고 나서 줘야 넣어야 하므로 일단 생성만 해둔다.
+//        fix 마커를 생성할 떄 위도 경도 까지 넣어주기로 변경
+//        TODO : setBusinessId 안에 해당 사업을 눌렀을 때 가져온 BusinessId를 매개변수에 넣어줘야한다.
+        MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
+        request.setBusinessId(1);
+        request.setTurbineId(1);
+        String latitude = String.valueOf(latLng.latitude);
+        String longitude = String.valueOf(latLng.longitude);
+        request.setLatitude(latitude);
+        request.setLongitude(longitude);
+
+        ApiService apiService = RestClient.getClient().create(ApiService.class);
+        ApiHandler apiHandler = new ApiHandler(apiService, this);
+
+        apiHandler.createLocation(request, new ApiCallback<Void>() {
+
+            @Override
+            public void onSuccess(Void response) {
+
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
+
         messageDialog.simpleCompleteDialog("마커 등록이 완료되었습니다.", this);
     }
 
@@ -676,7 +709,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     public void onSelectModel(int position, int direction) {
         getLocationAndSendToUnity(position ,direction);
-        Toast.makeText(MapActivity.this, "포지션 " + position, Toast.LENGTH_SHORT).show();
     }
 
     private double distanceCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
