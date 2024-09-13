@@ -80,15 +80,11 @@ public class ApiHandler {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(context, "Business deleted successfully", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(context, "Failed to delete business", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Toast.makeText(context, "Failure : " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

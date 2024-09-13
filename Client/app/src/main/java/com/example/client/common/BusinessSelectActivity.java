@@ -23,13 +23,20 @@ import com.example.client.api.RestClient;
 import com.example.client.data.BusinessData;
 import com.example.client.util.MessageDialog;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class BusinessSelectActivity extends AppCompatActivity implements View.OnClickListener, BusinessSelectItemClickListener {
-    private ArrayList<BusinessData> list;
+    private ArrayList<BusinessData> list = new ArrayList<>();
     private MessageDialog messageDialog = new MessageDialog();
     private BusinessData businessData;
     private boolean isChecked = false;
+    private String isCurrentViewHolder;
+
+    // NOTE : 리사이클러뷰 어뎁터 정의
+    BusinessSelectAdapter adapter = new BusinessSelectAdapter(list, this);
 
     @Override
     public void onBackPressed() {
@@ -45,16 +52,10 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         // NOTE : 사업 리스트 더미 데이터
         BusinessData data1 = new BusinessData("가산 해상풍력단지", "2024년 4월 24일 오전 10시 33분");
         BusinessData data2 = new BusinessData("보령 해상풍력단지", "2024년 4월 24일 오전 10시 33분");
-        BusinessData data3 = new BusinessData("울산 부유식 해상풍력단지", "2024년 4월 24일 오전 10시 32분");
 
-
-        list = new ArrayList<>();
         list.add(data1);
         list.add(data2);
-        list.add(data3);
 
-        // NOTE : 리사이클러뷰 어뎁터 정의
-        BusinessSelectAdapter adapter = new BusinessSelectAdapter(list, this);
         RecyclerView recyclerView = findViewById(R.id.rv_businessSelect);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -104,6 +105,11 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                                 @Override
                                 public void onSuccess(Void response) {
                                     // 요청 성공 처리
+                                    long now = System.currentTimeMillis();
+                                    Date date = new Date(now);
+                                    SimpleDateFormat format = new SimpleDateFormat("yyyy년 MM월 dd일 a HH시mm분");
+                                    adapter.addItem(new BusinessData(businessTitle, format.format(date)));
+                                    adapter.notifyDataSetChanged();
                                     messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", BusinessSelectActivity.this);
                                 }
 
@@ -122,7 +128,6 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
             if (isChecked) {
 
 //                TODO : 사업 삭제 로직 deleteBusiness(businessId) 매개 변수로 받는 사업Id를 삭제
-
                 MappingClass.DeleteBusiness request = new MappingClass.DeleteBusiness();
                 request.setBusinessId(1);
 
@@ -130,8 +135,9 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                 ApiHandler apiHandler = new ApiHandler(apiService, this);
                 apiHandler.deleteBusiness(request.getBusinessId());
 
-                    messageDialog.simpleCompleteDialog("사업 삭제가 완료되었습니다.", this);
-
+                adapter.removeItem(Integer.parseInt(isCurrentViewHolder));
+                messageDialog.simpleCompleteDialog("사업 삭제가 완료되었습니다.", this);
+                adapter.notifyDataSetChanged();
             } else {
                 messageDialog.simpleErrorDialog("사업이 선택 되지 않았습니다.", this);
             }
@@ -141,11 +147,11 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
 
     // INFO : 체크박스 이벤트
     @Override
-    public void onBusinessItemClick(BusinessData businessData) {
+    public void onBusinessItemClick(BusinessData businessData, int pos) {
         if (businessData != null) {
             isChecked = true;
+            isCurrentViewHolder = String.valueOf(pos);
             this.businessData = new BusinessData(businessData.getTitle(), businessData.getCreatedAt());
-            Toast.makeText(this, "Title: " + businessData.getTitle(), Toast.LENGTH_SHORT).show();
         } else {
             isChecked = false;
         }

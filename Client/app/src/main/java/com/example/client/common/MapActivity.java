@@ -151,14 +151,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             currentMarkerPositions[0] = String.valueOf(latitude);
             currentMarkerPositions[1] = String.valueOf(longitude);
 
-            // NOTE : 고도 API 호출
-            new ElevationGetter(latitude, longitude, elevation -> {
-                if (elevation != null) {
-                    Toast.makeText(MapActivity.this, "Elevation: " + elevation + " meters", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(MapActivity.this, "Failed to fetch elevation", Toast.LENGTH_LONG).show();
-                }
-            }).execute();
+//            // NOTE : 고도 API 호출
+//            new ElevationGetter(latitude, longitude, elevation -> {
+//                if (elevation != null) {
+//                    Toast.makeText(MapActivity.this, "Elevation: " + elevation + " meters", Toast.LENGTH_LONG).show();
+//                } else {
+//                    Toast.makeText(MapActivity.this, "Failed to fetch elevation", Toast.LENGTH_LONG).show();
+//                }
+//            }).execute();
 
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
@@ -183,7 +183,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 // 예시: 서울특별시 강남구 테헤란로 123
 
                 // 주소를 Toast로 표시
-                Toast.makeText(MapActivity.this, "주소: " + adminArea + local, Toast.LENGTH_SHORT).show();
             } else {
                 // 주소를 찾지 못했을 경우
                 Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
@@ -713,7 +712,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     public void onSelectModel(int position, int direction) {
         getLocationAndSendToUnity(position ,direction);
-        Toast.makeText(MapActivity.this, "포지션 " + position, Toast.LENGTH_SHORT).show();
     }
 
     private double distanceCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
