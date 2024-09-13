@@ -18,7 +18,11 @@ public class LocationDto {
 
         private long turbineId;
 
+        private String latitude;
+
+        private String longitude;
     }
+
     @Getter
     @Setter
     @AllArgsConstructor
