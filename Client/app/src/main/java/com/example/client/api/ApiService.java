@@ -43,5 +43,4 @@ public interface ApiService {
     Call<MappingClass.BusinessScoreResponse> getBusinessScore(@Path("business-id") long businessScoreId);
     @POST("/locations")
     Call<Void> createLocation(@Body MappingClass.LocationPostRequest request);
-
 }

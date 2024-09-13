@@ -81,7 +81,6 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
     }
 
     // INFO : 온 클릭 이벤트 처리
-    @Override
     public void onClick(View v) {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_business, null);
 
@@ -127,6 +126,8 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
 
         if (v.getId() == R.id.btn_businessDelete) {
             if (isChecked) {
+
+//                TODO : 사업 삭제 로직 deleteBusiness(businessId) 매개 변수로 받는 사업Id를 삭제
                 MappingClass.DeleteBusiness request = new MappingClass.DeleteBusiness();
                 request.setBusinessId(1);
 
@@ -142,6 +143,7 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
             }
         }
     }
+
 
     // INFO : 체크박스 이벤트
     @Override

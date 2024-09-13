@@ -13,15 +13,21 @@ public class LocationDto {
     @Getter
     @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class Post{
         private long businessId;
 
         private long turbineId;
 
+        private String latitude;
+
+        private String longitude;
     }
+
     @Getter
     @Setter
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class Patch {
         private long locationId;
 

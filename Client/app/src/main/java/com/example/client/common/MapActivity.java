@@ -347,10 +347,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 for (Marker marker : markerList) {
                     marker.remove();
                 }
+//                TODO :
                 markerList.clear();
                 mMarker = null;
                 isOnClickMarker = false;
                 Arrays.fill(currentMarkerPositions, null);
+
                 messageDialog.simpleCompleteDialog("마커가 초기화 되었습니다.", this);
             } else {
                 messageDialog.simpleErrorDialog("생성된 마커가 없습니다.", this);
@@ -706,6 +708,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     // INFO : AR뷰 보기
+    // 0 1 2 3 -> +1해서 넣어 줘야 터빈 아이디가 댐
     @Override
     public void onSelectModel(int position, int direction) {
         getLocationAndSendToUnity(position ,direction);

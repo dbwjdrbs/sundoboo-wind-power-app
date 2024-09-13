@@ -44,7 +44,7 @@ public class StartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
-//         Intent로부터 JSON 문자열을 가져옵니다
+        // Intent로부터 JSON 문자열을 가져옵니다
         Intent intent = getIntent();
         String jsonBusinessList = intent.getStringExtra("businessListJson");
 

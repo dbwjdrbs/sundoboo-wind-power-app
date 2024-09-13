@@ -471,3 +471,16 @@ public class MappingClass {
         }
     }
 }
+
+    public static class DeleteBusiness{
+        private long businessId;
+
+        public long getBusinessId() {
+            return businessId;
+        }
+
+        public void setBusinessId(long businessId) {
+            this.businessId = businessId;
+        }
+    }
+}
