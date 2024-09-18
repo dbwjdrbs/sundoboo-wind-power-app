@@ -18,6 +18,7 @@ import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,6 +43,7 @@ import com.example.client.api.RestClient;
 import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
 import com.example.client.util.ElevationGetter;
+import com.example.client.util.GeoJsonFeatureCollection;
 import com.example.client.util.MessageDialog;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -55,14 +57,32 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.gson.Gson;
+import com.google.maps.android.data.geojson.GeoJsonFeature;
+import com.google.maps.android.data.geojson.GeoJsonLayer;
+import com.google.maps.android.data.geojson.GeoJsonMultiPolygon;
+import com.google.maps.android.data.geojson.GeoJsonPolygon;
+import com.google.maps.android.data.geojson.GeoJsonPolygonStyle;
+import com.unity3d.player.P;
+
+import org.json.JSONException;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, TurbinesSelectAdapter.OnItemClickListener {
     private GoogleMap mMap;
@@ -71,10 +91,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean isCreateMarker = false;
     private boolean isOnClickMarker = false;
+    private boolean isVisibleRegulatedArea = true;
     private double[] currentMarkerPositions = new double[2];
     private double[] currentMyPositions = new double[2];
     private MessageDialog messageDialog = new MessageDialog();
     private List<Marker> markerList = new ArrayList<>();
+    private List<Polygon> polygons = new ArrayList<>();
+
 
     // INFO : Unity 연동을 위한 것들
     private SensorManager sensorManager;
@@ -107,12 +130,40 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         findViewById(R.id.btn_scoreInput).setOnClickListener(this);
         findViewById(R.id.btn_scoreList).setOnClickListener(this);
         findViewById(R.id.btn_deleteMarker).setOnClickListener(this);
+        findViewById(R.id.btn_regulatedArea).setOnClickListener(this);
     }
 
     // ================================================================ GoogleMap
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;  // GoogleMap 객체를 초기화
+
+        if (mMap != null) {
+            try {
+                InputStream is = getResources().openRawResource(R.raw.fss_a);
+                GeoJsonFeatureCollection featureCollection = new Gson().fromJson(new InputStreamReader(is), GeoJsonFeatureCollection.class);
+
+                for (GeoJsonFeatureCollection.GeoJsonFeature feature : featureCollection.features) {
+                    if ("MultiPolygon".equals(feature.geometry.type)) {
+                        for (List<List<List<Double>>> polygon : feature.geometry.coordinates) {
+                            List<LatLng> polygonPoints = new ArrayList<>();
+                            for (List<Double> point : polygon.get(0)) { // 첫 번째 폴리곤의 꼭지점만 가져옴
+                                double lng = point.get(0);
+                                double lat = point.get(1);
+                                polygonPoints.add(new LatLng(lat, lng));
+                            }
+                            Polygon poly = mMap.addPolygon(new PolygonOptions()
+                                    .addAll(polygonPoints)
+                                    .strokeColor(0xFFFF7979)
+                                    .fillColor(0x7FFF0000));
+                            polygons.add(poly); // 폴리곤을 리스트에 추가
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         // 위치 권한이 부여된 경우 현재 위치를 지도에 표시
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -296,9 +347,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
     }
+
+    // INFO : GoeJSON 로드 (규제지역)
+    private void togglePolygonsVisibility() {
+        isVisibleRegulatedArea = !isVisibleRegulatedArea;
+
+        for (Polygon polygon : polygons) {
+            polygon.setVisible(isVisibleRegulatedArea);
+        }
+    }
+
 // ================================================================================
 
-    // INFO : 버튼 클릭 이벤트 정의 메서드
+    // INFO : 버튼 온클릭 이벤트 정의 메서드
     @Override
     public void onClick(View v) {
         Button btn_posSelect = findViewById(R.id.btn_posSelect);
@@ -336,6 +397,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // INFO : 점수 목록 버튼
         if (v.getId() == R.id.btn_scoreList) {
             showDialog_scoreList();
+        }
+
+        // INFO : 규제 지역 버튼
+        if (v.getId() == R.id.btn_regulatedArea) {
+            togglePolygonsVisibility();
         }
 
         // INFO : 마커 삭제 구현
