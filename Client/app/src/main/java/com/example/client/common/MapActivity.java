@@ -91,7 +91,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean isCreateMarker = false;
     private boolean isOnClickMarker = false;
-    private boolean isVisibleRegulatedArea = true;
+    private boolean isVisibleRegulatedArea = true; // 규제 지역
     private double[] currentMarkerPositions = new double[2];
     private double[] currentMyPositions = new double[2];
     private MessageDialog messageDialog = new MessageDialog();
@@ -216,66 +216,81 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     // INFO : 마커 생성 메서드
     private void setMarker(LatLng latLng) {
-        // NOTE : 마커 스타일
-        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+        boolean isRegulatedArea = false;
 
-        // NOTE : 마커 지역 특정 코드
-        Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
-        try {
-            // 위치에 대한 주소 정보 가져오기
-            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-            if (addresses != null && !addresses.isEmpty()) {
-                Address address = addresses.get(0);
-                String adminArea = address.getAdminArea(); // 전체 주소
-                String local = address.getLocality();
-                // 예시: 서울특별시 강남구 테헤란로 123
-
-                // 주소를 Toast로 표시
-            } else {
-                // 주소를 찾지 못했을 경우
-                Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+        for (Polygon polygon : polygons) {
+            List<LatLng> polygonPoints = polygon.getPoints();
+            if (FindRegulatedArea(latLng, polygonPoints)) {
+                isRegulatedArea = true;
+                break;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
-        mMarker = mMap.addMarker(new MarkerOptions()
-                .position(latLng)
-                .icon(icon)  // 아이콘 설정
-                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
-        // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
-        markerList.add(mMarker);
-        saveLocationToDatabase(latLng);
+        if (!isRegulatedArea) { // 규제 지역 바깥일 경우.
+            // NOTE : 마커 스타일
+            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+
+            // NOTE : 마커 지역 특정 코드
+            Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
+            try {
+                // 위치에 대한 주소 정보 가져오기
+                List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address address = addresses.get(0);
+                    String adminArea = address.getAdminArea(); // 전체 주소
+                    String local = address.getLocality();
+                    // 예시: 서울특별시 강남구 테헤란로 123
+
+                    // 주소를 Toast로 표시
+                } else {
+                    // 주소를 찾지 못했을 경우
+                    Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            mMarker = mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .icon(icon)  // 아이콘 설정
+                    .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+            // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
+            markerList.add(mMarker);
+            saveLocationToDatabase(latLng);
 
 //        이때 로케이션 post 요청을 보내야함 -> 해당 비즈니스 ID를 입력하여 로케이션 생성하게 만들 어둠
 //        위치는 결국 풍력 발전기를 선택하고 나서 줘야 넣어야 하므로 일단 생성만 해둔다.
 //        fix 마커를 생성할 떄 위도 경도 까지 넣어주기로 변경
 //        TODO : setBusinessId 안에 해당 사업을 눌렀을 때 가져온 BusinessId를 매개 변수에 넣어줘야한다.
-        MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
-        request.setBusinessId(1);
-        request.setTurbineId(1);
-        String latitude = String.valueOf(latLng.latitude);
-        String longitude = String.valueOf(latLng.longitude);
-        request.setLatitude(latitude);
-        request.setLongitude(longitude);
+            MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
+            request.setBusinessId(1);
+            request.setTurbineId(1);
+            String latitude = String.valueOf(latLng.latitude);
+            String longitude = String.valueOf(latLng.longitude);
+            request.setLatitude(latitude);
+            request.setLongitude(longitude);
 
-        ApiService apiService = RestClient.getClient().create(ApiService.class);
-        ApiHandler apiHandler = new ApiHandler(apiService, this);
+            ApiService apiService = RestClient.getClient().create(ApiService.class);
+            ApiHandler apiHandler = new ApiHandler(apiService, this);
 
-        apiHandler.createLocation(request, new ApiCallback<Void>() {
+            apiHandler.createLocation(request, new ApiCallback<Void>() {
 
-            @Override
-            public void onSuccess(Void response) {
+                @Override
+                public void onSuccess(Void response) {
 
-            }
+                }
 
-            @Override
-            public void onError(String errorMessage) {
+                @Override
+                public void onError(String errorMessage) {
 
-            }
-        });
+                }
+            });
 
-        messageDialog.simpleCompleteDialog("마커 등록이 완료되었습니다.", this);
+            messageDialog.simpleCompleteDialog("건설 예정지 등록이 완료되었습니다.", this);
+        } else {
+            // 에러 메시지
+            messageDialog.simpleErrorDialog("건설 예정지 생성이 불가능한 지역입니다.", this);
+        }
     }
 
     private void getDeviceLocation() {
@@ -355,6 +370,22 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         for (Polygon polygon : polygons) {
             polygon.setVisible(isVisibleRegulatedArea);
         }
+    }
+
+    private boolean FindRegulatedArea(LatLng point, List<LatLng> polygonPoints) {
+        int numPoints = polygonPoints.size();
+        boolean inside = false;
+
+        for (int i = 0, j = numPoints - 1; i < numPoints; j = i++) {
+            LatLng pi = polygonPoints.get(i);
+            LatLng pj = polygonPoints.get(j);
+
+            if ((pi.latitude > point.latitude) != (pj.latitude > point.latitude) &&
+                    (point.longitude < (pj.longitude - pi.longitude) * (point.latitude - pi.latitude) / (pj.latitude - pi.latitude) + pi.longitude)) {
+                inside = !inside;
+            }
+        }
+        return inside;
     }
 
 // ================================================================================
