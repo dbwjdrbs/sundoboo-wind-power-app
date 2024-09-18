@@ -16,13 +16,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.client.R;
 import com.unity3d.player.UnityPlayer;
 
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 
 public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity {
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,18 +32,22 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
         double objectLat = intent.getDoubleExtra("objectLat", 0.0);
         double objectLon = intent.getDoubleExtra("objectLon", 0.0);
         float direction = intent.getFloatExtra("direction", 0.0f);
-        double distance = intent.getDoubleExtra("distance", 0.0);
-        double azimuth = intent.getDoubleExtra("azimuth", 0.0);
-        double elevation = intent.getDoubleExtra("elevation", 0.0);
         double scale = intent.getFloatExtra("scale", 0.0f);
         int modelNumber = intent.getIntExtra("number", 0);
+        float elevation = intent.getFloatExtra("elevation", 0.0f);
 
         sendMessageToUnity(String.valueOf(objectLat), String.valueOf(objectLon), String.valueOf(direction),
-                String.valueOf(distance), String.valueOf(azimuth), String.valueOf(elevation), String.valueOf(scale), String.valueOf(modelNumber));
+                String.valueOf(scale), String.valueOf(modelNumber), elevation);
     }
 
-    private void sendMessageToUnity(String objectLat, String objectLon, String direction, String distance, String azimuth, String elevation, String scale, String modelNumber) {
+    private void sendMessageToUnity(String objectLat, String objectLon, String direction, String scale, String modelNumber, float elevation) {
         UnityPlayer.UnitySendMessage("AndroidReceiveMessageManager", "ReceiveDataFromAndroidStudio",
-                objectLat + "," + objectLon + "," + direction + "," + modelNumber + "," + scale + "," + distance + "," + azimuth + "," + elevation);
+                objectLat + "," + objectLon + "," + direction + "," + modelNumber + "," + scale + "," + elevation);
+    }
+
+    @Override
+    public void onUnityPlayerQuitted() {
+        super.onUnityPlayerQuitted();
+        startActivity(new Intent(UnityPlayerActivity.this, MapActivity.class));
     }
 }
