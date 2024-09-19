@@ -37,3 +37,6 @@ tasks.named('javadoc') {
 	options.memberLevel = JavadocMemberLevel.PRIVATE
 	destinationDir = file("build/docs/javadoc")
 }
+test {
+	useJUnitPlatform()
+}
