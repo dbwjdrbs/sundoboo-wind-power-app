@@ -103,15 +103,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-
         Intent intent = getIntent();
         businessId = intent.getLongExtra("businessId", 0);
-
-
-        customProgressDialog = new ProgressDialog(this);
-        customProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        customProgressDialog.setCancelable(false);
-        customProgressDialog.show();
 
         new Thread(new Runnable() {
             @Override
