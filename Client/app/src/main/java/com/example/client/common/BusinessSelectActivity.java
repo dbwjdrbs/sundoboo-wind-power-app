@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
@@ -18,15 +19,22 @@ import com.example.client.adapter.BusinessSelectAdapter;
 import com.example.client.api.ApiCallback;
 import com.example.client.api.ApiHandler;
 import com.example.client.api.ApiService;
+import com.example.client.api.LocalDateTimeDeserializer;
 import com.example.client.api.MappingClass;
 import com.example.client.api.RestClient;
 import com.example.client.data.BusinessData;
 import com.example.client.util.MessageDialog;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
+import org.threeten.bp.LocalDateTime;
+
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class BusinessSelectActivity extends AppCompatActivity implements View.OnClickListener, BusinessSelectItemClickListener {
     private ArrayList<BusinessData> list = new ArrayList<>();
@@ -49,12 +57,33 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_business_select);
 
-        // NOTE : 사업 리스트 더미 데이터
-        BusinessData data1 = new BusinessData("가산 해상풍력단지", "2024년 4월 24일 오전 10시 33분");
-        BusinessData data2 = new BusinessData("보령 해상풍력단지", "2024년 4월 24일 오전 10시 33분");
+        // Intent로부터 JSON 문자열을 가져옵니다
+        Intent intent = getIntent();
+        String jsonBusinessList = intent.getStringExtra("businessListJson");
 
-        list.add(data1);
-        list.add(data2);
+        Log.d("비지니스 셀렉트 엑티비티", jsonBusinessList);
+
+        // Gson 객체 생성 및 역직렬화 설정
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(org.threeten.bp.LocalDateTime.class, new LocalDateTimeDeserializer())
+                .create();
+
+        // JSON 문자열을 BusinessResponse 객체 리스트로 변환
+        Type businessListType = new TypeToken<List<MappingClass.BusinessResponse>>() {}.getType();
+        List<MappingClass.BusinessResponse> businessList = gson.fromJson(jsonBusinessList, businessListType);
+
+        // 필요한 데이터만 추출
+        for (MappingClass.BusinessResponse business : businessList) {
+            long businessId = business.getBusinessId();
+            String businessTitle = business.getBusinessTitle();
+            String createdAt = business.getCreatedAt();
+
+            list.add(new BusinessData(businessId, businessTitle, createdAt));
+            // 필요한 데이터 로그로 확인
+            Log.d("BusinessResponse", "Business ID: " + businessId);
+            Log.d("BusinessResponse", "Business Title: " + businessTitle);
+            Log.d("BusinessResponse", "Created At: " + business.getCreatedAt());
+        }
 
         RecyclerView recyclerView = findViewById(R.id.rv_businessSelect);
 
@@ -108,7 +137,7 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                                     long now = System.currentTimeMillis();
                                     Date date = new Date(now);
                                     SimpleDateFormat format = new SimpleDateFormat("yyyy년 MM월 dd일 a HH시mm분");
-                                    adapter.addItem(new BusinessData(businessTitle, format.format(date)));
+//                                    adapter.addItem(new BusinessData(, businessTitle, format.format(date)));
                                     adapter.notifyDataSetChanged();
                                     messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", BusinessSelectActivity.this);
                                 }
@@ -126,10 +155,8 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
 
         if (v.getId() == R.id.btn_businessDelete) {
             if (isChecked) {
-
-//                TODO : 사업 삭제 로직 deleteBusiness(businessId) 매개 변수로 받는 사업Id를 삭제
                 MappingClass.DeleteBusiness request = new MappingClass.DeleteBusiness();
-                request.setBusinessId(1);
+                request.setBusinessId(businessData.getBusinessId());
 
                 ApiService apiService = RestClient.getClient().create(ApiService.class);
                 ApiHandler apiHandler = new ApiHandler(apiService, this);
@@ -151,7 +178,7 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         if (businessData != null) {
             isChecked = true;
             isCurrentViewHolder = String.valueOf(pos);
-            this.businessData = new BusinessData(businessData.getTitle(), businessData.getCreatedAt());
+            this.businessData = businessData; // 수정 필요
         } else {
             isChecked = false;
         }
