@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.client.R;
+import com.example.client.data.BusinessData;
 import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
 
@@ -45,12 +46,15 @@ public class ScoreListAdapter extends RecyclerView.Adapter<ScoreListAdapterViewH
         holder.getSkb2().setProgress(list.get(position).getScore2());
         holder.getSkb3().setProgress(list.get(position).getScore3());
         holder.getSkb4().setProgress(list.get(position).getScore4());
-        holder.getSkb5().setProgress(list.get(position).getScore5());
     }
 
     @Override
     public int getItemCount() {
         return list.size();
+    }
+
+    public void addItem(ArrayList<ScoreData> list) {
+        this.list = list;
     }
 }
 
@@ -62,7 +66,6 @@ class ScoreListAdapterViewHolder extends RecyclerView.ViewHolder {
     private SeekBar skb2;
     private SeekBar skb3;
     private SeekBar skb4;
-    private SeekBar skb5;
 
     // INFO : 뷰홀더 내부의 요소들 정의
     public ScoreListAdapterViewHolder(@NonNull View itemView) {
@@ -74,12 +77,10 @@ class ScoreListAdapterViewHolder extends RecyclerView.ViewHolder {
         skb2 = itemView.findViewById(R.id.seekBar_score2);
         skb3 = itemView.findViewById(R.id.seekBar_score3);
         skb4 = itemView.findViewById(R.id.seekBar_score4);
-        skb5 = itemView.findViewById(R.id.seekBar_score5);
         skb1.setEnabled(false);
         skb2.setEnabled(false);
         skb3.setEnabled(false);
         skb4.setEnabled(false);
-        skb5.setEnabled(false);
     }
 
     public TextView getTv_title() {
@@ -110,7 +111,4 @@ class ScoreListAdapterViewHolder extends RecyclerView.ViewHolder {
         return skb4;
     }
 
-    public SeekBar getSkb5() {
-        return skb5;
-    }
 }

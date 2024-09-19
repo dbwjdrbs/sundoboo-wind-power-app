@@ -53,10 +53,14 @@ public interface ApiService {
     Call<List<MappingClass.TurbineResponse>> getTurbines();
 
     @POST("/scores/registration")
-    Call<MappingClass.BusinessScoreResponse> createBusinessScore(@Body MappingClass.BusinessScorePost request);
+    Call<Void> createBusinessScore(@Body MappingClass.BusinessScorePost request);
 
     @GET("/scores/search/{business-id}")
-    Call<MappingClass.BusinessScoreResponse> getBusinessScore(@Path("business-id") long businessScoreId);
+    Call<BusinessScoreResponseWrapper> getBusinessScores(
+            @Path("business-id") long businessScoreId,
+            @Query("page") int page,
+            @Query("size") int size
+    );
     @POST("/locations")
     Call<Void> createLocation(@Body MappingClass.LocationPostRequest request);
 

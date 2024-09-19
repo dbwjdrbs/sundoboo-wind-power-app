@@ -8,9 +8,8 @@ public class ScoreData {
     private int score2;
     private int score3;
     private int score4;
-    private int score5;
 
-    public ScoreData(String title, String observerName, String createdAt, int score1, int score2, int score3, int score4, int score5) {
+    public ScoreData(String title, String observerName, String createdAt, int score1, int score2, int score3, int score4) {
         this.title = title;
         this.observerName = observerName;
         this.createdAt = createdAt;
@@ -18,7 +17,6 @@ public class ScoreData {
         this.score2 = score2;
         this.score3 = score3;
         this.score4 = score4;
-        this.score5 = score5;
     }
 
     public int getScore1() {
@@ -37,9 +35,6 @@ public class ScoreData {
         return score4;
     }
 
-    public int getScore5() {
-        return score5;
-    }
 
     public String getTitle() {
         return title;
