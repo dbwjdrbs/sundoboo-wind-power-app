@@ -51,16 +51,11 @@ public class LocationController {
     }
 
     @PatchMapping()
-    public ResponseEntity patch(@Valid @RequestBody LocationDto.Patch requestBody){
+    public ResponseEntity<Void> patch(@Valid @RequestBody LocationDto.Patch requestBody){
 
-        // 디버깅코드
-        System.out.println("Received locationId: " + requestBody.getLocationId());
-        // patchLocations 예외처리 메서드 포함
-        Location location = locationService.patchLocation(locationMapper.locationPatchDtoToLocation(requestBody));
+       locationService.patchLocation(locationMapper.locationPatchDtoToLocation(requestBody));
 
-        return new ResponseEntity<>(
-                new SingleResponseDto<>(locationMapper.locationDtoToLocationResponseDto(location))
-                , HttpStatus.OK);
+        return ResponseEntity.ok().build();
 
     }
     // 비지니스 아이디가 있어야지 조회할 수 있으니까 걍 PathVariable로 api변경
@@ -90,9 +85,21 @@ public class LocationController {
                 HttpStatus.OK);
 
     }
+
+    @GetMapping("/search/dd")
+    public ResponseEntity getDDLocation(@RequestParam("latitude") String latitude,
+                                        @RequestParam("longitude") String longitude) {
+        Location location = locationService.getDD(latitude, longitude);
+        return new ResponseEntity<>(
+                new SingleResponseDto<>(locationMapper.locationToDdResponseDto(location)),
+                HttpStatus.OK);
+    }
+
+
     @DeleteMapping("/business/{business-id}")
     public ResponseEntity<Void> deleteLocationsByBusinessId(@PathVariable("business-id") long businessId) {
         locationService.deleteAllLocationsByBusinessId(businessId);
         return ResponseEntity.noContent().build();
-}
+    }
+
 }

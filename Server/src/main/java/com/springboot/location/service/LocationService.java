@@ -138,6 +138,13 @@ public class LocationService {
         }
     }
 
+    public Location getDD(String latitude, String longitude){
+        Location findLocation = locationRepository.findByLatitudeAndLongitude(latitude,longitude)
+                .orElseThrow(()-> new BusinessLogicException(
+                ExceptionCode.LOCATION_NOT_FOUND
+        ));
+        return findLocation;
+    }
 
     // 위치를 삭제하는 기존 메서드
     public void deleteLocation(long locationId) {
