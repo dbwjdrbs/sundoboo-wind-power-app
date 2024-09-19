@@ -19,6 +19,7 @@ import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -94,6 +95,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private double myElevation;
     private double objElevation;
     private ProgressDialog customProgressDialog;
+
+    private long locationId;
+
+    private long businessId;
 
     // ======================================
     @Override
@@ -828,7 +833,53 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     // 0 1 2 3 -> +1해서 넣어 줘야 터빈 아이디가 댐
     @Override
     public void onSelectModel(int position, int direction) {
-        getLocationAndSendToUnity(position, direction);
+        ApiService apiService = RestClient.getClient().create(ApiService.class);
+        ApiHandler apiHandler = new ApiHandler(apiService, this);
+        double latitude = currentMarkerPositions[0]; // 0번 인덱스 위도
+        double longitude = currentMarkerPositions[1]; // 1번 인덱스 경도
+
+        String stringLat = String.valueOf(latitude);
+        String stringLon = String.valueOf(longitude);
+
+        apiHandler.getDD(stringLat, stringLon, new ApiCallback<MappingClass.DdResponse>() {
+            @Override
+            public void onSuccess(MappingClass.DdResponse response) {
+                Log.d("ApiHandler", "Response: " + response); // 전체 응답 로그
+                Log.d("ApiHandler", "Location ID: " + response.getData().getLocationId());
+                Log.d("ApiHandler", "Business ID: " + response.getData().getBusinessId());
+
+                locationId = response.getData().getLocationId();
+                businessId = response.getData().getBusinessId();
+
+                if (locationId == 0 || businessId == 0) {
+                    Log.e("ApiHandler", "Invalid IDs received: locationId = " + locationId + ", businessId = " + businessId);
+                    return; // 유효하지 않은 ID인 경우 조기 종료
+                }
+
+                MappingClass.LocationPatchRequest request = new MappingClass.LocationPatchRequest();
+                request.setLocationId(locationId);
+                request.setBusinessId(businessId);
+                request.setTurbineId(position + 1); // 터빈 아이디 설정
+
+                apiHandler.patchLocation(request, new ApiCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void response) {
+                        Log.d("ApiHandler", "Location updated successfully");
+                        getLocationAndSendToUnity(position, direction);
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        Log.e("ApiHandler", "Error: " + errorMessage);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.e("ApiHandler", "Error: " + errorMessage);
+            }
+        });
     }
 
 

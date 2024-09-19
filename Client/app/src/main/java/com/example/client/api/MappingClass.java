@@ -234,8 +234,6 @@ public class MappingClass {
 
     }
 
-
-
     public static class LocationPostRequest {
         private long businessId;
         private long turbineId;
@@ -504,25 +502,36 @@ public class MappingClass {
         }
     }
 
-    public static class DdResponse{
-        private long locationId;
+    public class DdResponse {
+        private Data data;
 
-        private long businessId;
-
-        public long getLocationId() {
-            return locationId;
+        public Data getData() {
+            return data;
         }
 
-        public void setLocationId(long locationId) {
-            this.locationId = locationId;
+        public void setData(Data data) {
+            this.data = data;
         }
 
-        public long getBusinessId() {
-            return businessId;
-        }
+        public class Data {
+            private long locationId;
+            private long businessId;
 
-        public void setBusinessId(long businessId) {
-            this.businessId = businessId;
+            public long getLocationId() {
+                return locationId;
+            }
+
+            public void setLocationId(long locationId) {
+                this.locationId = locationId;
+            }
+
+            public long getBusinessId() {
+                return businessId;
+            }
+
+            public void setBusinessId(long businessId) {
+                this.businessId = businessId;
+            }
         }
     }
     public static class PatchLocation{

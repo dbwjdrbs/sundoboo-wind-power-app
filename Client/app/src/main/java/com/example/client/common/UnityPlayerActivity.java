@@ -46,20 +46,6 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
         String stringLat = String.valueOf(objectLat);
         String stringLon = String.valueOf(objectLon);
 
-        apiHandler.getDD(stringLat, stringLon, new ApiCallback<MappingClass.DdResponse>() {
-            @Override
-            public void onSuccess(MappingClass.DdResponse response) {
-                Log.d("ApiHandler", "Location ID: " + response.getLocationId());
-                Log.d("ApiHandler", "Business ID: " + response.getBusinessId());
-                locationId = response.getLocationId();
-                businessId = response.getBusinessId();
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                Log.e("ApiHandler", "Error: " + errorMessage);
-            }
-        });
 
         sendMessageToUnity(String.valueOf(objectLat), String.valueOf(objectLon), String.valueOf(direction),
                 String.valueOf(modelNumber), myElevation, objElevation);
@@ -83,29 +69,5 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
     public void onUnityPlayerQuitted() {
         super.onUnityPlayerQuitted();
         onDestroy();
-        startActivity(new Intent(UnityPlayerActivity.this, MapActivity.class));
-        ApiService apiService = RestClient.getClient().create(ApiService.class);
-        ApiHandler apiHandler = new ApiHandler(apiService, this);
-//        패치요청을 보낼 리퀘스트 바디 생성 -> 매개변수안에 set으로 넣어주시면 됩니다.
-        MappingClass.LocationPatchRequest request = new MappingClass.LocationPatchRequest();
-        request.setLocationId(locationId);
-        request.setBusinessId(businessId);
-//        MapActivity 에서 불러온 터빈아이디를 매개변수에 넣어주시면 됩니다.
-        request.setTurbineId(1);
-//        request.setCity();
-//        request.setIsland();
-        apiHandler.patchLocation(request, new ApiCallback<Void>() {
-            @Override
-            public void onSuccess(Void response) {
-                // 성공적으로 업데이트된 경우 처리
-                Log.d("ApiHandler", "Location updated successfully");
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                // 오류 처리
-                Log.e("ApiHandler", "Error: " + errorMessage);
-            }
-        });
     }
 }
