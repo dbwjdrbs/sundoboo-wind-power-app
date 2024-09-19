@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -27,8 +28,6 @@ import com.example.client.util.MessageDialog;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-
-import org.threeten.bp.LocalDateTime;
 
 import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
@@ -61,15 +60,13 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         Intent intent = getIntent();
         String jsonBusinessList = intent.getStringExtra("businessListJson");
 
-        Log.d("비지니스 셀렉트 엑티비티", jsonBusinessList);
-
         // Gson 객체 생성 및 역직렬화 설정
         Gson gson = new GsonBuilder()
-                .registerTypeAdapter(org.threeten.bp.LocalDateTime.class, new LocalDateTimeDeserializer())
                 .create();
 
         // JSON 문자열을 BusinessResponse 객체 리스트로 변환
-        Type businessListType = new TypeToken<List<MappingClass.BusinessResponse>>() {}.getType();
+        Type businessListType = new TypeToken<List<MappingClass.BusinessResponse>>() {
+        }.getType();
         List<MappingClass.BusinessResponse> businessList = gson.fromJson(jsonBusinessList, businessListType);
 
         // 필요한 데이터만 추출
@@ -130,15 +127,18 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                             ApiService apiService = RestClient.getClient().create(ApiService.class);
                             ApiHandler apiHandler = new ApiHandler(apiService, this);
 
-                            apiHandler.createBusiness(request, new ApiCallback<Void>() {
+                            // BUG : 리스폰스가 안가져와짐
+                            apiHandler.createBusiness(request, new ApiCallback<MappingClass.BusinessResponse2>() {
                                 @Override
-                                public void onSuccess(Void response) {
+                                public void onSuccess(MappingClass.BusinessResponse2 response) {
                                     // 요청 성공 처리
-                                    long now = System.currentTimeMillis();
-                                    Date date = new Date(now);
-                                    SimpleDateFormat format = new SimpleDateFormat("yyyy년 MM월 dd일 a HH시mm분");
-//                                    adapter.addItem(new BusinessData(, businessTitle, format.format(date)));
+                                    long businessId = response.getData().getBusinessId();
+                                    String title = response.getData().getBusinessTitle();
+                                    String createdAt = response.getData().getCreatedAt();
+
+                                    adapter.addItem(new BusinessData(businessId, title, createdAt));
                                     adapter.notifyDataSetChanged();
+                                    Log.d("완료", "사업생성완료");
                                     messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", BusinessSelectActivity.this);
                                 }
 
@@ -163,6 +163,9 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                 apiHandler.deleteBusiness(request.getBusinessId());
 
                 adapter.removeItem(Integer.parseInt(isCurrentViewHolder));
+                isChecked = false;
+                CheckBox checkBox = findViewById(R.id.checkBox);
+                checkBox.setSelected(false);
                 messageDialog.simpleCompleteDialog("사업 삭제가 완료되었습니다.", this);
                 adapter.notifyDataSetChanged();
             } else {

@@ -71,6 +71,49 @@ public class MappingClass {
         }
     }
 
+    public class BusinessResponse2 {
+        private Data data; // data 필드 추가
+
+        public Data getData() {
+            return data;
+        }
+
+        public class Data {
+            private long businessId;
+            private String businessTitle;
+            private String createdAt;
+            private Object deletedAt;
+            private List<Object> locations;
+            private Object businessScores;
+
+            public long getBusinessId() {
+                return businessId;
+            }
+
+            public String getBusinessTitle() {
+                return businessTitle;
+            }
+
+            public String getCreatedAt() {
+                return createdAt;
+            }
+
+            public Object getDeletedAt() {
+                return deletedAt;
+            }
+
+            public List<Object> getLocations() {
+                return locations;
+            }
+
+            public Object getBusinessScores() {
+                return businessScores;
+            }
+
+            // Getter 메소드들
+        }
+    }
+
     public class TurbineResponse {
     }
 

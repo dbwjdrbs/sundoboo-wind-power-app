@@ -28,6 +28,8 @@ public interface BusinessMapper {
     @Mapping(source = "business.businessId", target = "businessId" )
     BusinessScoreDto.Response businessScoreToBusinessScoreResponseDto(BusinessScore businessScore);
 
+    BusinessDto.Response businessToBusinessResponse(Business business);
+
 
     default BusinessDto.Response businessToBusinessResponseDto(Business business) {
 
