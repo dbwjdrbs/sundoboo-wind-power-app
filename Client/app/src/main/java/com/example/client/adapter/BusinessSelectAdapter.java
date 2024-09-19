@@ -48,7 +48,7 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectVi
     }
 
     public void addItem(BusinessData businessData) {
-        list.add(businessData);
+        list.add(0, businessData);
     }
 
     public void removeItem(int position) {
