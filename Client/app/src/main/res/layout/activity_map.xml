@@ -88,10 +88,10 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:layout_marginRight="10dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="15dp"
             android:orientation="vertical">
 
             <Button
@@ -103,9 +103,9 @@
                 android:drawableStart="@drawable/ic_scoreinput_24"
                 android:paddingStart="10dp"
                 android:text="점수 입력"
-                android:textStyle="bold"
                 android:textColor="@color/white"
-                />
+                android:textStyle="bold" />
+
             <Button
                 android:id="@+id/btn_scoreList"
                 android:layout_width="120dp"
@@ -116,11 +116,8 @@
                 android:drawableStart="@drawable/ic_scorelist_24"
                 android:paddingStart="10dp"
                 android:text="점수 목록"
-                android:textStyle="bold"
                 android:textColor="@color/white"
-                />
+                android:textStyle="bold" />
         </LinearLayout>
     </RelativeLayout>
-
-
 </LinearLayout>

@@ -13,12 +13,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
 import android.os.Handler;
+<<<<<<< design/map
+import android.os.Looper;
+=======
+>>>>>>> dev
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -45,6 +50,7 @@ import com.example.client.data.TurbinesData;
 import com.example.client.util.ElevationGetter;
 import com.example.client.util.GeoJsonFeatureCollection;
 import com.example.client.util.MessageDialog;
+import com.example.client.util.ProgressDialog;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -63,7 +69,10 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+<<<<<<< design/map
+=======
 <<<<<<< feature/regulatedarea
+>>>>>>> dev
 import com.google.gson.Gson;
 import com.google.maps.android.data.geojson.GeoJsonFeature;
 import com.google.maps.android.data.geojson.GeoJsonLayer;
@@ -73,6 +82,12 @@ import com.google.maps.android.data.geojson.GeoJsonPolygonStyle;
 import com.unity3d.player.P;
 
 import org.json.JSONException;
+<<<<<<< design/map
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+=======
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,15 +96,22 @@ import java.io.InputStreamReader;
 
 import java.io.IOException;
 >>>>>>> dev
+>>>>>>> dev
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+<<<<<<< design/map
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+=======
 <<<<<<< feature/regulatedarea
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 =======
+>>>>>>> dev
 >>>>>>> dev
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, TurbinesSelectAdapter.OnItemClickListener {
@@ -99,9 +121,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean isCreateMarker = false;
     private boolean isOnClickMarker = false;
+<<<<<<< design/map
+    private boolean isVisibleRegulatedArea = true; // 규제 지역
+=======
 <<<<<<< feature/regulatedarea
     private boolean isVisibleRegulatedArea = true; // 규제 지역
 =======
+>>>>>>> dev
 >>>>>>> dev
     private double[] currentMarkerPositions = new double[2];
     private double[] currentMyPositions = new double[2];
@@ -115,13 +141,41 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Sensor accelerometer;
     private Sensor magnetometer;
     private double myElevation;
+<<<<<<< design/map
+    private ProgressDialog customProgressDialog;
+=======
 
+>>>>>>> dev
     // ======================================
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        customProgressDialog = new ProgressDialog(this);
+        customProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        customProgressDialog.setCancelable(false);
+        customProgressDialog.show();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < 10; i++) {
+                    try {
+                        Thread.sleep(1000); // 1초 대기
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        customProgressDialog.dismiss();
+                    }
+                });
+            }
+        }).start();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
         // SupportMapFragment를 찾아서 지도가 준비되었을 때 콜백을 받을 수 있도록 설정
@@ -142,6 +196,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         findViewById(R.id.btn_scoreList).setOnClickListener(this);
         findViewById(R.id.btn_deleteMarker).setOnClickListener(this);
         findViewById(R.id.btn_regulatedArea).setOnClickListener(this);
+<<<<<<< design/map
+
+=======
+>>>>>>> dev
     }
 
     // ================================================================ GoogleMap
@@ -153,7 +211,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             try {
                 InputStream is = getResources().openRawResource(R.raw.fss_a);
                 GeoJsonFeatureCollection featureCollection = new Gson().fromJson(new InputStreamReader(is), GeoJsonFeatureCollection.class);
+<<<<<<< design/map
+                
+=======
 
+>>>>>>> dev
                 for (GeoJsonFeatureCollection.GeoJsonFeature feature : featureCollection.features) {
                     if ("MultiPolygon".equals(feature.geometry.type)) {
                         for (List<List<List<Double>>> polygon : feature.geometry.coordinates) {
@@ -222,6 +284,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
         });
+        customProgressDialog.dismiss();
     }
 
 
@@ -888,11 +951,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             return;
         }
 
+<<<<<<< design/map
+=======
 <<<<<<< feature/regulatedarea
+>>>>>>> dev
 
         // 물체 위치
         double objectLatitude = currentMarkerPositions[0];
         double objectLongitude = currentMarkerPositions[1];
+<<<<<<< design/map
+
+=======
 
 =======
 
@@ -900,6 +969,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         double objectLatitude = currentMarkerPositions[0];
         double objectLongitude = currentMarkerPositions[1];
 
+>>>>>>> dev
 >>>>>>> dev
 //        double distance = distanceCalc(currentMyPositions[0], currentMyPositions[1], objectLatitude, objectLongitude);
 //        double azimuth = azimuthCalc(currentMyPositions[0], currentMyPositions[0], objectLatitude, objectLongitude);
