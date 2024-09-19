@@ -120,11 +120,21 @@ public class MappingClass {
     public static class BusinessScorePost {
         private long businessId;
         private String businessScoreTitle;
+        private String observerName;
         private int scoreList1;
         private int scoreList2;
         private int scoreList3;
         private int scoreList4;
-        private String observerName;
+
+        public BusinessScorePost(long businessId, String businessScoreTitle, String observerName, int scoreList1, int scoreList2, int scoreList3, int scoreList4) {
+            this.businessId = businessId;
+            this.businessScoreTitle = businessScoreTitle;
+            this.observerName = observerName;
+            this.scoreList1 = scoreList1;
+            this.scoreList2 = scoreList2;
+            this.scoreList3 = scoreList3;
+            this.scoreList4 = scoreList4;
+        }
 
         public long getBusinessId() {
             return businessId;
@@ -192,8 +202,8 @@ public class MappingClass {
         private int scoreList3;
         private int scoreList4;
         private String observerName;
-        private LocalDateTime createdAt;
-        private LocalDateTime modifiedAt;
+        private String createdAt;
+        private String modifiedAt;
 
         public long getBusinessId() {
             return businessId;
@@ -259,22 +269,12 @@ public class MappingClass {
             this.observerName = observerName;
         }
 
-        public LocalDateTime getCreatedAt() {
+        public String getCreatedAt() {
             return createdAt;
         }
-
-        public void setCreatedAt(LocalDateTime createdAt) {
-            this.createdAt = createdAt;
-        }
-
-        public LocalDateTime getModifiedAt() {
+        public String getModifiedAt() {
             return modifiedAt;
         }
-
-        public void setModifiedAt(LocalDateTime modifiedAt) {
-            this.modifiedAt = modifiedAt;
-        }
-
     }
 
 

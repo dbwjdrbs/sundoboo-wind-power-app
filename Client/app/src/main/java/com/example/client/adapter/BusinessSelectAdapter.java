@@ -51,6 +51,10 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectVi
         list.add(0, businessData);
     }
 
+    public void searchMode(ArrayList<BusinessData> resultDatas) {
+        list = resultDatas;
+    }
+
     public void removeItem(int position) {
         list.remove(position);
     }
@@ -85,7 +89,9 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
         itemView.setOnClickListener(view -> {
             int pos = getAdapterPosition();
             if (pos != RecyclerView.NO_POSITION) {
+                BusinessData data = new BusinessData(list.get(pos).getBusinessId(), title.getText().toString(), createdAt.getText().toString()); // 수정 필요
                 Intent intent = new Intent(view.getContext(), MapActivity.class);
+                intent.putExtra("businessId", data.getBusinessId());
                 view.getContext().startActivity(intent);
             }
         });

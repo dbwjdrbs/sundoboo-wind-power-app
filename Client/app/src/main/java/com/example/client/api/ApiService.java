@@ -24,11 +24,26 @@ public interface ApiService {
     @DELETE("/businesses/{business-id}")
     Call<Void> deleteBusiness(@Path("business-id") long businessId);
 
+    @GET("/locations/search/{business-id}")
+    Call<LocationResponseWrapper> getLocations(
+            @Path("business-id") long businessId,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
     @GET("/businesses")
     Call<BusinessResponseWrapper> getBusinesses(
             @Query("page") int page,
             @Query("size") int size,
             @Query("direction") String direction
+    );
+
+    @GET("/businesses")
+    Call<BusinessResponseWrapper> getBusinesses(
+            @Query("page") int page,
+            @Query("size") int size,
+            @Query("direction") String direction,
+            @Query("keyword") String keyword
     );
 
     @GET("/turbines/{turbine-id}")
@@ -38,10 +53,14 @@ public interface ApiService {
     Call<List<MappingClass.TurbineResponse>> getTurbines();
 
     @POST("/scores/registration")
-    Call<MappingClass.BusinessScoreResponse> createBusinessScore(@Body MappingClass.BusinessScorePost request);
+    Call<Void> createBusinessScore(@Body MappingClass.BusinessScorePost request);
 
     @GET("/scores/search/{business-id}")
-    Call<MappingClass.BusinessScoreResponse> getBusinessScore(@Path("business-id") long businessScoreId);
+    Call<BusinessScoreResponseWrapper> getBusinessScores(
+            @Path("business-id") long businessScoreId,
+            @Query("page") int page,
+            @Query("size") int size
+    );
     @POST("/locations")
     Call<Void> createLocation(@Body MappingClass.LocationPostRequest request);
 

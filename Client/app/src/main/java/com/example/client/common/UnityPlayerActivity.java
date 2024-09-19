@@ -83,12 +83,6 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
     public void onUnityPlayerQuitted() {
         super.onUnityPlayerQuitted();
         onDestroy();
-
-        // ApiActivity로 locationId와 businessId 전달
-        Intent apiIntent = new Intent(UnityPlayerActivity.this, ApiActivity.class);
-        apiIntent.putExtra("locationId", locationId);
-        apiIntent.putExtra("businessId", businessId);
-        startActivity(apiIntent);
-        finish(); // 현재 Activity 종료
+        startActivity(new Intent(UnityPlayerActivity.this, MapActivity.class));
     }
 }

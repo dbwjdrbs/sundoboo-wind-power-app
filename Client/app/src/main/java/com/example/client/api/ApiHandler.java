@@ -105,9 +105,8 @@ public class ApiHandler {
             }
         });
     }
-
-    public void getBusinesses(int page, int size, String direction, ApiCallback<List<MappingClass.BusinessResponse>> callback) {
-        Call<BusinessResponseWrapper> call = apiService.getBusinesses(page, size, direction);
+    public void getBusinesses(int page, int size, String direction, String keyword, ApiCallback<List<MappingClass.BusinessResponse>> callback) {
+        Call<BusinessResponseWrapper> call = apiService.getBusinesses(page, size, direction, keyword);
         call.enqueue(new Callback<BusinessResponseWrapper>() {
             @Override
             public void onResponse(Call<BusinessResponseWrapper> call, Response<BusinessResponseWrapper> response) {
@@ -125,6 +124,76 @@ public class ApiHandler {
 
             @Override
             public void onFailure(Call<BusinessResponseWrapper> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+
+    public Call<Void> createScore(MappingClass.BusinessScorePost request, final ApiCallback<Void> callback) {
+        Call<Void> call = apiService.createBusinessScore(request);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                } else {
+                    try {
+                        String errorMessage = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+
+            }
+        });
+        return call;
+    }
+
+    public void getLocations(long businessId, int page, int size, ApiCallback<List<MappingClass.LocationResponse>> callback) {
+        Call<LocationResponseWrapper> call = apiService.getLocations(businessId, page, size);
+        call.enqueue(new Callback<LocationResponseWrapper>() {
+            @Override
+            public void onResponse(Call<LocationResponseWrapper> call, Response<LocationResponseWrapper> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Log JSON 응답 확인
+                    String responseBody = new Gson().toJson(response.body());
+                    Log.d("API Response", responseBody);
+
+                    List<MappingClass.LocationResponse> businessList = response.body().getData();
+                    callback.onSuccess(businessList);
+                } else {
+                    callback.onError("Error: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LocationResponseWrapper> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+
+    public void getScores(long businessId, int page, int size, ApiCallback<List<MappingClass.BusinessScoreResponse>> callback) {
+        Call<BusinessScoreResponseWrapper> call = apiService.getBusinessScores(businessId, page, size);
+        call.enqueue(new Callback<BusinessScoreResponseWrapper>() {
+            @Override
+            public void onResponse(Call<BusinessScoreResponseWrapper> call, Response<BusinessScoreResponseWrapper> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Log JSON 응답 확인
+                    String responseBody = new Gson().toJson(response.body());
+                    Log.d("API Response", responseBody);
+
+                    List<MappingClass.BusinessScoreResponse> businessList = response.body().getData();
+                    callback.onSuccess(businessList);
+                } else {
+                    callback.onError("Error: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<BusinessScoreResponseWrapper> call, Throwable t) {
                 callback.onError("Failure: " + t.getMessage());
             }
         });

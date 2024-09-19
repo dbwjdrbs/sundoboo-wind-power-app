@@ -72,13 +72,12 @@ public class LocationController {
     }
 
     @GetMapping("/search/{business-id}")
-
-    public ResponseEntity getLocation(@PathVariable("businessId") @Positive long businessId,
+    public ResponseEntity getLocation(@PathVariable("business-id") @Positive long businessId,
                                       @Positive @RequestParam int page,
                                       @Positive @RequestParam int size) {
 
 
-        Page<Location> pageLocation = locationService.findLocation(businessId,page-1, size);
+        Page<Location> pageLocation = locationService.findLocation(businessId, page-1, size);
         List<Location> locationList = pageLocation.getContent();
         return new ResponseEntity(
                 new MultiResponseDto(locationMapper.locationToLocationsResponseDto(locationList), pageLocation),
