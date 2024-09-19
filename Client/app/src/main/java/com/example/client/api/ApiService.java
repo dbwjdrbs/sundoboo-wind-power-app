@@ -56,7 +56,7 @@ public interface ApiService {
     Call<Void> createBusinessScore(@Body MappingClass.BusinessScorePost request);
 
     @GET("/scores/search/{business-id}")
-    Call<BusinessScoreResponseWrapper> getBusinessScores(
+    Call<MappingClass.BusinessScoreResponsePage> getBusinessScores(
             @Path("business-id") long businessScoreId,
             @Query("page") int page,
             @Query("size") int size

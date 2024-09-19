@@ -1,6 +1,8 @@
 package com.example.client.api;
 
 
+import android.graphics.pdf.PdfDocument;
+
 import org.threeten.bp.LocalDateTime;
 
 import java.util.List;
@@ -190,6 +192,56 @@ public class MappingClass {
 
         public void setObserverName(String observerName) {
             this.observerName = observerName;
+        }
+    }
+
+    public class BusinessScoreResponsePage {
+        private List<BusinessScoreResponse> data;
+        private PageInfo pageInfo;
+
+        public List<BusinessScoreResponse> getData() {
+            return data;
+        }
+
+        public PageInfo getPageInfo() {
+            return pageInfo;
+        }
+    }
+
+    public static class PageInfo {
+        int page;
+        int size;
+        int totalElements;
+        int totalPages;
+
+        public void setPageInfo(PageInfo pageInfo) {
+            this.page = pageInfo.getPage();
+            this.size = pageInfo.getSize();
+            this.totalElements = pageInfo.getTotalElements();
+            this.totalPages = pageInfo.getTotalPages();
+        }
+
+        public void setPageInfo(int page, int size, int totalElements, int totalPages) {
+            this.page = page;
+            this.size = size;
+            this.totalElements = totalElements;
+            this.totalPages = totalPages;
+        }
+
+        public int getPage() {
+            return page;
+        }
+
+        public int getSize() {
+            return size;
+        }
+
+        public int getTotalElements() {
+            return totalElements;
+        }
+
+        public int getTotalPages() {
+            return totalPages;
         }
     }
 

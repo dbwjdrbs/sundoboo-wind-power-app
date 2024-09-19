@@ -53,8 +53,8 @@ public class ScoreListAdapter extends RecyclerView.Adapter<ScoreListAdapterViewH
         return list.size();
     }
 
-    public void addItem(ArrayList<ScoreData> list) {
-        this.list = list;
+    public void pageChange(ArrayList<ScoreData> resultList) {
+        list = resultList;
     }
 }
 

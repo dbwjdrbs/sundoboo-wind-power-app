@@ -175,17 +175,17 @@ public class ApiHandler {
         });
     }
 
-    public void getScores(long businessId, int page, int size, ApiCallback<List<MappingClass.BusinessScoreResponse>> callback) {
-        Call<BusinessScoreResponseWrapper> call = apiService.getBusinessScores(businessId, page, size);
-        call.enqueue(new Callback<BusinessScoreResponseWrapper>() {
+    public void getScores(long businessId, int page, int size, ApiCallback<MappingClass.BusinessScoreResponsePage> callback) {
+        Call<MappingClass.BusinessScoreResponsePage> call = apiService.getBusinessScores(businessId, page, size);
+        call.enqueue(new Callback<MappingClass.BusinessScoreResponsePage>() {
             @Override
-            public void onResponse(Call<BusinessScoreResponseWrapper> call, Response<BusinessScoreResponseWrapper> response) {
+            public void onResponse(Call<MappingClass.BusinessScoreResponsePage> call, Response<MappingClass.BusinessScoreResponsePage> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     // Log JSON 응답 확인
                     String responseBody = new Gson().toJson(response.body());
                     Log.d("API Response", responseBody);
 
-                    List<MappingClass.BusinessScoreResponse> businessList = response.body().getData();
+                    MappingClass.BusinessScoreResponsePage businessList = response.body();
                     callback.onSuccess(businessList);
                 } else {
                     callback.onError("Error: " + response.message());
@@ -193,7 +193,7 @@ public class ApiHandler {
             }
 
             @Override
-            public void onFailure(Call<BusinessScoreResponseWrapper> call, Throwable t) {
+            public void onFailure(Call<MappingClass.BusinessScoreResponsePage> call, Throwable t) {
                 callback.onError("Failure: " + t.getMessage());
             }
         });
