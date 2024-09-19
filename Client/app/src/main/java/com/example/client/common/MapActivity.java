@@ -63,6 +63,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.gson.Gson;
 
+import org.w3c.dom.Text;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -105,6 +107,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         Intent intent = getIntent();
         businessId = intent.getLongExtra("businessId", 0);
+
+        customProgressDialog = new ProgressDialog(this);
+        customProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        customProgressDialog.setCancelable(false);
 
         new Thread(new Runnable() {
             @Override
@@ -628,6 +634,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     @Override
                     public void onSuccess(Void response) {
                     }
+
                     @Override
                     public void onError(String errorMessage) {
                     }
@@ -657,32 +664,31 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         recyclerView.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
         recyclerView.setAdapter(adapter);
 
+        TextView tv_left_button = dialog.findViewById(R.id.tv_left_scoreList);
+        TextView tv_right_button = dialog.findViewById(R.id.tv_right_scoreList);
+        TextView tv_page_number = dialog.findViewById(R.id.tv_page_number);
 
-        ApiService apiService = RestClient.getClient().create(ApiService.class);
-        ApiHandler apiHandler = new ApiHandler(apiService, this);
-        apiHandler.getScores(businessId, 1, 10, new ApiCallback<List<MappingClass.BusinessScoreResponse>>() {
-            @Override
-            public void onSuccess(List<MappingClass.BusinessScoreResponse> response) {
-                for (MappingClass.BusinessScoreResponse bsResponse : response ) {
-                    String title = bsResponse.getBusinessScoreTitle();
-                    String observer = bsResponse.getObserverName();
-                    String createAt = bsResponse.getCreatedAt();
-                    int score1 = bsResponse.getScoreList1() - 1;
-                    int score2 = bsResponse.getScoreList2() - 1;
-                    int score3 = bsResponse.getScoreList3() - 1;
-                    int score4 = bsResponse.getScoreList4() - 1;
+        int page = Integer.parseInt(tv_page_number.getText().toString());
+        final MappingClass.PageInfo pageInfo = requestScoreList(page, adapter);
 
-                    sd_list.add(new ScoreData(title, observer, createAt, score1, score2, score3, score4));
-                }
-                adapter.addItem(sd_list);
-                adapter.notifyDataSetChanged();
+        tv_left_button.setOnClickListener(view -> {
+            int num = Integer.parseInt(tv_page_number.getText().toString());
+            if (num != 1) {
+                num -= 1;
+                pageInfo.setPageInfo(requestScoreList(num, adapter));
             }
-
-            @Override
-            public void onError(String errorMessage) {
-
-            }
+            tv_page_number.setText(String.valueOf(num));
         });
+
+        tv_right_button.setOnClickListener(view -> {
+            int num = Integer.parseInt(tv_page_number.getText().toString());
+            if (num != 0 && num < pageInfo.getTotalPages()) {
+                num += 1;
+                pageInfo.setPageInfo(requestScoreList(num, adapter));
+            }
+            tv_page_number.setText(String.valueOf(num));
+        });
+
 
         Button btn_close = dialog.findViewById(R.id.dl_scorelist_closeButton);
 
@@ -694,6 +700,39 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // TODO : 선택 버튼 클릭 이벤트 구현 하기
 
         dialog.show();
+    }
+
+    private MappingClass.PageInfo requestScoreList(int page, ScoreListAdapter adapter) {
+        ApiService apiService = RestClient.getClient().create(ApiService.class);
+        ApiHandler apiHandler = new ApiHandler(apiService, this);
+        final MappingClass.PageInfo pageInfo = new MappingClass.PageInfo();
+        apiHandler.getScores(businessId, page, 5, new ApiCallback<MappingClass.BusinessScoreResponsePage>() {
+            @Override
+            public void onSuccess(MappingClass.BusinessScoreResponsePage response) {
+                sd_list.clear();
+                pageInfo.setPageInfo(response.getPageInfo());
+                for (MappingClass.BusinessScoreResponse bsResponse : response.getData()) {
+                    String title = bsResponse.getBusinessScoreTitle();
+                    String observer = bsResponse.getObserverName();
+                    String createAt = bsResponse.getCreatedAt();
+                    int score1 = bsResponse.getScoreList1() - 1;
+                    int score2 = bsResponse.getScoreList2() - 1;
+                    int score3 = bsResponse.getScoreList3() - 1;
+                    int score4 = bsResponse.getScoreList4() - 1;
+
+                    sd_list.add(new ScoreData(title, observer, createAt, score1, score2, score3, score4));
+                }
+                adapter.pageChange(sd_list);
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
+
+        return pageInfo;
     }
 
     // INFO : 좌표 입력 -> DD 클릭시 나오는 하단 팝업창
