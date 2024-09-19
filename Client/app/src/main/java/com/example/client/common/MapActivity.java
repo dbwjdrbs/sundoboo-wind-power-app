@@ -14,11 +14,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -29,7 +29,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
-import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +43,7 @@ import com.example.client.api.RestClient;
 import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
 import com.example.client.util.ElevationGetter;
+import com.example.client.util.GeoJsonFeatureCollection;
 import com.example.client.util.MessageDialog;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -57,19 +57,22 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.unity3d.player.UnityPlayer;
-import com.unity3d.player.UnityPlayerActivity;
+import com.google.gson.Gson;
 
-import java.io.DataOutput;
 import java.io.IOException;
-import java.text.DecimalFormat;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, TurbinesSelectAdapter.OnItemClickListener {
     private GoogleMap mMap;
@@ -78,17 +81,21 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean isCreateMarker = false;
     private boolean isOnClickMarker = false;
-    private String[] currentMarkerPositions = new String[2];
+
+    private boolean isVisibleRegulatedArea = true; // 규제 지역
+
+    private double[] currentMarkerPositions = new double[2];
+    private double[] currentMyPositions = new double[2];
     private MessageDialog messageDialog = new MessageDialog();
     private List<Marker> markerList = new ArrayList<>();
+    private List<Polygon> polygons = new ArrayList<>();
+
 
     // INFO : Unity 연동을 위한 것들
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private Sensor magnetometer;
-    private float[] gravity;
-    private float[] geomagnetic;
-    private float azimuth = 0f;
+    private double myElevation;
 
     // ======================================
     @Override
@@ -115,12 +122,40 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         findViewById(R.id.btn_scoreInput).setOnClickListener(this);
         findViewById(R.id.btn_scoreList).setOnClickListener(this);
         findViewById(R.id.btn_deleteMarker).setOnClickListener(this);
+        findViewById(R.id.btn_regulatedArea).setOnClickListener(this);
     }
 
     // ================================================================ GoogleMap
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;  // GoogleMap 객체를 초기화
+
+        if (mMap != null) {
+            try {
+                InputStream is = getResources().openRawResource(R.raw.fss_a);
+                GeoJsonFeatureCollection featureCollection = new Gson().fromJson(new InputStreamReader(is), GeoJsonFeatureCollection.class);
+
+                for (GeoJsonFeatureCollection.GeoJsonFeature feature : featureCollection.features) {
+                    if ("MultiPolygon".equals(feature.geometry.type)) {
+                        for (List<List<List<Double>>> polygon : feature.geometry.coordinates) {
+                            List<LatLng> polygonPoints = new ArrayList<>();
+                            for (List<Double> point : polygon.get(0)) { // 첫 번째 폴리곤의 꼭지점만 가져옴
+                                double lng = point.get(0);
+                                double lat = point.get(1);
+                                polygonPoints.add(new LatLng(lat, lng));
+                            }
+                            Polygon poly = mMap.addPolygon(new PolygonOptions()
+                                    .addAll(polygonPoints)
+                                    .strokeColor(0xFFFF7979)
+                                    .fillColor(0x7FFF0000));
+                            polygons.add(poly); // 폴리곤을 리스트에 추가
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         // 위치 권한이 부여된 경우 현재 위치를 지도에 표시
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -148,17 +183,22 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             isOnClickMarker = true;
             double latitude = marker.getPosition().latitude;
             double longitude = marker.getPosition().longitude;
-            currentMarkerPositions[0] = String.valueOf(latitude);
-            currentMarkerPositions[1] = String.valueOf(longitude);
+            currentMarkerPositions[0] = latitude;
+            currentMarkerPositions[1] = longitude;
 
-//            // NOTE : 고도 API 호출
-//            new ElevationGetter(latitude, longitude, elevation -> {
-//                if (elevation != null) {
-//                    Toast.makeText(MapActivity.this, "Elevation: " + elevation + " meters", Toast.LENGTH_LONG).show();
-//                } else {
-//                    Toast.makeText(MapActivity.this, "Failed to fetch elevation", Toast.LENGTH_LONG).show();
-//                }
-//            }).execute();
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, location -> {
+                        if (location != null) {
+                            // NOTE : 고도 API 호출
+                            new ElevationGetter(location.getLatitude(), location.getLongitude(), elevation -> {
+                                if (elevation != null) {
+                                    myElevation = elevation;
+                                }
+                            }).execute();
+                            currentMyPositions[0] = location.getLatitude();
+                            currentMyPositions[1] = location.getLongitude();
+                        }
+                    });
 
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
@@ -168,66 +208,81 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     // INFO : 마커 생성 메서드
     private void setMarker(LatLng latLng) {
-        // NOTE : 마커 스타일
-        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+        boolean isRegulatedArea = false;
 
-        // NOTE : 마커 지역 특정 코드
-        Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
-        try {
-            // 위치에 대한 주소 정보 가져오기
-            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-            if (addresses != null && !addresses.isEmpty()) {
-                Address address = addresses.get(0);
-                String adminArea = address.getAdminArea(); // 전체 주소
-                String local = address.getLocality();
-                // 예시: 서울특별시 강남구 테헤란로 123
-
-                // 주소를 Toast로 표시
-            } else {
-                // 주소를 찾지 못했을 경우
-                Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+        for (Polygon polygon : polygons) {
+            List<LatLng> polygonPoints = polygon.getPoints();
+            if (FindRegulatedArea(latLng, polygonPoints)) {
+                isRegulatedArea = true;
+                break;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
-        mMarker = mMap.addMarker(new MarkerOptions()
-                .position(latLng)
-                .icon(icon)  // 아이콘 설정
-                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
-        // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
-        markerList.add(mMarker);
-        saveLocationToDatabase(latLng);
+        if (!isRegulatedArea) { // 규제 지역 바깥일 경우.
+            // NOTE : 마커 스타일
+            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+
+            // NOTE : 마커 지역 특정 코드
+            Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
+            try {
+                // 위치에 대한 주소 정보 가져오기
+                List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address address = addresses.get(0);
+                    String adminArea = address.getAdminArea(); // 전체 주소
+                    String local = address.getLocality();
+                    // 예시: 서울특별시 강남구 테헤란로 123
+
+                    // 주소를 Toast로 표시
+                } else {
+                    // 주소를 찾지 못했을 경우
+                    Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            mMarker = mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .icon(icon)  // 아이콘 설정
+                    .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+            // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
+            markerList.add(mMarker);
+            saveLocationToDatabase(latLng);
 
 //        이때 로케이션 post 요청을 보내야함 -> 해당 비즈니스 ID를 입력하여 로케이션 생성하게 만들 어둠
 //        위치는 결국 풍력 발전기를 선택하고 나서 줘야 넣어야 하므로 일단 생성만 해둔다.
 //        fix 마커를 생성할 떄 위도 경도 까지 넣어주기로 변경
 //        TODO : setBusinessId 안에 해당 사업을 눌렀을 때 가져온 BusinessId를 매개 변수에 넣어줘야한다.
-        MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
-        request.setBusinessId(1);
-        request.setTurbineId(1);
-        String latitude = String.valueOf(latLng.latitude);
-        String longitude = String.valueOf(latLng.longitude);
-        request.setLatitude(latitude);
-        request.setLongitude(longitude);
+            MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
+            request.setBusinessId(1);
+            request.setTurbineId(1);
+            String latitude = String.valueOf(latLng.latitude);
+            String longitude = String.valueOf(latLng.longitude);
+            request.setLatitude(latitude);
+            request.setLongitude(longitude);
 
-        ApiService apiService = RestClient.getClient().create(ApiService.class);
-        ApiHandler apiHandler = new ApiHandler(apiService, this);
+            ApiService apiService = RestClient.getClient().create(ApiService.class);
+            ApiHandler apiHandler = new ApiHandler(apiService, this);
 
-        apiHandler.createLocation(request, new ApiCallback<Void>() {
+            apiHandler.createLocation(request, new ApiCallback<Void>() {
 
-            @Override
-            public void onSuccess(Void response) {
+                @Override
+                public void onSuccess(Void response) {
 
-            }
+                }
 
-            @Override
-            public void onError(String errorMessage) {
+                @Override
+                public void onError(String errorMessage) {
 
-            }
-        });
+                }
+            });
 
-        messageDialog.simpleCompleteDialog("마커 등록이 완료되었습니다.", this);
+            messageDialog.simpleCompleteDialog("건설 예정지 등록이 완료되었습니다.", this);
+        } else {
+            // 에러 메시지
+            messageDialog.simpleErrorDialog("건설 예정지 생성이 불가능한 지역입니다.", this);
+        }
     }
 
     private void getDeviceLocation() {
@@ -299,9 +354,35 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
     }
+
+    // INFO : GoeJSON 로드 (규제지역)
+    private void togglePolygonsVisibility() {
+        isVisibleRegulatedArea = !isVisibleRegulatedArea;
+
+        for (Polygon polygon : polygons) {
+            polygon.setVisible(isVisibleRegulatedArea);
+        }
+    }
+
+    private boolean FindRegulatedArea(LatLng point, List<LatLng> polygonPoints) {
+        int numPoints = polygonPoints.size();
+        boolean inside = false;
+
+        for (int i = 0, j = numPoints - 1; i < numPoints; j = i++) {
+            LatLng pi = polygonPoints.get(i);
+            LatLng pj = polygonPoints.get(j);
+
+            if ((pi.latitude > point.latitude) != (pj.latitude > point.latitude) &&
+                    (point.longitude < (pj.longitude - pi.longitude) * (point.latitude - pi.latitude) / (pj.latitude - pi.latitude) + pi.longitude)) {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
+
 // ================================================================================
 
-    // INFO : 버튼 클릭 이벤트 정의 메서드
+    // INFO : 버튼 온클릭 이벤트 정의 메서드
     @Override
     public void onClick(View v) {
         Button btn_posSelect = findViewById(R.id.btn_posSelect);
@@ -341,6 +422,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             showDialog_scoreList();
         }
 
+        // INFO : 규제 지역 버튼
+        if (v.getId() == R.id.btn_regulatedArea) {
+            togglePolygonsVisibility();
+        }
+
         // INFO : 마커 삭제 구현
         if (v.getId() == R.id.btn_deleteMarker) {
             if (mMarker != null) {
@@ -358,7 +444,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 markerList.clear();
                 mMarker = null;
                 isOnClickMarker = false;
-                Arrays.fill(currentMarkerPositions, null);
+                String[] markers = {String.valueOf(currentMarkerPositions[0]), String.valueOf(currentMarkerPositions[1])};
+                Arrays.fill(markers, null);
 
                 messageDialog.simpleCompleteDialog("마커가 초기화 되었습니다.", this);
             } else {
@@ -414,16 +501,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         dialog.setContentView(R.layout.dialog_arview);
 
         // NOTE : 풍력 발전기 모델 더미 데이터
-        TurbinesData data1 = new TurbinesData("두산 WinDS3000", "Doosan WinDS3000");
-        TurbinesData data2 = new TurbinesData("두산 WinDS3300", "Doosan WinDS3300");
-        TurbinesData data3 = new TurbinesData("두산 WinDS5500", "Doosan WinDS5500");
-        TurbinesData data4 = new TurbinesData("두산 WinDS205-8MW", "WinDS205-8MW");
+        TurbinesData data1 = new TurbinesData("두산 WinDS3300", "Doosan WinDS3300");
+        TurbinesData data2 = new TurbinesData("두산 WinDS5500", "Doosan WinDS5500");
+        TurbinesData data3 = new TurbinesData("두산 WinDS205-8MW", "WinDS205-8MW");
 
         tb_list = new ArrayList<>();
         tb_list.add(data1);
         tb_list.add(data2);
         tb_list.add(data3);
-        tb_list.add(data4);
 
         // NOTE : 리사이클러뷰 어뎁터 정의
         TurbinesSelectAdapter adapter = new TurbinesSelectAdapter(tb_list, this);
@@ -718,19 +803,58 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     // 0 1 2 3 -> +1해서 넣어 줘야 터빈 아이디가 댐
     @Override
     public void onSelectModel(int position, int direction) {
-        getLocationAndSendToUnity(position ,direction);
+        getLocationAndSendToUnity(position, direction);
     }
 
-    private double distanceCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
-        double lat = objectLat - currentLat;
-        double lon = objectLon - currentLon;
+//    private double distanceCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
+//        double lat = objectLat - currentLat;
+//        double lon = objectLon - currentLon;
+//
+//        // Haversine 공식
+//        double a = Math.sin(lat / 2) * Math.sin(lat / 2) + Math.cos(currentLat) * Math.cos(objectLat) * Math.sin(lon / 2) * Math.sin(lon / 2);
+//
+//        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//
+//        return 6371.0 * c; // EARTH_RADIUS_KM -> 6371.0
+//    }
+//
+//    private double azimuthCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
+//        double lat1Rad = Math.toRadians(currentLat);
+//        double lon1Rad = Math.toRadians(currentLon);
+//        double lat2Rad = Math.toRadians(objectLat);
+//        double lon2Rad = Math.toRadians(objectLon);
+//
+//        // 경도 차이
+//        double dLon = lon2Rad - lon1Rad;
+//
+//        // 방위각 계산
+//        double y = Math.sin(dLon) * Math.cos(lat2Rad);
+//        double x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+//        double azimuthRad = Math.atan2(y, x);
+//
+//        // 라디안에서 도로 변환
+//        double azimuth = Math.toDegrees(azimuthRad);
+//
+//        // 방위각을 0에서 360도 범위로 변환
+//        if (azimuth < 0) {
+//            azimuth += 360;
+//        }
+//
+//        return azimuth;
+//    }
 
-        // Haversine 공식
-        double a = Math.sin(lat / 2) * Math.sin(lat/ 2 ) + Math.cos(currentLat) * Math.cos(objectLat) * Math.sin(lon / 2) * Math.sin(lon / 2);
+    private float scaler(float distance) {
+        float scale = 2.0f;
+        return scale / distance;
+    }
 
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    private String calcPosition(double distance, double azimuth, double elevation) {
+        // XYZ 좌표 계산
+        double x = distance * Math.cos(elevation) * Math.cos(azimuth);
+        double y = distance * Math.cos(elevation) * Math.sin(azimuth);
+        double z = distance * Math.sin(elevation);
 
-        return 6371.0 * c; // EARTH_RADIUS_KM -> 6371.0
+        return x + "," + y + "," + z;
     }
 
     private void getLocationAndSendToUnity(int modelNumber, int direction) { // NOTE : 나중에 position 별로 터빈 나누기!!!
@@ -745,29 +869,30 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             return;
         }
 
-        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-            if (location != null) {
-                double currentLatitude = location.getLatitude();
-                double currentLongitude = location.getLongitude();
 
-                // 물체 위치
-                double objectLatitude = Double.parseDouble(currentMarkerPositions[0]);
-                double objectLongitude = Double.parseDouble(currentMarkerPositions[1]);
 
-                double distance = distanceCalc(currentLatitude, currentLongitude, objectLatitude, objectLongitude);
-                launchUnityAppWithData(objectLatitude, objectLongitude, direction, distance, modelNumber);
-            }
-        });
+        // 물체 위치
+        double objectLatitude = currentMarkerPositions[0];
+        double objectLongitude = currentMarkerPositions[1];
+
+
+//        double distance = distanceCalc(currentMyPositions[0], currentMyPositions[1], objectLatitude, objectLongitude);
+//        double azimuth = azimuthCalc(currentMyPositions[0], currentMyPositions[0], objectLatitude, objectLongitude);
+        double elevation = myElevation;
+//        String objPosition = calcPosition(distance, azimuth, elevation);
+        float scale = scaler(direction);
+        launchUnityAppWithData(objectLatitude, objectLongitude, direction, scale, modelNumber, (float) elevation);
     }
 
     // INFO : Unity에 데이터 전달
-    private void launchUnityAppWithData(double objectLat, double objectLon, float direction, double distance, int modelNumber) {
+    private void launchUnityAppWithData(double objectLat, double objectLon, float direction, float scale, int modelNumber, float elevation) {
         Intent intent = new Intent(MapActivity.this, com.example.client.common.UnityPlayerActivity.class);
         intent.putExtra("objectLat", objectLat);
         intent.putExtra("objectLon", objectLon);
         intent.putExtra("direction", direction);
-        intent.putExtra("distance", distance);
+        intent.putExtra("scale", scale);
         intent.putExtra("number", modelNumber);
+        intent.putExtra("elevation", elevation);
 
         startActivity(intent);
     }
