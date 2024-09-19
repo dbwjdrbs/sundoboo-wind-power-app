@@ -62,7 +62,7 @@ public class BusinessScoreDto {
         private int ScoreList4;
 
         private String observerName;
-        
+
         @JsonFormat(pattern = "yyyy년 MM월 dd일 a HH시 mm분")
         private LocalDateTime createdAt;
 

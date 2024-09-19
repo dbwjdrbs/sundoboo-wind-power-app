@@ -20,4 +20,6 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
 //    Optional <Location> findById(long locationId);
 
     Page<Location> findByBusiness(Business business, Pageable pageable);
+
+    Optional<Location> findByLatitudeAndLongitude(String latitude, String longitude);
 }

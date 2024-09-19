@@ -482,4 +482,118 @@ public class MappingClass {
             this.businessId = businessId;
         }
     }
+
+    public static class GetDD{
+        private String latitude;
+        private String longitude;
+
+        public String getLatitude() {
+            return latitude;
+        }
+
+        public void setLatitude(String latitude) {
+            this.latitude = latitude;
+        }
+
+        public String getLongitude() {
+            return longitude;
+        }
+
+        public void setLongitude(String longitude) {
+            this.longitude = longitude;
+        }
+    }
+
+    public static class DdResponse{
+        private long locationId;
+
+        private long businessId;
+
+        public long getLocationId() {
+            return locationId;
+        }
+
+        public void setLocationId(long locationId) {
+            this.locationId = locationId;
+        }
+
+        public long getBusinessId() {
+            return businessId;
+        }
+
+        public void setBusinessId(long businessId) {
+            this.businessId = businessId;
+        }
+    }
+    public static class PatchLocation{
+        private long locationId;
+
+        private long turbineId;
+
+        private long businessId;
+
+        private String latitude;
+
+        private String longitude;
+
+        private String city;
+
+        private String island;
+
+        public long getLocationId() {
+            return locationId;
+        }
+
+        public void setLocationId(long locationId) {
+            this.locationId = locationId;
+        }
+
+        public long getTurbineId() {
+            return turbineId;
+        }
+
+        public void setTurbineId(long turbineId) {
+            this.turbineId = turbineId;
+        }
+
+        public long getBusinessId() {
+            return businessId;
+        }
+
+        public void setBusinessId(long businessId) {
+            this.businessId = businessId;
+        }
+
+        public String getLatitude() {
+            return latitude;
+        }
+
+        public void setLatitude(String latitude) {
+            this.latitude = latitude;
+        }
+
+        public String getLongitude() {
+            return longitude;
+        }
+
+        public void setLongitude(String longitude) {
+            this.longitude = longitude;
+        }
+
+        public String getCity() {
+            return city;
+        }
+
+        public void setCity(String city) {
+            this.city = city;
+        }
+
+        public String getIsland() {
+            return island;
+        }
+
+        public void setIsland(String island) {
+            this.island = island;
+        }
+    }
 }
