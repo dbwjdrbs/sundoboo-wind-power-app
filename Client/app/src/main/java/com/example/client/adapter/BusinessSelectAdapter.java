@@ -33,7 +33,7 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectVi
         Context context = parent.getContext();
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.rv_item_business, parent, false);
-        return new BusinessSelectViewHolder(view, listener);
+        return new BusinessSelectViewHolder(view, listener, list);
     }
 
     @Override
@@ -62,7 +62,7 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
     private CheckBox checkBox;
     private boolean isChecked = false;
 
-    public BusinessSelectViewHolder(@NonNull View itemView, BusinessSelectItemClickListener listener) {
+    public BusinessSelectViewHolder(@NonNull View itemView, BusinessSelectItemClickListener listener, ArrayList<BusinessData> list) {
         super(itemView);
         title = itemView.findViewById(R.id.tv_businessName);
         createdAt = itemView.findViewById(R.id.tv_businessCreatedAt);
@@ -73,7 +73,7 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
             int pos = getAdapterPosition();
             if (pos != RecyclerView.NO_POSITION) {
                 if (isChecked) {
-                    BusinessData data = new BusinessData(title.getText().toString(), createdAt.getText().toString());
+                    BusinessData data = new BusinessData(list.get(pos).getBusinessId(), title.getText().toString(), createdAt.getText().toString()); // 수정 필요
                     listener.onBusinessItemClick(data, pos);
                 } else {
                     listener.onBusinessItemClick(null, 0);

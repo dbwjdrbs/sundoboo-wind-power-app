@@ -1,5 +1,6 @@
 package com.springboot.businessscore.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.springboot.utils.validator.NotSpace;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -61,7 +62,8 @@ public class BusinessScoreDto {
         private int ScoreList4;
 
         private String observerName;
-
+        
+        @JsonFormat(pattern = "yyyy년 MM월 dd일 a HH시 mm분")
         private LocalDateTime createdAt;
 
         private LocalDateTime modifiedAt;
