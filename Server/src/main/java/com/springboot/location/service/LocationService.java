@@ -138,6 +138,7 @@ public class LocationService {
         }
     }
 
+
     // 위치를 삭제하는 기존 메서드
     public void deleteLocation(long locationId) {
         Location findLocation = findVerifyExistLocation(locationId);
