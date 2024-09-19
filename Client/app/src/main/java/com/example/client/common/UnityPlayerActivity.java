@@ -46,20 +46,6 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
         String stringLat = String.valueOf(objectLat);
         String stringLon = String.valueOf(objectLon);
 
-        apiHandler.getDD(stringLat, stringLon, new ApiCallback<MappingClass.DdResponse>() {
-            @Override
-            public void onSuccess(MappingClass.DdResponse response) {
-                Log.d("ApiHandler", "Location ID: " + response.getLocationId());
-                Log.d("ApiHandler", "Business ID: " + response.getBusinessId());
-                locationId = response.getLocationId();
-                businessId = response.getBusinessId();
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                Log.e("ApiHandler", "Error: " + errorMessage);
-            }
-        });
 
         sendMessageToUnity(String.valueOf(objectLat), String.valueOf(objectLon), String.valueOf(direction),
                 String.valueOf(modelNumber), myElevation, objElevation);
@@ -83,6 +69,7 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
     public void onUnityPlayerQuitted() {
         super.onUnityPlayerQuitted();
         onDestroy();
+
         startActivity(new Intent(UnityPlayerActivity.this, MapActivity.class));
     }
 }
