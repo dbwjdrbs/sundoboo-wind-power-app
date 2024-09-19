@@ -69,5 +69,6 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
     public void onUnityPlayerQuitted() {
         super.onUnityPlayerQuitted();
         onDestroy();
+
     }
 }

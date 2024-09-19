@@ -2,11 +2,8 @@ package com.example.client.api;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.example.client.data.BusinessData;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,32 +21,30 @@ public class ApiHandler {
         this.context = context;
     }
 
-    public Call<Void> createBusiness(MappingClass.BusinessRequest request, final ApiCallback<Void> callback) {
-        Call<Void> call = apiService.createBusiness(request);
-        call.enqueue(new Callback<Void>() {
+    public void createBusiness(MappingClass.BusinessRequest request, ApiCallback<MappingClass.BusinessResponse2> callback) {
+        Call<MappingClass.BusinessResponse2> call = apiService.createBusiness(request);
+        call.enqueue(new Callback<MappingClass.BusinessResponse2>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
+            public void onResponse(Call<MappingClass.BusinessResponse2> call, Response<MappingClass.BusinessResponse2> response) {
                 if (response.isSuccessful()) {
-
-                    callback.onSuccess(null);
+                    Log.d("API Response", "Raw Response: " + response.raw());
+                    callback.onSuccess(response.body());
                 } else {
                     try {
-                        System.out.println(response);
                         String errorMessage = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
-                        callback.onError("Error : " + errorMessage);
+                        callback.onError("Error: " + errorMessage);
                     } catch (IOException e) {
                         e.printStackTrace();
-                        callback.onError("Error : Unable to parse error body");
+                        callback.onError("Error: Unable to parse error body");
                     }
                 }
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                callback.onError("Failure : " + t.getMessage());
+            public void onFailure(Call<MappingClass.BusinessResponse2> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
             }
         });
-        return call;
     }
 
     public Call<Void> createLocation(MappingClass.LocationPostRequest request, final ApiCallback<Void> callback) {
