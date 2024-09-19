@@ -2,8 +2,8 @@ package com.example.client.common;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
-import com.example.client.R;
 import com.example.client.api.ApiCallback;
 import com.example.client.api.ApiHandler;
 import com.example.client.api.ApiService;
@@ -52,7 +52,7 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
         });
 
         sendMessageToUnity(String.valueOf(objectLat), String.valueOf(objectLon), String.valueOf(direction),
-                String.valueOf(scale), String.valueOf(modelNumber), elevation);
+                String.valueOf(modelNumber), myElevation, objElevation);
 
     }
 
