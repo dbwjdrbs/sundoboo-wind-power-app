@@ -886,7 +886,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        
+
         // 물체 위치
         double objectLatitude = currentMarkerPositions[0];
         double objectLongitude = currentMarkerPositions[1];
