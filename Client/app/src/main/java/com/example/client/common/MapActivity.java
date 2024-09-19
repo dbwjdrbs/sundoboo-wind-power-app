@@ -79,9 +79,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean isCreateMarker = false;
     private boolean isOnClickMarker = false;
-
     private boolean isVisibleRegulatedArea = true; // 규제 지역
-
     private double[] currentMarkerPositions = new double[2];
     private double[] currentMyPositions = new double[2];
     private MessageDialog messageDialog = new MessageDialog();
@@ -94,7 +92,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Sensor accelerometer;
     private Sensor magnetometer;
     private double myElevation;
+    private double objElevation;
     private ProgressDialog customProgressDialog;
+
     // ======================================
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -216,17 +216,20 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                                     myElevation = elevation;
                                 }
                             }).execute();
-                            currentMyPositions[0] = location.getLatitude();
-                            currentMyPositions[1] = location.getLongitude();
                         }
                     });
+
+            new ElevationGetter(currentMarkerPositions[0], currentMarkerPositions[1], elevation -> {
+                if (elevation != null) {
+                    objElevation = elevation;
+                }
+            }).execute();
 
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
         });
         customProgressDialog.dismiss();
     }
-
 
     // INFO : 마커 생성 메서드
     private void setMarker(LatLng latLng) {
@@ -828,56 +831,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         getLocationAndSendToUnity(position, direction);
     }
 
-//    private double distanceCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
-//        double lat = objectLat - currentLat;
-//        double lon = objectLon - currentLon;
-//
-//        // Haversine 공식
-//        double a = Math.sin(lat / 2) * Math.sin(lat / 2) + Math.cos(currentLat) * Math.cos(objectLat) * Math.sin(lon / 2) * Math.sin(lon / 2);
-//
-//        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-//
-//        return 6371.0 * c; // EARTH_RADIUS_KM -> 6371.0
-//    }
-//
-//    private double azimuthCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
-//        double lat1Rad = Math.toRadians(currentLat);
-//        double lon1Rad = Math.toRadians(currentLon);
-//        double lat2Rad = Math.toRadians(objectLat);
-//        double lon2Rad = Math.toRadians(objectLon);
-//
-//        // 경도 차이
-//        double dLon = lon2Rad - lon1Rad;
-//
-//        // 방위각 계산
-//        double y = Math.sin(dLon) * Math.cos(lat2Rad);
-//        double x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
-//        double azimuthRad = Math.atan2(y, x);
-//
-//        // 라디안에서 도로 변환
-//        double azimuth = Math.toDegrees(azimuthRad);
-//
-//        // 방위각을 0에서 360도 범위로 변환
-//        if (azimuth < 0) {
-//            azimuth += 360;
-//        }
-//
-//        return azimuth;
-//    }
-
-    private float scaler(float distance) {
-        float scale = 2.0f;
-        return scale / distance;
-    }
-
-    private String calcPosition(double distance, double azimuth, double elevation) {
-        // XYZ 좌표 계산
-        double x = distance * Math.cos(elevation) * Math.cos(azimuth);
-        double y = distance * Math.cos(elevation) * Math.sin(azimuth);
-        double z = distance * Math.sin(elevation);
-
-        return x + "," + y + "," + z;
-    }
 
     private void getLocationAndSendToUnity(int modelNumber, int direction) { // NOTE : 나중에 position 별로 터빈 나누기!!!
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -895,24 +848,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // 물체 위치
         double objectLatitude = currentMarkerPositions[0];
         double objectLongitude = currentMarkerPositions[1];
-
-//        double distance = distanceCalc(currentMyPositions[0], currentMyPositions[1], objectLatitude, objectLongitude);
-//        double azimuth = azimuthCalc(currentMyPositions[0], currentMyPositions[0], objectLatitude, objectLongitude);
-        double elevation = myElevation;
-//        String objPosition = calcPosition(distance, azimuth, elevation);
-        float scale = scaler(direction);
-        launchUnityAppWithData(objectLatitude, objectLongitude, direction, scale, modelNumber, (float) elevation);
+        launchUnityAppWithData(objectLatitude, objectLongitude, direction, modelNumber, (float) myElevation, (float) objElevation);
     }
 
     // INFO : Unity에 데이터 전달
-    private void launchUnityAppWithData(double objectLat, double objectLon, float direction, float scale, int modelNumber, float elevation) {
+    private void launchUnityAppWithData(double objectLat, double objectLon, float direction, int modelNumber, float myElevation, float objElevation) {
         Intent intent = new Intent(MapActivity.this, com.example.client.common.UnityPlayerActivity.class);
         intent.putExtra("objectLat", objectLat);
         intent.putExtra("objectLon", objectLon);
         intent.putExtra("direction", direction);
-        intent.putExtra("scale", scale);
         intent.putExtra("number", modelNumber);
-        intent.putExtra("elevation", elevation);
+        intent.putExtra("myElevation", myElevation);
+        intent.putExtra("objElevation", objElevation);
 
         startActivity(intent);
     }
