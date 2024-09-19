@@ -18,6 +18,7 @@ import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,6 +43,7 @@ import com.example.client.api.RestClient;
 import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
 import com.example.client.util.ElevationGetter;
+import com.example.client.util.GeoJsonFeatureCollection;
 import com.example.client.util.MessageDialog;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -55,14 +57,40 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+<<<<<<< feature/regulatedarea
+import com.google.gson.Gson;
+import com.google.maps.android.data.geojson.GeoJsonFeature;
+import com.google.maps.android.data.geojson.GeoJsonLayer;
+import com.google.maps.android.data.geojson.GeoJsonMultiPolygon;
+import com.google.maps.android.data.geojson.GeoJsonPolygon;
+import com.google.maps.android.data.geojson.GeoJsonPolygonStyle;
+import com.unity3d.player.P;
+
+import org.json.JSONException;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+=======
+
+import java.io.IOException;
+>>>>>>> dev
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+<<<<<<< feature/regulatedarea
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+=======
+>>>>>>> dev
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, TurbinesSelectAdapter.OnItemClickListener {
     private GoogleMap mMap;
@@ -71,10 +99,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean isCreateMarker = false;
     private boolean isOnClickMarker = false;
+<<<<<<< feature/regulatedarea
+    private boolean isVisibleRegulatedArea = true; // 규제 지역
+=======
+>>>>>>> dev
     private double[] currentMarkerPositions = new double[2];
     private double[] currentMyPositions = new double[2];
     private MessageDialog messageDialog = new MessageDialog();
     private List<Marker> markerList = new ArrayList<>();
+    private List<Polygon> polygons = new ArrayList<>();
+
 
     // INFO : Unity 연동을 위한 것들
     private SensorManager sensorManager;
@@ -107,12 +141,40 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         findViewById(R.id.btn_scoreInput).setOnClickListener(this);
         findViewById(R.id.btn_scoreList).setOnClickListener(this);
         findViewById(R.id.btn_deleteMarker).setOnClickListener(this);
+        findViewById(R.id.btn_regulatedArea).setOnClickListener(this);
     }
 
     // ================================================================ GoogleMap
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;  // GoogleMap 객체를 초기화
+
+        if (mMap != null) {
+            try {
+                InputStream is = getResources().openRawResource(R.raw.fss_a);
+                GeoJsonFeatureCollection featureCollection = new Gson().fromJson(new InputStreamReader(is), GeoJsonFeatureCollection.class);
+
+                for (GeoJsonFeatureCollection.GeoJsonFeature feature : featureCollection.features) {
+                    if ("MultiPolygon".equals(feature.geometry.type)) {
+                        for (List<List<List<Double>>> polygon : feature.geometry.coordinates) {
+                            List<LatLng> polygonPoints = new ArrayList<>();
+                            for (List<Double> point : polygon.get(0)) { // 첫 번째 폴리곤의 꼭지점만 가져옴
+                                double lng = point.get(0);
+                                double lat = point.get(1);
+                                polygonPoints.add(new LatLng(lat, lng));
+                            }
+                            Polygon poly = mMap.addPolygon(new PolygonOptions()
+                                    .addAll(polygonPoints)
+                                    .strokeColor(0xFFFF7979)
+                                    .fillColor(0x7FFF0000));
+                            polygons.add(poly); // 폴리곤을 리스트에 추가
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         // 위치 권한이 부여된 경우 현재 위치를 지도에 표시
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -165,66 +227,81 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     // INFO : 마커 생성 메서드
     private void setMarker(LatLng latLng) {
-        // NOTE : 마커 스타일
-        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+        boolean isRegulatedArea = false;
 
-        // NOTE : 마커 지역 특정 코드
-        Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
-        try {
-            // 위치에 대한 주소 정보 가져오기
-            List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-            if (addresses != null && !addresses.isEmpty()) {
-                Address address = addresses.get(0);
-                String adminArea = address.getAdminArea(); // 전체 주소
-                String local = address.getLocality();
-                // 예시: 서울특별시 강남구 테헤란로 123
-
-                // 주소를 Toast로 표시
-            } else {
-                // 주소를 찾지 못했을 경우
-                Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+        for (Polygon polygon : polygons) {
+            List<LatLng> polygonPoints = polygon.getPoints();
+            if (FindRegulatedArea(latLng, polygonPoints)) {
+                isRegulatedArea = true;
+                break;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
-        mMarker = mMap.addMarker(new MarkerOptions()
-                .position(latLng)
-                .icon(icon)  // 아이콘 설정
-                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
-        // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
-        markerList.add(mMarker);
-        saveLocationToDatabase(latLng);
+        if (!isRegulatedArea) { // 규제 지역 바깥일 경우.
+            // NOTE : 마커 스타일
+            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+
+            // NOTE : 마커 지역 특정 코드
+            Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
+            try {
+                // 위치에 대한 주소 정보 가져오기
+                List<Address> addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address address = addresses.get(0);
+                    String adminArea = address.getAdminArea(); // 전체 주소
+                    String local = address.getLocality();
+                    // 예시: 서울특별시 강남구 테헤란로 123
+
+                    // 주소를 Toast로 표시
+                } else {
+                    // 주소를 찾지 못했을 경우
+                    Toast.makeText(MapActivity.this, "주소를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            mMarker = mMap.addMarker(new MarkerOptions()
+                    .position(latLng)
+                    .icon(icon)  // 아이콘 설정
+                    .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+            // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
+            markerList.add(mMarker);
+            saveLocationToDatabase(latLng);
 
 //        이때 로케이션 post 요청을 보내야함 -> 해당 비즈니스 ID를 입력하여 로케이션 생성하게 만들 어둠
 //        위치는 결국 풍력 발전기를 선택하고 나서 줘야 넣어야 하므로 일단 생성만 해둔다.
 //        fix 마커를 생성할 떄 위도 경도 까지 넣어주기로 변경
 //        TODO : setBusinessId 안에 해당 사업을 눌렀을 때 가져온 BusinessId를 매개 변수에 넣어줘야한다.
-        MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
-        request.setBusinessId(1);
-        request.setTurbineId(1);
-        String latitude = String.valueOf(latLng.latitude);
-        String longitude = String.valueOf(latLng.longitude);
-        request.setLatitude(latitude);
-        request.setLongitude(longitude);
+            MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
+            request.setBusinessId(1);
+            request.setTurbineId(1);
+            String latitude = String.valueOf(latLng.latitude);
+            String longitude = String.valueOf(latLng.longitude);
+            request.setLatitude(latitude);
+            request.setLongitude(longitude);
 
-        ApiService apiService = RestClient.getClient().create(ApiService.class);
-        ApiHandler apiHandler = new ApiHandler(apiService, this);
+            ApiService apiService = RestClient.getClient().create(ApiService.class);
+            ApiHandler apiHandler = new ApiHandler(apiService, this);
 
-        apiHandler.createLocation(request, new ApiCallback<Void>() {
+            apiHandler.createLocation(request, new ApiCallback<Void>() {
 
-            @Override
-            public void onSuccess(Void response) {
+                @Override
+                public void onSuccess(Void response) {
 
-            }
+                }
 
-            @Override
-            public void onError(String errorMessage) {
+                @Override
+                public void onError(String errorMessage) {
 
-            }
-        });
+                }
+            });
 
-        messageDialog.simpleCompleteDialog("마커 등록이 완료되었습니다.", this);
+            messageDialog.simpleCompleteDialog("건설 예정지 등록이 완료되었습니다.", this);
+        } else {
+            // 에러 메시지
+            messageDialog.simpleErrorDialog("건설 예정지 생성이 불가능한 지역입니다.", this);
+        }
     }
 
     private void getDeviceLocation() {
@@ -296,9 +373,35 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
     }
+
+    // INFO : GoeJSON 로드 (규제지역)
+    private void togglePolygonsVisibility() {
+        isVisibleRegulatedArea = !isVisibleRegulatedArea;
+
+        for (Polygon polygon : polygons) {
+            polygon.setVisible(isVisibleRegulatedArea);
+        }
+    }
+
+    private boolean FindRegulatedArea(LatLng point, List<LatLng> polygonPoints) {
+        int numPoints = polygonPoints.size();
+        boolean inside = false;
+
+        for (int i = 0, j = numPoints - 1; i < numPoints; j = i++) {
+            LatLng pi = polygonPoints.get(i);
+            LatLng pj = polygonPoints.get(j);
+
+            if ((pi.latitude > point.latitude) != (pj.latitude > point.latitude) &&
+                    (point.longitude < (pj.longitude - pi.longitude) * (point.latitude - pi.latitude) / (pj.latitude - pi.latitude) + pi.longitude)) {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
+
 // ================================================================================
 
-    // INFO : 버튼 클릭 이벤트 정의 메서드
+    // INFO : 버튼 온클릭 이벤트 정의 메서드
     @Override
     public void onClick(View v) {
         Button btn_posSelect = findViewById(R.id.btn_posSelect);
@@ -336,6 +439,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // INFO : 점수 목록 버튼
         if (v.getId() == R.id.btn_scoreList) {
             showDialog_scoreList();
+        }
+
+        // INFO : 규제 지역 버튼
+        if (v.getId() == R.id.btn_regulatedArea) {
+            togglePolygonsVisibility();
         }
 
         // INFO : 마커 삭제 구현
@@ -780,11 +888,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             return;
         }
 
+<<<<<<< feature/regulatedarea
 
         // 물체 위치
         double objectLatitude = currentMarkerPositions[0];
         double objectLongitude = currentMarkerPositions[1];
 
+=======
+
+        // 물체 위치
+        double objectLatitude = currentMarkerPositions[0];
+        double objectLongitude = currentMarkerPositions[1];
+
+>>>>>>> dev
 //        double distance = distanceCalc(currentMyPositions[0], currentMyPositions[1], objectLatitude, objectLongitude);
 //        double azimuth = azimuthCalc(currentMyPositions[0], currentMyPositions[0], objectLatitude, objectLongitude);
         double elevation = myElevation;
