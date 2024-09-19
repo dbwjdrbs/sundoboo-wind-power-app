@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -25,6 +26,7 @@ import com.example.client.api.MappingClass;
 import com.example.client.api.RestClient;
 import com.example.client.data.BusinessData;
 import com.example.client.util.MessageDialog;
+import com.google.android.gms.common.api.Api;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -34,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class BusinessSelectActivity extends AppCompatActivity implements View.OnClickListener, BusinessSelectItemClickListener {
     private ArrayList<BusinessData> list = new ArrayList<>();
@@ -88,15 +91,38 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         recyclerView.setAdapter(adapter);
 
         EditText et_search = findViewById(R.id.et_business_search);
-        String etContent = et_search.getText().toString();
 
+        Button btn_searchRefresh = findViewById(R.id.btn_refreshSearch);
+        btn_searchRefresh.setOnClickListener(view -> {
+            adapter.searchMode(list);
+            adapter.notifyDataSetChanged();
+            et_search.setText(null);
+        });
         // NOTE : 엔터키 쳐서 검색처리하기
         et_search.setOnEditorActionListener((v, keyCode, keyEvent) -> {
+            String keyword = et_search.getText().toString();
             if (keyCode == EditorInfo.IME_ACTION_DONE) {
-                if (etContent.equals("") || etContent == null) {
+                if (keyword.equals("") || keyword == null) {
                     messageDialog.simpleErrorDialog("검색어를 입력해주세요.", this);
                 } else {
-                    // TODO : 비즈니스 로직 생성
+                    ApiService apiService = RestClient.getClient().create(ApiService.class);
+                    ApiHandler apiHandler = new ApiHandler(apiService, this);
+                    apiHandler.getBusinesses(1, 10, "PAGE_CREATED_AT_DESC", keyword, new ApiCallback<List<MappingClass.BusinessResponse>>() {
+                        @Override
+                        public void onSuccess(List<MappingClass.BusinessResponse> response) {
+                            ArrayList<BusinessData> list = new ArrayList<>();
+                            for (MappingClass.BusinessResponse businessResponse : response) {
+                                list.add(new BusinessData(businessResponse.getBusinessId(), businessResponse.getBusinessTitle(), businessResponse.getCreatedAt()));
+                            }
+                            adapter.searchMode(list);
+                            adapter.notifyDataSetChanged();
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+
+                        }
+                    });
                 }
             }
             return false;

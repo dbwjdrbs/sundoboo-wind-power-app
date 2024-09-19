@@ -85,6 +85,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private MessageDialog messageDialog = new MessageDialog();
     private List<Marker> markerList = new ArrayList<>();
     private List<Polygon> polygons = new ArrayList<>();
+    private long businessId;
 
 
     // INFO : Unity 연동을 위한 것들
@@ -100,6 +101,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        businessId = new Intent().getLongExtra("businessId", 0);
 
         customProgressDialog = new ProgressDialog(this);
         customProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));

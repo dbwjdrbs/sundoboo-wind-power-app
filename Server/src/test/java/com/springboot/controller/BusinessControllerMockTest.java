@@ -177,11 +177,11 @@ public class BusinessControllerMockTest {
         responseDto2.setBusinessTitle(business2.getBusinessTitle());
 
         // Mock 설정
-        given(businessService.getBusinesses(- 1, 10, direction)).willReturn(businessPage);
+        given(businessService.getBusinesses(- 1, 10, direction, null)).willReturn(businessPage);
         given(businessMapper.businessToBusinessResponseDtos(businessList)).willReturn(Arrays.asList(responseDto1, responseDto2));
 
         // when
-        ResponseEntity<?> responseEntity = businessController.getBusinesses(-1, 10, direction);
+        ResponseEntity<?> responseEntity = businessController.getBusinesses(-1, 10, direction, null);
 
         // then
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -193,7 +193,7 @@ public class BusinessControllerMockTest {
         assertEquals("Business 2", ((BusinessDto.Response) body.getData().get(1)).getBusinessTitle());
 
         // verify
-        verify(businessService).getBusinesses(-1, 10, direction);
+        verify(businessService).getBusinesses(-1, 10, direction, null);
         verify(businessMapper).businessToBusinessResponseDtos(businessList);
     }
 

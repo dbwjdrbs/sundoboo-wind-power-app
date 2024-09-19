@@ -31,6 +31,14 @@ public interface ApiService {
             @Query("direction") String direction
     );
 
+    @GET("/businesses")
+    Call<BusinessResponseWrapper> getBusinesses(
+            @Query("page") int page,
+            @Query("size") int size,
+            @Query("direction") String direction,
+            @Query("keyword") String keyword
+    );
+
     @GET("/turbines/{turbine-id}")
     Call<MappingClass.TurbineResponse> getTurbine(@Path("turbine-id") long turbineId);
 

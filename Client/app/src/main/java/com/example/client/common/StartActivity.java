@@ -60,7 +60,7 @@ public class StartActivity extends AppCompatActivity {
             ApiService apiService = RestClient.getClient().create(ApiService.class);
             ApiHandler apiHandler = new ApiHandler(apiService, this);
 
-            apiHandler.getBusinesses(1, 10, "PAGE_CREATED_AT_DESC", new ApiCallback<List<MappingClass.BusinessResponse>>() {
+            apiHandler.getBusinesses(1, 10, "PAGE_CREATED_AT_DESC", "", new ApiCallback<List<MappingClass.BusinessResponse>>() {
 
                 @Override
                 public void onSuccess(List<MappingClass.BusinessResponse> response) {

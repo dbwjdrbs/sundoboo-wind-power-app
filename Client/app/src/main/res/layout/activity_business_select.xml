@@ -8,21 +8,36 @@
     android:orientation="vertical"
     tools:context="com.example.client.common.BusinessSelectActivity">
 
-    <EditText
-        android:id="@+id/et_business_search"
-        android:layout_width="350dp"
-        android:layout_height="50dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="30dp"
-        android:background="@drawable/rounded_border"
-        android:cursorVisible="false"
-        android:drawableStart="@drawable/ic_search"
-        android:drawablePadding="5dp"
-        android:hint="사업명을 입력하세요."
-        android:imeOptions="actionDone"
-        android:inputType="text"
-        android:paddingStart="10dp"
-        android:singleLine="true" />
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/et_business_search"
+            android:layout_width="350dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="30dp"
+            android:background="@drawable/rounded_border"
+            android:cursorVisible="false"
+            android:drawableStart="@drawable/ic_search"
+            android:drawablePadding="5dp"
+            android:hint="사업명을 입력하세요."
+            android:imeOptions="actionDone"
+            android:inputType="text"
+            android:paddingStart="10dp"
+            android:singleLine="true" />
+
+        <Button
+            android:id="@+id/btn_refreshSearch"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignRight="@+id/et_business_search"
+            android:layout_centerInParent="true"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/ic_refresh_24" />
+
+    </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_businessSelect"
