@@ -13,13 +13,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -45,6 +44,7 @@ import com.example.client.data.TurbinesData;
 import com.example.client.util.ElevationGetter;
 import com.example.client.util.GeoJsonFeatureCollection;
 import com.example.client.util.MessageDialog;
+import com.example.client.util.ProgressDialog;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -59,8 +59,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.gson.Gson;
@@ -96,13 +94,37 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Sensor accelerometer;
     private Sensor magnetometer;
     private double myElevation;
-
+    private ProgressDialog customProgressDialog;
     // ======================================
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        customProgressDialog = new ProgressDialog(this);
+        customProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        customProgressDialog.setCancelable(false);
+        customProgressDialog.show();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < 10; i++) {
+                    try {
+                        Thread.sleep(1000); // 1초 대기
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        customProgressDialog.dismiss();
+                    }
+                });
+            }
+        }).start();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
         // SupportMapFragment를 찾아서 지도가 준비되었을 때 콜백을 받을 수 있도록 설정
@@ -134,7 +156,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             try {
                 InputStream is = getResources().openRawResource(R.raw.fss_a);
                 GeoJsonFeatureCollection featureCollection = new Gson().fromJson(new InputStreamReader(is), GeoJsonFeatureCollection.class);
-
                 for (GeoJsonFeatureCollection.GeoJsonFeature feature : featureCollection.features) {
                     if ("MultiPolygon".equals(feature.geometry.type)) {
                         for (List<List<List<Double>>> polygon : feature.geometry.coordinates) {
@@ -203,6 +224,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
         });
+        customProgressDialog.dismiss();
     }
 
 
@@ -870,11 +892,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
 
-
         // 물체 위치
         double objectLatitude = currentMarkerPositions[0];
         double objectLongitude = currentMarkerPositions[1];
-
 
 //        double distance = distanceCalc(currentMyPositions[0], currentMyPositions[1], objectLatitude, objectLongitude);
 //        double azimuth = azimuthCalc(currentMyPositions[0], currentMyPositions[0], objectLatitude, objectLongitude);
