@@ -40,7 +40,7 @@ public class StartActivity extends AppCompatActivity {
 
         // NOTE :  2초 이내에 뒤로가기 버튼을 한번 더 클릭시 finish()(앱 종료)
         if (System.currentTimeMillis() <= backKeyPressedTime + 2000) {
-            finish();
+            android.os.Process.killProcess(android.os.Process.myPid()); // 앱 프로세스 종료
         }
     }
 

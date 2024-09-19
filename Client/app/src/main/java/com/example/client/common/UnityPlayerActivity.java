@@ -61,14 +61,55 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
     }
 
     @Override
+    public void onUnityPlayerUnloaded() {
+        super.onUnityPlayerUnloaded();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    private boolean isQuitting = false;
+
+    @Override
     public void onUnityPlayerQuitted() {
-        super.onUnityPlayerQuitted();
-        onDestroy();
-        startActivity(new Intent(UnityPlayerActivity.this, MapActivity.class));
+        if (!isQuitting) {
+            isQuitting = true;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // UI 업데이트
+                    Toast.makeText(UnityPlayerActivity.this, "Unity Player has quit", Toast.LENGTH_SHORT).show();
+
+                    // 로그 추가
+                    Log.d("UnityPlayerActivity", "Starting MapActivity in 2 seconds");
+
+                    // 2초 후에 MapActivity로 전환
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            // 현재 액티비티 종료
+                            finish();
+                        }
+                    }, 2000);
+                }
+            });
+        }
     }
 }
