@@ -73,6 +73,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, TurbinesSelectAdapter.OnItemClickListener {
@@ -97,7 +98,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Sensor magnetometer;
     private double myElevation;
     private double objElevation;
-    private ProgressDialog customProgressDialog;
 
     // ======================================
     @Override
@@ -108,29 +108,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Intent intent = getIntent();
         businessId = intent.getLongExtra("businessId", 0);
 
-        customProgressDialog = new ProgressDialog(this);
-        customProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        customProgressDialog.setCancelable(false);
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 10; i++) {
-                    try {
-                        Thread.sleep(1000); // 1초 대기
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        customProgressDialog.dismiss();
-                    }
-                });
-            }
-        }).start();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
         // SupportMapFragment를 찾아서 지도가 준비되었을 때 콜백을 받을 수 있도록 설정
@@ -158,6 +135,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;  // GoogleMap 객체를 초기화
 
+        initRegulatedArea();
+
         ApiService apiService = RestClient.getClient().create(ApiService.class);
         ApiHandler apiHandler = new ApiHandler(apiService, this);
         apiHandler.getLocations(businessId, 1, 30, new ApiCallback<List<MappingClass.LocationResponse>>() {
@@ -177,32 +156,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
             }
         });
-
-        if (mMap != null) {
-            try {
-                InputStream is = getResources().openRawResource(R.raw.fss_a);
-                GeoJsonFeatureCollection featureCollection = new Gson().fromJson(new InputStreamReader(is), GeoJsonFeatureCollection.class);
-                for (GeoJsonFeatureCollection.GeoJsonFeature feature : featureCollection.features) {
-                    if ("MultiPolygon".equals(feature.geometry.type)) {
-                        for (List<List<List<Double>>> polygon : feature.geometry.coordinates) {
-                            List<LatLng> polygonPoints = new ArrayList<>();
-                            for (List<Double> point : polygon.get(0)) { // 첫 번째 폴리곤의 꼭지점만 가져옴
-                                double lng = point.get(0);
-                                double lat = point.get(1);
-                                polygonPoints.add(new LatLng(lat, lng));
-                            }
-                            Polygon poly = mMap.addPolygon(new PolygonOptions()
-                                    .addAll(polygonPoints)
-                                    .strokeColor(0xFFFF7979)
-                                    .fillColor(0x7FFF0000));
-                            polygons.add(poly); // 폴리곤을 리스트에 추가
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
 
         // 위치 권한이 부여된 경우 현재 위치를 지도에 표시
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -254,8 +207,57 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
         });
-        customProgressDialog.dismiss();
     }
+
+    private void initRegulatedArea() {
+        if (mMap != null) {
+            Executors.newSingleThreadExecutor().execute(new Runnable() {
+                @Override
+                public void run() {
+                    List<PolygonOptions> polygonOptionsList = loadGeoJson(); // PolygonOptions 리스트로 변경
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (PolygonOptions polygonOptions : polygonOptionsList) {
+                                mMap.addPolygon(polygonOptions); // 메인 스레드에서 호출
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    private List<PolygonOptions> loadGeoJson() {
+        List<PolygonOptions> polygonOptionsList = new ArrayList<>();
+        try {
+            InputStream is = getResources().openRawResource(R.raw.fss_a);
+            GeoJsonFeatureCollection featureCollection = new Gson().fromJson(new InputStreamReader(is), GeoJsonFeatureCollection.class);
+            for (GeoJsonFeatureCollection.GeoJsonFeature feature : featureCollection.features) {
+                if ("MultiPolygon".equals(feature.geometry.type)) {
+                    for (List<List<List<Double>>> polygon : feature.geometry.coordinates) {
+                        List<LatLng> polygonPoints = new ArrayList<>();
+                        for (List<Double> point : polygon.get(0)) { // 첫 번째 폴리곤의 꼭지점만 가져옴
+                            double lng = point.get(0);
+                            double lat = point.get(1);
+                            polygonPoints.add(new LatLng(lat, lng));
+                        }
+                        // PolygonOptions 객체를 생성하여 리스트에 추가
+                        PolygonOptions polygonOptions = new PolygonOptions()
+                                .addAll(polygonPoints)
+                                .strokeColor(0xFFFF7979)
+                                .fillColor(0x7FFF0000);
+                        polygonOptionsList.add(polygonOptions); // 리스트에 PolygonOptions 추가
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return polygonOptionsList; // PolygonOptions 리스트 반환
+    }
+
+
 
     private void initialMarkers(LatLng latLng) {
         BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
