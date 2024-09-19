@@ -14,7 +14,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Sensor;
-import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -29,7 +28,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
-import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,17 +57,12 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.unity3d.player.UnityPlayer;
-import com.unity3d.player.UnityPlayerActivity;
 
-import java.io.DataOutput;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, TurbinesSelectAdapter.OnItemClickListener {
     private GoogleMap mMap;
@@ -78,7 +71,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean isCreateMarker = false;
     private boolean isOnClickMarker = false;
-    private String[] currentMarkerPositions = new String[2];
+    private double[] currentMarkerPositions = new double[2];
+    private double[] currentMyPositions = new double[2];
     private MessageDialog messageDialog = new MessageDialog();
     private List<Marker> markerList = new ArrayList<>();
 
@@ -87,7 +81,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Sensor accelerometer;
     private Sensor magnetometer;
     private double myElevation;
-    private double objElevation;
+
     // ======================================
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,15 +140,22 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             isOnClickMarker = true;
             double latitude = marker.getPosition().latitude;
             double longitude = marker.getPosition().longitude;
-            currentMarkerPositions[0] = String.valueOf(latitude);
-            currentMarkerPositions[1] = String.valueOf(longitude);
+            currentMarkerPositions[0] = latitude;
+            currentMarkerPositions[1] = longitude;
 
-            // NOTE : 고도 API 호출
-            new ElevationGetter(latitude, longitude, elevation -> {
-                if (elevation != null) {
-                    objElevation = elevation;
-                }
-            }).execute();
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, location -> {
+                        if (location != null) {
+                            // NOTE : 고도 API 호출
+                            new ElevationGetter(location.getLatitude(), location.getLongitude(), elevation -> {
+                                if (elevation != null) {
+                                    myElevation = elevation;
+                                }
+                            }).execute();
+                            currentMyPositions[0] = location.getLatitude();
+                            currentMyPositions[1] = location.getLongitude();
+                        }
+                    });
 
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
@@ -354,7 +355,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 markerList.clear();
                 mMarker = null;
                 isOnClickMarker = false;
-                Arrays.fill(currentMarkerPositions, null);
+                String[] markers = {String.valueOf(currentMarkerPositions[0]), String.valueOf(currentMarkerPositions[1])};
+                Arrays.fill(markers, null);
 
                 messageDialog.simpleCompleteDialog("마커가 초기화 되었습니다.", this);
             } else {
@@ -410,16 +412,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         dialog.setContentView(R.layout.dialog_arview);
 
         // NOTE : 풍력 발전기 모델 더미 데이터
-        TurbinesData data1 = new TurbinesData("두산 WinDS3000", "Doosan WinDS3000");
-        TurbinesData data2 = new TurbinesData("두산 WinDS3300", "Doosan WinDS3300");
-        TurbinesData data3 = new TurbinesData("두산 WinDS5500", "Doosan WinDS5500");
-        TurbinesData data4 = new TurbinesData("두산 WinDS205-8MW", "WinDS205-8MW");
+        TurbinesData data1 = new TurbinesData("두산 WinDS3300", "Doosan WinDS3300");
+        TurbinesData data2 = new TurbinesData("두산 WinDS5500", "Doosan WinDS5500");
+        TurbinesData data3 = new TurbinesData("두산 WinDS205-8MW", "WinDS205-8MW");
 
         tb_list = new ArrayList<>();
         tb_list.add(data1);
         tb_list.add(data2);
         tb_list.add(data3);
-        tb_list.add(data4);
 
         // NOTE : 리사이클러뷰 어뎁터 정의
         TurbinesSelectAdapter adapter = new TurbinesSelectAdapter(tb_list, this);
@@ -714,57 +714,58 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     // 0 1 2 3 -> +1해서 넣어 줘야 터빈 아이디가 댐
     @Override
     public void onSelectModel(int position, int direction) {
-        getLocationAndSendToUnity(position ,direction);
+        getLocationAndSendToUnity(position, direction);
     }
 
-    private double distanceCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
-        double lat = objectLat - currentLat;
-        double lon = objectLon - currentLon;
-
-        // Haversine 공식
-        double a = Math.sin(lat / 2) * Math.sin(lat/ 2 ) + Math.cos(currentLat) * Math.cos(objectLat) * Math.sin(lon / 2) * Math.sin(lon / 2);
-
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return 6371.0 * c; // EARTH_RADIUS_KM -> 6371.0
-    }
-
-    private double azimuthCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
-        double lat1Rad = Math.toRadians(currentLat);
-        double lon1Rad = Math.toRadians(currentLon);
-        double lat2Rad = Math.toRadians(objectLat);
-        double lon2Rad = Math.toRadians(objectLon);
-
-        // 경도 차이
-        double dLon = lon2Rad - lon1Rad;
-
-        // 방위각 계산
-        double y = Math.sin(dLon) * Math.cos(lat2Rad);
-        double x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
-        double azimuthRad = Math.atan2(y, x);
-
-        // 라디안에서 도로 변환
-        double azimuth = Math.toDegrees(azimuthRad);
-
-        // 방위각을 0에서 360도 범위로 변환
-        if (azimuth < 0) {
-            azimuth += 360;
-        }
-
-        return azimuth;
-    }
-
-    private double elevationCalc(double currentElevation, double objectElevation) {
-        // 현재 고도와 물체의 고도 차이를 계산하여 보정된 물체의 고도를 반환
-        double elevationDifference = objectElevation - currentElevation;
-        double correctedElevation = objectElevation - elevationDifference;
-
-        return correctedElevation;
-    }
+//    private double distanceCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
+//        double lat = objectLat - currentLat;
+//        double lon = objectLon - currentLon;
+//
+//        // Haversine 공식
+//        double a = Math.sin(lat / 2) * Math.sin(lat / 2) + Math.cos(currentLat) * Math.cos(objectLat) * Math.sin(lon / 2) * Math.sin(lon / 2);
+//
+//        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//
+//        return 6371.0 * c; // EARTH_RADIUS_KM -> 6371.0
+//    }
+//
+//    private double azimuthCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
+//        double lat1Rad = Math.toRadians(currentLat);
+//        double lon1Rad = Math.toRadians(currentLon);
+//        double lat2Rad = Math.toRadians(objectLat);
+//        double lon2Rad = Math.toRadians(objectLon);
+//
+//        // 경도 차이
+//        double dLon = lon2Rad - lon1Rad;
+//
+//        // 방위각 계산
+//        double y = Math.sin(dLon) * Math.cos(lat2Rad);
+//        double x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
+//        double azimuthRad = Math.atan2(y, x);
+//
+//        // 라디안에서 도로 변환
+//        double azimuth = Math.toDegrees(azimuthRad);
+//
+//        // 방위각을 0에서 360도 범위로 변환
+//        if (azimuth < 0) {
+//            azimuth += 360;
+//        }
+//
+//        return azimuth;
+//    }
 
     private float scaler(float distance) {
         float scale = 2.0f;
         return scale / distance;
+    }
+
+    private String calcPosition(double distance, double azimuth, double elevation) {
+        // XYZ 좌표 계산
+        double x = distance * Math.cos(elevation) * Math.cos(azimuth);
+        double y = distance * Math.cos(elevation) * Math.sin(azimuth);
+        double z = distance * Math.sin(elevation);
+
+        return x + "," + y + "," + z;
     }
 
     private void getLocationAndSendToUnity(int modelNumber, int direction) { // NOTE : 나중에 position 별로 터빈 나누기!!!
@@ -779,42 +780,28 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             return;
         }
 
-        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
-            if (location != null) {
-                double currentLatitude = location.getLatitude();
-                double currentLongitude = location.getLongitude();
 
-                // 물체 위치
-                double objectLatitude = Double.parseDouble(currentMarkerPositions[0]);
-                double objectLongitude = Double.parseDouble(currentMarkerPositions[1]);
+        // 물체 위치
+        double objectLatitude = currentMarkerPositions[0];
+        double objectLongitude = currentMarkerPositions[1];
 
-                // NOTE : 고도 API 호출
-            new ElevationGetter(currentLatitude, currentLongitude, elevation -> {
-                if (elevation != null) {
-                    myElevation = elevation;
-                }
-            }).execute();
-
-                double distance = distanceCalc(currentLatitude, currentLongitude, objectLatitude, objectLongitude);
-                double azimuth = azimuthCalc(currentLatitude, currentLongitude, objectLatitude, objectLongitude);
-                double elevation = elevationCalc(myElevation, objElevation);
-                float scale = scaler(direction);
-                launchUnityAppWithData(objectLatitude, objectLongitude, direction, distance, azimuth, elevation, scale, modelNumber);
-            }
-        });
+//        double distance = distanceCalc(currentMyPositions[0], currentMyPositions[1], objectLatitude, objectLongitude);
+//        double azimuth = azimuthCalc(currentMyPositions[0], currentMyPositions[0], objectLatitude, objectLongitude);
+        double elevation = myElevation;
+//        String objPosition = calcPosition(distance, azimuth, elevation);
+        float scale = scaler(direction);
+        launchUnityAppWithData(objectLatitude, objectLongitude, direction, scale, modelNumber, (float) elevation);
     }
 
     // INFO : Unity에 데이터 전달
-    private void launchUnityAppWithData(double objectLat, double objectLon, float direction, double distance, double azimuth, double elevation, float scale, int modelNumber) {
+    private void launchUnityAppWithData(double objectLat, double objectLon, float direction, float scale, int modelNumber, float elevation) {
         Intent intent = new Intent(MapActivity.this, com.example.client.common.UnityPlayerActivity.class);
         intent.putExtra("objectLat", objectLat);
         intent.putExtra("objectLon", objectLon);
         intent.putExtra("direction", direction);
-        intent.putExtra("distance", distance);
-        intent.putExtra("azimuth", azimuth);
-        intent.putExtra("elevation", elevation);
         intent.putExtra("scale", scale);
         intent.putExtra("number", modelNumber);
+        intent.putExtra("elevation", elevation);
 
         startActivity(intent);
     }
