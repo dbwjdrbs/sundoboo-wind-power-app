@@ -22,6 +22,9 @@ public interface LocationMapper {
     @Mapping(source = "turbineId", target = "turbine.turbineId")
     Location locationPostDtoToLocation(LocationDto.Post requestBody);
 
+    @Mapping(source = "business.businessId", target = "businessId")
+    LocationDto.DdResponse locationToDdResponseDto(Location location);
+
 
     default Location locationPatchDtoToLocation(LocationDto.Patch requestBody) {
         Business business = new Business();

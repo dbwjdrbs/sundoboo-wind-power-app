@@ -6,6 +6,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -46,4 +47,10 @@ public interface ApiService {
 
     @DELETE("/locations/business/{business-id}")
     Call<Void> deleteLocationsByBusinessId(@Path("business-id") long businessId);
+
+    @GET("/locations/search/dd")
+    Call<MappingClass.DdResponse> getDD(@Query("latitude") String latitude, @Query("longitude") String longitude);
+
+    @PATCH("/locations")
+    Call<Void> patchLocation(@Body MappingClass.LocationPatchRequest request);
 }

@@ -159,4 +159,55 @@ public class ApiHandler {
             }
         });
     }
+
+    public void getDD(String latitude, String longitude, final ApiCallback<MappingClass.DdResponse> callback) {
+        Call<MappingClass.DdResponse> call = apiService.getDD(latitude, longitude);
+        call.enqueue(new Callback<MappingClass.DdResponse>() {
+            @Override
+            public void onResponse(Call<MappingClass.DdResponse> call, Response<MappingClass.DdResponse> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(response.body());
+                } else {
+                    try {
+                        String errorMessage = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                        callback.onError("Error: " + errorMessage);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        callback.onError("Error: Unable to parse error body");
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<MappingClass.DdResponse> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+
+
+    public void patchLocation(MappingClass.LocationPatchRequest request, final ApiCallback<Void> callback) {
+        Call<Void> call = apiService.patchLocation(request);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess(null); // 성공적으로 업데이트된 경우
+                } else {
+                    try {
+                        String errorMessage = response.errorBody() != null ? response.errorBody().string() : "Unknown error";
+                        callback.onError("Error: " + errorMessage);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        callback.onError("Error: Unable to parse error body");
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
 }

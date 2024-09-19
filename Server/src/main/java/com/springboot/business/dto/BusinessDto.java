@@ -1,5 +1,6 @@
 package com.springboot.business.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.springboot.businessscore.dto.BusinessScoreDto;
 import com.springboot.location.dto.LocationDto;
 import com.springboot.utils.validator.NotSpace;
@@ -28,6 +29,7 @@ public class BusinessDto {
     public static class Response{
         private long businessId;
         private String businessTitle;
+        @JsonFormat(pattern = "yyyy년 MM월 dd일 a HH시 mm분")
         private LocalDateTime createdAt;
         private LocalDateTime deletedAt;
         private List<LocationDto.Response> locations;
