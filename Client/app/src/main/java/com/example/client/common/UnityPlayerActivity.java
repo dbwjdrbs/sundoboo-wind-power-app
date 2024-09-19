@@ -1,16 +1,26 @@
 package com.example.client.common;
 
+import static android.content.Intent.getIntent;
+
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.example.client.R;
 import com.example.client.api.ApiCallback;
 import com.example.client.api.ApiHandler;
 import com.example.client.api.ApiService;
 import com.example.client.api.MappingClass;
 import com.example.client.api.RestClient;
-
 import com.unity3d.player.UnityPlayer;
+
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 
 public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity {
