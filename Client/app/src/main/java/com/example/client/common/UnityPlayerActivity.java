@@ -70,5 +70,6 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
         super.onUnityPlayerQuitted();
         onDestroy();
 
+        startActivity(new Intent(UnityPlayerActivity.this, MapActivity.class));
     }
 }

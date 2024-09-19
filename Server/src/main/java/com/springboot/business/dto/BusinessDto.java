@@ -22,6 +22,14 @@ public class BusinessDto {
         private String businessTitle;
     }
 
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    public static class Get{
+        @NotSpace
+        private String businessTitle;
+    }
+
     @Getter
     @Setter
     @NoArgsConstructor

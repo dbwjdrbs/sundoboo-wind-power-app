@@ -51,6 +51,10 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectVi
         list.add(0, businessData);
     }
 
+    public void searchMode(ArrayList<BusinessData> resultDatas) {
+        list = resultDatas;
+    }
+
     public void removeItem(int position) {
         list.remove(position);
     }

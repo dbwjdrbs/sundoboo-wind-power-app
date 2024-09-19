@@ -70,6 +70,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, TurbinesSelectAdapter.OnItemClickListener {
@@ -102,7 +103,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        businessId = new Intent().getLongExtra("businessId", 0);
+
+        Intent intent = getIntent();
+        businessId = intent.getLongExtra("businessId", 0);
+
 
         customProgressDialog = new ProgressDialog(this);
         customProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -154,6 +158,26 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;  // GoogleMap 객체를 초기화
+
+        ApiService apiService = RestClient.getClient().create(ApiService.class);
+        ApiHandler apiHandler = new ApiHandler(apiService, this);
+        apiHandler.getLocations(businessId, 1, 30, new ApiCallback<List<MappingClass.LocationResponse>>() {
+            @Override
+            public void onSuccess(List<MappingClass.LocationResponse> response) {
+                for (MappingClass.LocationResponse locaResponse : response) {
+                    double latitude = Double.valueOf(locaResponse.getLatitude());
+                    double longitude = Double.valueOf(locaResponse.getLongitude());
+
+                    LatLng latLng = new LatLng(latitude, longitude);
+                    initialMarkers(latLng);
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
 
         if (mMap != null) {
             try {
@@ -234,6 +258,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         customProgressDialog.dismiss();
     }
 
+    private void initialMarkers(LatLng latLng) {
+        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+
+        mMarker = mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .icon(icon)  // 아이콘 설정
+                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+        // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
+        markerList.add(mMarker);
+    }
+
     // INFO : 마커 생성 메서드
     private void setMarker(LatLng latLng) {
         boolean isRegulatedArea = false;
@@ -247,9 +282,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
         if (!isRegulatedArea) { // 규제 지역 바깥일 경우.
-            // NOTE : 마커 스타일
-            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
-
             // NOTE : 마커 지역 특정 코드
             Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
             try {
@@ -269,6 +301,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
 
             mMarker = mMap.addMarker(new MarkerOptions()
                     .position(latLng)
@@ -569,10 +603,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Button btn_close = dialog.findViewById(R.id.dl_score_input_closeButton);
         Button btn_submit = dialog.findViewById(R.id.dl_score_input_submitButton);
 
-        SeekBar score1 = dialog.findViewById(R.id.seekBar_score1);
-        SeekBar score2 = dialog.findViewById(R.id.seekBar_score2);
-        SeekBar score3 = dialog.findViewById(R.id.seekBar_score3);
-        SeekBar score4 = dialog.findViewById(R.id.seekBar_score4);
+        SeekBar seekBar1 = dialog.findViewById(R.id.seekBar_score1);
+        SeekBar seekBar2 = dialog.findViewById(R.id.seekBar_score2);
+        SeekBar seekBar3 = dialog.findViewById(R.id.seekBar_score3);
+        SeekBar seekBar4 = dialog.findViewById(R.id.seekBar_score4);
 
         // INFO : X 버튼 클릭 이벤트
         btn_close.setOnClickListener(v -> {
@@ -586,9 +620,27 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             } else if (et_observerName.getText().toString().isEmpty()) {
                 messageDialog.simpleErrorDialog("관찰자명을 작성해주세요.", this);
             } else {
+                String title = et_title.getText().toString();
+                int score1 = seekBar1.getProgress() + 1;
+                int score2 = seekBar2.getProgress() + 1;
+                int score3 = seekBar3.getProgress() + 1;
+                int score4 = seekBar4.getProgress() + 1;
+                String observer = et_observerName.getText().toString();
+
+                MappingClass.BusinessScorePost request = new MappingClass.BusinessScorePost(businessId, title, observer, score1, score2, score3, score4);
+
+                ApiService apiService = RestClient.getClient().create(ApiService.class);
+                ApiHandler apiHandler = new ApiHandler(apiService, this);
+                apiHandler.createScore(request, new ApiCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void response) {
+                    }
+                    @Override
+                    public void onError(String errorMessage) {
+                    }
+                });
                 messageDialog.simpleCompleteDialog("점수 등록이 완료되었습니다.", this);
                 dialog.dismiss();
-                // TODO : 점수 등록 비지니스 로직 추가
             }
         });
 
@@ -603,13 +655,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         dialog = new Dialog(MapActivity.this);
         dialog.setContentView(R.layout.dialog_scorelist);
 
-        // NOTE : 점수 목록 보기 더미 데이터
-        ScoreData data1 = new ScoreData("강화도 A 영향 평가 3KM", "김재엽", "2024년 4월 18일 오후 2시 01분", 3, 2, 1, 0, 4);
-        ScoreData data2 = new ScoreData("강화도 A 영향 평가 5KM", "김재엽", "2024년 4월 18일 오후 3시 01분", 4, 3, 2, 1, 0);
-
         sd_list = new ArrayList<>();
-        sd_list.add(data1);
-        sd_list.add(data2);
 
         // NOTE : 리사이클러뷰 어뎁터 정의
         ScoreListAdapter adapter = new ScoreListAdapter(sd_list);
@@ -617,6 +663,33 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         recyclerView.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
         recyclerView.setAdapter(adapter);
+
+
+        ApiService apiService = RestClient.getClient().create(ApiService.class);
+        ApiHandler apiHandler = new ApiHandler(apiService, this);
+        apiHandler.getScores(businessId, 1, 10, new ApiCallback<List<MappingClass.BusinessScoreResponse>>() {
+            @Override
+            public void onSuccess(List<MappingClass.BusinessScoreResponse> response) {
+                for (MappingClass.BusinessScoreResponse bsResponse : response ) {
+                    String title = bsResponse.getBusinessScoreTitle();
+                    String observer = bsResponse.getObserverName();
+                    String createAt = bsResponse.getCreatedAt();
+                    int score1 = bsResponse.getScoreList1() - 1;
+                    int score2 = bsResponse.getScoreList2() - 1;
+                    int score3 = bsResponse.getScoreList3() - 1;
+                    int score4 = bsResponse.getScoreList4() - 1;
+
+                    sd_list.add(new ScoreData(title, observer, createAt, score1, score2, score3, score4));
+                }
+                adapter.addItem(sd_list);
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
 
         Button btn_close = dialog.findViewById(R.id.dl_scorelist_closeButton);
 
