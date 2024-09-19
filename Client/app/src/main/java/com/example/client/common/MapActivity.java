@@ -102,7 +102,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        businessId = new Intent().getLongExtra("businessId", 0);
+        Intent intent = getIntent();
+        businessId = intent.getLongExtra("businessId", 0);
 
         customProgressDialog = new ProgressDialog(this);
         customProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
@@ -154,6 +155,26 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;  // GoogleMap 객체를 초기화
+
+        ApiService apiService = RestClient.getClient().create(ApiService.class);
+        ApiHandler apiHandler = new ApiHandler(apiService, this);
+        apiHandler.getLocations(businessId, 1, 30, new ApiCallback<List<MappingClass.LocationResponse>>() {
+            @Override
+            public void onSuccess(List<MappingClass.LocationResponse> response) {
+                for (MappingClass.LocationResponse locaResponse : response) {
+                    double latitude = Double.valueOf(locaResponse.getLatitude());
+                    double longitude = Double.valueOf(locaResponse.getLongitude());
+
+                    LatLng latLng = new LatLng(latitude, longitude);
+                    initialMarkers(latLng);
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
 
         if (mMap != null) {
             try {
@@ -234,6 +255,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         customProgressDialog.dismiss();
     }
 
+    private void initialMarkers(LatLng latLng) {
+        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+
+        mMarker = mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .icon(icon)  // 아이콘 설정
+                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+        // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
+        markerList.add(mMarker);
+    }
+
     // INFO : 마커 생성 메서드
     private void setMarker(LatLng latLng) {
         boolean isRegulatedArea = false;
@@ -247,9 +279,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
         if (!isRegulatedArea) { // 규제 지역 바깥일 경우.
-            // NOTE : 마커 스타일
-            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
-
             // NOTE : 마커 지역 특정 코드
             Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
             try {
@@ -269,6 +298,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
 
             mMarker = mMap.addMarker(new MarkerOptions()
                     .position(latLng)

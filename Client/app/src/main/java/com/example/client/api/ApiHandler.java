@@ -128,6 +128,31 @@ public class ApiHandler {
             }
         });
     }
+
+    public void getLocations(long businessId, int page, int size, ApiCallback<List<MappingClass.LocationResponse>> callback) {
+        Call<LocationResponseWrapper> call = apiService.getLocations(businessId, page, size);
+        call.enqueue(new Callback<LocationResponseWrapper>() {
+            @Override
+            public void onResponse(Call<LocationResponseWrapper> call, Response<LocationResponseWrapper> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    // Log JSON 응답 확인
+                    String responseBody = new Gson().toJson(response.body());
+                    Log.d("API Response", responseBody);
+
+                    List<MappingClass.LocationResponse> businessList = response.body().getData();
+                    callback.onSuccess(businessList);
+                } else {
+                    callback.onError("Error: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<LocationResponseWrapper> call, Throwable t) {
+                callback.onError("Failure: " + t.getMessage());
+            }
+        });
+    }
+
     public void getBusinesses(int page, int size, String direction, ApiCallback<List<MappingClass.BusinessResponse>> callback) {
         Call<BusinessResponseWrapper> call = apiService.getBusinesses(page, size, direction);
         call.enqueue(new Callback<BusinessResponseWrapper>() {

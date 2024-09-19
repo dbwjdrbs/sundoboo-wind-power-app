@@ -24,6 +24,13 @@ public interface ApiService {
     @DELETE("/businesses/{business-id}")
     Call<Void> deleteBusiness(@Path("business-id") long businessId);
 
+    @GET("/locations/search/{business-id}")
+    Call<LocationResponseWrapper> getLocations(
+            @Path("business-id") long businessId,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
     @GET("/businesses")
     Call<BusinessResponseWrapper> getBusinesses(
             @Query("page") int page,
