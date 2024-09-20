@@ -3,6 +3,9 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
 android {
     namespace 'com.example.client'
     compileSdk 33
@@ -13,6 +16,14 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
+        manifestPlaceholders = ["map_api_key" : "\"${properties.getProperty("map_api_key")}\""]
+        manifestPlaceholders["base_url"] = properties['base_url']
+        buildConfigField "String", "map_api_key", properties['map_api_key']
+        buildConfigField "String", "base_url", properties['base_url']
+        buildConfigField "String", "elevation_api_key", properties['elevation_api_key']
+        vectorDrawables {
+            useSupportLibrary true
+        }
     }
 
     buildTypes {
@@ -68,12 +79,14 @@ dependencies {
     implementation 'com.google.maps.android:android-maps-utils:3.8.0' // GeoJSON
 
     implementation 'com.google.code.gson:gson:2.8.9'
+    implementation platform('androidx.compose:compose-bom:2023.03.00')
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation platform('androidx.compose:compose-bom:2023.03.00')
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4'
+    androidTestImplementation platform('androidx.compose:compose-bom:2023.03.00')
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.6'

@@ -35,8 +35,8 @@ public class BusinessController {
     public ResponseEntity createBusiness(@Valid @RequestBody BusinessDto.Post requestBody){
         Business business = businessMapper.businessPostDtoToBusiness(requestBody);
         Business createdBusiness = businessService.createBusiness(business);
-        URI location = UriCreator.createUri(DEFAULT_BUSINESS_URL,createdBusiness.getBusinessId());
-        return ResponseEntity.created(location).build();
+        // URI location = UriCreator.createUri(DEFAULT_BUSINESS_URL,createdBusiness.getBusinessId());
+        return new ResponseEntity(new SingleResponseDto<>(businessMapper.businessToBusinessResponse(createdBusiness)), HttpStatus.CREATED);
     }
     
     @DeleteMapping("/{business-id}")
@@ -44,18 +44,20 @@ public class BusinessController {
         businessService.deleteBusiness(businessId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
     @GetMapping("/{business-id}")
     public ResponseEntity getBusiness(@PathVariable("business-id") @Positive long businessId){
         Business getBusiness = businessService.verifyExistBusiness(businessId);
         return new ResponseEntity(new SingleResponseDto<>(businessMapper.businessToBusinessResponseDto(getBusiness)), HttpStatus.OK);
     }
 
-
+    // 검색
     @GetMapping()
     public ResponseEntity getBusinesses(@Positive @RequestParam int page,
                                         @Positive @RequestParam int size,
-                                        @RequestParam String direction){
-        Page<Business> businessPage = businessService.getBusinesses( page -1, size, direction);
+                                        @RequestParam String direction,
+                                        @RequestParam String keyword){
+        Page<Business> businessPage = businessService.getBusinesses( page -1, size, direction, keyword);
 
         return new ResponseEntity(
                 new MultiResponseDto<>(

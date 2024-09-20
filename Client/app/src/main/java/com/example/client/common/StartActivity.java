@@ -9,8 +9,12 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.client.R;
+import com.example.client.api.ApiCallback;
+import com.example.client.api.ApiHandler;
+import com.example.client.api.ApiService;
 import com.example.client.api.LocalDateTimeDeserializer;
 import com.example.client.api.MappingClass;
+import com.example.client.api.RestClient;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -23,6 +27,7 @@ import java.util.List;
 public class StartActivity extends AppCompatActivity {
     // NOTE : 뒤로가기 두 번 클릭시 앱 종료  ============================================================
     private long backKeyPressedTime = 0;  // NOTE : 초 저장
+    private String jsonBusinessList = "";
 
     @Override
     public void onBackPressed() {
@@ -35,7 +40,7 @@ public class StartActivity extends AppCompatActivity {
 
         // NOTE :  2초 이내에 뒤로가기 버튼을 한번 더 클릭시 finish()(앱 종료)
         if (System.currentTimeMillis() <= backKeyPressedTime + 2000) {
-            finish();
+            android.os.Process.killProcess(android.os.Process.myPid()); // 앱 프로세스 종료
         }
     }
 
@@ -44,31 +49,6 @@ public class StartActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
-        // Intent로부터 JSON 문자열을 가져옵니다
-        Intent intent = getIntent();
-        String jsonBusinessList = intent.getStringExtra("businessListJson");
-
-        // Gson 객체 생성 및 역직렬화 설정
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeDeserializer())
-                .create();
-
-        // JSON 문자열을 BusinessResponse 객체 리스트로 변환
-        Type businessListType = new TypeToken<List<MappingClass.BusinessResponse>>() {}.getType();
-        List<MappingClass.BusinessResponse> businessList = gson.fromJson(jsonBusinessList, businessListType);
-
-        // 필요한 데이터만 추출
-        for (MappingClass.BusinessResponse business : businessList) {
-            long businessId = business.getBusinessId();
-            String businessTitle = business.getBusinessTitle();
-            LocalDateTime createdAt = LocalDateTime.parse(business.getCreatedAt());
-
-            // 필요한 데이터 로그로 확인
-            Log.d("BusinessResponse", "Business ID: " + businessId);
-            Log.d("BusinessResponse", "Business Title: " + businessTitle);
-            Log.d("BusinessResponse", "Created At: " + createdAt);
-        }
-
         start();
     }
 
@@ -76,7 +56,36 @@ public class StartActivity extends AppCompatActivity {
     private void start() {
         Button btn_start = findViewById(R.id.btn_start);
         btn_start.setOnClickListener(v -> {
-            startActivity(new Intent(StartActivity.this, BusinessSelectActivity.class));
+
+            ApiService apiService = RestClient.getClient().create(ApiService.class);
+            ApiHandler apiHandler = new ApiHandler(apiService, this);
+
+            apiHandler.getBusinesses(1, 10, "PAGE_CREATED_AT_DESC", "", new ApiCallback<List<MappingClass.BusinessResponse>>() {
+
+                @Override
+                public void onSuccess(List<MappingClass.BusinessResponse> response) {
+                    // Log the response
+                    for (MappingClass.BusinessResponse business : response) {
+                        Log.d("BusinessResponse", "Business ID: " + business.getBusinessId());
+                        Log.d("BusinessResponse", "Business Title: " + business.getBusinessTitle());
+                        Log.d("BusinessResponse", "Created At: " + business.getCreatedAt());
+                        Log.d("BusinessResponse", "Deleted At: " + business.getDeletedAt());
+                    }
+
+                    Gson gson = new Gson();
+                    String jsonBusinessList = gson.toJson(response);
+
+                    Intent intent = new Intent(StartActivity.this, BusinessSelectActivity.class);
+                    intent.putExtra("businessListJson", jsonBusinessList);
+                    startActivity(intent);
+                    finish();
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    Toast.makeText(StartActivity.this, "Error: " + errorMessage, Toast.LENGTH_LONG).show();
+                }
+            });
         });
     }
 }

@@ -8,17 +8,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -41,10 +42,9 @@ import com.example.client.api.MappingClass;
 import com.example.client.api.RestClient;
 import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
-import com.example.client.util.ElevationGetter;
+import com.example.client.api.ElevationGetter;
 import com.example.client.util.GeoJsonFeatureCollection;
 import com.example.client.util.MessageDialog;
-import com.example.client.util.ProgressDialog;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -63,6 +63,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.gson.Gson;
 
+import org.w3c.dom.Text;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -70,6 +72,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.Executors;
 
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, View.OnClickListener, TurbinesSelectAdapter.OnItemClickListener {
@@ -79,52 +83,32 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private boolean isCreateMarker = false;
     private boolean isOnClickMarker = false;
-
     private boolean isVisibleRegulatedArea = true; // 규제 지역
-
     private double[] currentMarkerPositions = new double[2];
     private double[] currentMyPositions = new double[2];
     private MessageDialog messageDialog = new MessageDialog();
     private List<Marker> markerList = new ArrayList<>();
+    private Marker currentMaker;
     private List<Polygon> polygons = new ArrayList<>();
-
+    private long businessId;
+    private long locationId;
 
     // INFO : Unity 연동을 위한 것들
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private Sensor magnetometer;
     private double myElevation;
-    private ProgressDialog customProgressDialog;
+    private double objElevation;
+
     // ======================================
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        customProgressDialog = new ProgressDialog(this);
-        customProgressDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        customProgressDialog.setCancelable(false);
-        customProgressDialog.show();
+        Intent intent = getIntent();
+        businessId = intent.getLongExtra("businessId", 0);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 10; i++) {
-                    try {
-                        Thread.sleep(1000); // 1초 대기
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        customProgressDialog.dismiss();
-                    }
-                });
-            }
-        }).start();
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
         // SupportMapFragment를 찾아서 지도가 준비되었을 때 콜백을 받을 수 있도록 설정
@@ -148,35 +132,32 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     // ================================================================ GoogleMap
+    @SuppressLint("PotentialBehaviorOverride")
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;  // GoogleMap 객체를 초기화
 
-        if (mMap != null) {
-            try {
-                InputStream is = getResources().openRawResource(R.raw.fss_a);
-                GeoJsonFeatureCollection featureCollection = new Gson().fromJson(new InputStreamReader(is), GeoJsonFeatureCollection.class);
-                for (GeoJsonFeatureCollection.GeoJsonFeature feature : featureCollection.features) {
-                    if ("MultiPolygon".equals(feature.geometry.type)) {
-                        for (List<List<List<Double>>> polygon : feature.geometry.coordinates) {
-                            List<LatLng> polygonPoints = new ArrayList<>();
-                            for (List<Double> point : polygon.get(0)) { // 첫 번째 폴리곤의 꼭지점만 가져옴
-                                double lng = point.get(0);
-                                double lat = point.get(1);
-                                polygonPoints.add(new LatLng(lat, lng));
-                            }
-                            Polygon poly = mMap.addPolygon(new PolygonOptions()
-                                    .addAll(polygonPoints)
-                                    .strokeColor(0xFFFF7979)
-                                    .fillColor(0x7FFF0000));
-                            polygons.add(poly); // 폴리곤을 리스트에 추가
-                        }
-                    }
+        initRegulatedArea();
+
+        ApiService apiService = RestClient.getClient().create(ApiService.class);
+        ApiHandler apiHandler = new ApiHandler(apiService, this);
+        apiHandler.getLocations(businessId, 1, 30, new ApiCallback<List<MappingClass.LocationResponse>>() {
+            @Override
+            public void onSuccess(List<MappingClass.LocationResponse> response) {
+                for (MappingClass.LocationResponse locaResponse : response) {
+                    double latitude = Double.valueOf(locaResponse.getLatitude());
+                    double longitude = Double.valueOf(locaResponse.getLongitude());
+
+                    LatLng latLng = new LatLng(latitude, longitude);
+                    initialMarkers(latLng, locaResponse.getTurbineId());
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-        }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
 
         // 위치 권한이 부여된 경우 현재 위치를 지도에 표시
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -206,7 +187,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             double longitude = marker.getPosition().longitude;
             currentMarkerPositions[0] = latitude;
             currentMarkerPositions[1] = longitude;
-
+            currentMaker = marker;
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, location -> {
                         if (location != null) {
@@ -216,17 +197,98 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                                     myElevation = elevation;
                                 }
                             }).execute();
-                            currentMyPositions[0] = location.getLatitude();
-                            currentMyPositions[1] = location.getLongitude();
                         }
                     });
+
+            new ElevationGetter(currentMarkerPositions[0], currentMarkerPositions[1], elevation -> {
+                if (elevation != null) {
+                    objElevation = elevation;
+                }
+            }).execute();
 
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
         });
-        customProgressDialog.dismiss();
     }
 
+    private void initRegulatedArea() {
+        if (mMap != null) {
+            Executors.newSingleThreadExecutor().execute(new Runnable() {
+                @Override
+                public void run() {
+                    List<PolygonOptions> polygonOptionsList = loadGeoJson(); // PolygonOptions 리스트로 변경
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            for (PolygonOptions polygonOptions : polygonOptionsList) {
+                                mMap.addPolygon(polygonOptions); // 메인 스레드에서 호출
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    private List<PolygonOptions> loadGeoJson() {
+        List<PolygonOptions> polygonOptionsList = new ArrayList<>();
+        try {
+            InputStream is = getResources().openRawResource(R.raw.fss_a);
+            GeoJsonFeatureCollection featureCollection = new Gson().fromJson(new InputStreamReader(is), GeoJsonFeatureCollection.class);
+            for (GeoJsonFeatureCollection.GeoJsonFeature feature : featureCollection.features) {
+                if ("MultiPolygon".equals(feature.geometry.type)) {
+                    for (List<List<List<Double>>> polygon : feature.geometry.coordinates) {
+                        List<LatLng> polygonPoints = new ArrayList<>();
+                        for (List<Double> point : polygon.get(0)) { // 첫 번째 폴리곤의 꼭지점만 가져옴
+                            double lng = point.get(0);
+                            double lat = point.get(1);
+                            polygonPoints.add(new LatLng(lat, lng));
+                        }
+                        // PolygonOptions 객체를 생성하여 리스트에 추가
+                        PolygonOptions polygonOptions = new PolygonOptions()
+                                .addAll(polygonPoints)
+                                .strokeColor(0xFFFF7979)
+                                .fillColor(0x7FFF0000);
+                        polygonOptionsList.add(polygonOptions); // 리스트에 PolygonOptions 추가
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return polygonOptionsList; // PolygonOptions 리스트 반환
+    }
+
+    private BitmapDescriptor setMarkerStyle(long turbineId) {
+        BitmapDescriptor marker1 = BitmapDescriptorFactory.fromResource(R.drawable.marker1);
+        BitmapDescriptor marker2 = BitmapDescriptorFactory.fromResource(R.drawable.marker2);
+        BitmapDescriptor marker3 = BitmapDescriptorFactory.fromResource(R.drawable.marker3);
+
+        switch ((int) turbineId) {
+            case 1 :
+                return marker1;
+            case 2 :
+                return marker2;
+            case 3 :
+                return marker3;
+            default:
+                return marker1;
+        }
+    }
+
+    private void changeMarkerStyle(BitmapDescriptor icon, Marker marker) {
+        marker.setIcon(icon);
+    }
+
+    private void initialMarkers(LatLng latLng, long turbineId) {
+        BitmapDescriptor currentMarker = setMarkerStyle(turbineId);
+        mMarker = mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .icon(currentMarker)  // 아이콘 설정
+                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+        // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
+        markerList.add(mMarker);
+    }
 
     // INFO : 마커 생성 메서드
     private void setMarker(LatLng latLng) {
@@ -241,9 +303,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
 
         if (!isRegulatedArea) { // 규제 지역 바깥일 경우.
-            // NOTE : 마커 스타일
-            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
-
             // NOTE : 마커 지역 특정 코드
             Geocoder geocoder = new Geocoder(MapActivity.this, Locale.getDefault());
             try {
@@ -263,6 +322,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
 
             mMarker = mMap.addMarker(new MarkerOptions()
                     .position(latLng)
@@ -563,10 +624,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Button btn_close = dialog.findViewById(R.id.dl_score_input_closeButton);
         Button btn_submit = dialog.findViewById(R.id.dl_score_input_submitButton);
 
-        SeekBar score1 = dialog.findViewById(R.id.seekBar_score1);
-        SeekBar score2 = dialog.findViewById(R.id.seekBar_score2);
-        SeekBar score3 = dialog.findViewById(R.id.seekBar_score3);
-        SeekBar score4 = dialog.findViewById(R.id.seekBar_score4);
+        SeekBar seekBar1 = dialog.findViewById(R.id.seekBar_score1);
+        SeekBar seekBar2 = dialog.findViewById(R.id.seekBar_score2);
+        SeekBar seekBar3 = dialog.findViewById(R.id.seekBar_score3);
+        SeekBar seekBar4 = dialog.findViewById(R.id.seekBar_score4);
 
         // INFO : X 버튼 클릭 이벤트
         btn_close.setOnClickListener(v -> {
@@ -580,9 +641,28 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             } else if (et_observerName.getText().toString().isEmpty()) {
                 messageDialog.simpleErrorDialog("관찰자명을 작성해주세요.", this);
             } else {
+                String title = et_title.getText().toString();
+                int score1 = seekBar1.getProgress() + 1;
+                int score2 = seekBar2.getProgress() + 1;
+                int score3 = seekBar3.getProgress() + 1;
+                int score4 = seekBar4.getProgress() + 1;
+                String observer = et_observerName.getText().toString();
+
+                MappingClass.BusinessScorePost request = new MappingClass.BusinessScorePost(businessId, title, observer, score1, score2, score3, score4);
+
+                ApiService apiService = RestClient.getClient().create(ApiService.class);
+                ApiHandler apiHandler = new ApiHandler(apiService, this);
+                apiHandler.createScore(request, new ApiCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void response) {
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                    }
+                });
                 messageDialog.simpleCompleteDialog("점수 등록이 완료되었습니다.", this);
                 dialog.dismiss();
-                // TODO : 점수 등록 비지니스 로직 추가
             }
         });
 
@@ -597,13 +677,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         dialog = new Dialog(MapActivity.this);
         dialog.setContentView(R.layout.dialog_scorelist);
 
-        // NOTE : 점수 목록 보기 더미 데이터
-        ScoreData data1 = new ScoreData("강화도 A 영향 평가 3KM", "김재엽", "2024년 4월 18일 오후 2시 01분", 3, 2, 1, 0, 4);
-        ScoreData data2 = new ScoreData("강화도 A 영향 평가 5KM", "김재엽", "2024년 4월 18일 오후 3시 01분", 4, 3, 2, 1, 0);
-
         sd_list = new ArrayList<>();
-        sd_list.add(data1);
-        sd_list.add(data2);
 
         // NOTE : 리사이클러뷰 어뎁터 정의
         ScoreListAdapter adapter = new ScoreListAdapter(sd_list);
@@ -611,6 +685,32 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         recyclerView.setLayoutManager(new LinearLayoutManager(dialog.getContext()));
         recyclerView.setAdapter(adapter);
+
+        TextView tv_left_button = dialog.findViewById(R.id.tv_left_scoreList);
+        TextView tv_right_button = dialog.findViewById(R.id.tv_right_scoreList);
+        TextView tv_page_number = dialog.findViewById(R.id.tv_page_number);
+
+        int page = Integer.parseInt(tv_page_number.getText().toString());
+        final MappingClass.PageInfo pageInfo = requestScoreList(page, adapter);
+
+        tv_left_button.setOnClickListener(view -> {
+            int num = Integer.parseInt(tv_page_number.getText().toString());
+            if (num != 1) {
+                num -= 1;
+                pageInfo.setPageInfo(requestScoreList(num, adapter));
+            }
+            tv_page_number.setText(String.valueOf(num));
+        });
+
+        tv_right_button.setOnClickListener(view -> {
+            int num = Integer.parseInt(tv_page_number.getText().toString());
+            if (num != 0 && num < pageInfo.getTotalPages()) {
+                num += 1;
+                pageInfo.setPageInfo(requestScoreList(num, adapter));
+            }
+            tv_page_number.setText(String.valueOf(num));
+        });
+
 
         Button btn_close = dialog.findViewById(R.id.dl_scorelist_closeButton);
 
@@ -622,6 +722,39 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // TODO : 선택 버튼 클릭 이벤트 구현 하기
 
         dialog.show();
+    }
+
+    private MappingClass.PageInfo requestScoreList(int page, ScoreListAdapter adapter) {
+        ApiService apiService = RestClient.getClient().create(ApiService.class);
+        ApiHandler apiHandler = new ApiHandler(apiService, this);
+        final MappingClass.PageInfo pageInfo = new MappingClass.PageInfo();
+        apiHandler.getScores(businessId, page, 5, new ApiCallback<MappingClass.BusinessScoreResponsePage>() {
+            @Override
+            public void onSuccess(MappingClass.BusinessScoreResponsePage response) {
+                sd_list.clear();
+                pageInfo.setPageInfo(response.getPageInfo());
+                for (MappingClass.BusinessScoreResponse bsResponse : response.getData()) {
+                    String title = bsResponse.getBusinessScoreTitle();
+                    String observer = bsResponse.getObserverName();
+                    String createAt = bsResponse.getCreatedAt();
+                    int score1 = bsResponse.getScoreList1() - 1;
+                    int score2 = bsResponse.getScoreList2() - 1;
+                    int score3 = bsResponse.getScoreList3() - 1;
+                    int score4 = bsResponse.getScoreList4() - 1;
+
+                    sd_list.add(new ScoreData(title, observer, createAt, score1, score2, score3, score4));
+                }
+                adapter.pageChange(sd_list);
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+
+            }
+        });
+
+        return pageInfo;
     }
 
     // INFO : 좌표 입력 -> DD 클릭시 나오는 하단 팝업창
@@ -825,59 +958,58 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     // 0 1 2 3 -> +1해서 넣어 줘야 터빈 아이디가 댐
     @Override
     public void onSelectModel(int position, int direction) {
-        getLocationAndSendToUnity(position, direction);
+        ApiService apiService = RestClient.getClient().create(ApiService.class);
+        ApiHandler apiHandler = new ApiHandler(apiService, this);
+        double latitude = currentMarkerPositions[0]; // 0번 인덱스 위도
+        double longitude = currentMarkerPositions[1]; // 1번 인덱스 경도
+
+        String stringLat = String.valueOf(latitude);
+        String stringLon = String.valueOf(longitude);
+
+        apiHandler.getDD(stringLat, stringLon, new ApiCallback<MappingClass.DdResponse>() {
+            @Override
+            public void onSuccess(MappingClass.DdResponse response) {
+                Log.d("ApiHandler", "Response: " + response); // 전체 응답 로그
+                Log.d("ApiHandler", "Location ID: " + response.getData().getLocationId());
+                Log.d("ApiHandler", "Business ID: " + response.getData().getBusinessId());
+
+                locationId = response.getData().getLocationId();
+                businessId = response.getData().getBusinessId();
+
+                changeMarkerStyle(setMarkerStyle(position + 1) ,currentMaker);
+
+                if (locationId == 0 || businessId == 0) {
+                    Log.e("ApiHandler", "Invalid IDs received: locationId = " + locationId + ", businessId = " + businessId);
+                    return; // 유효하지 않은 ID인 경우 조기 종료
+                }
+
+                MappingClass.LocationPatchRequest request = new MappingClass.LocationPatchRequest();
+                request.setLocationId(locationId);
+                request.setBusinessId(businessId);
+                request.setTurbineId(position + 1); // 터빈 아이디 설정
+
+                apiHandler.patchLocation(request, new ApiCallback<Void>() {
+                    @Override
+                    public void onSuccess(Void response) {
+                        Log.d("ApiHandler", "Location updated successfully");
+                        getLocationAndSendToUnity(position, direction);
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        Log.e("ApiHandler", "Error: " + errorMessage);
+                    }
+                });
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Log.e("ApiHandler", "Error: " + errorMessage);
+            }
+        });
+//        getLocationAndSendToUnity(position, direction);
     }
 
-//    private double distanceCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
-//        double lat = objectLat - currentLat;
-//        double lon = objectLon - currentLon;
-//
-//        // Haversine 공식
-//        double a = Math.sin(lat / 2) * Math.sin(lat / 2) + Math.cos(currentLat) * Math.cos(objectLat) * Math.sin(lon / 2) * Math.sin(lon / 2);
-//
-//        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-//
-//        return 6371.0 * c; // EARTH_RADIUS_KM -> 6371.0
-//    }
-//
-//    private double azimuthCalc(double currentLat, double currentLon, double objectLat, double objectLon) {
-//        double lat1Rad = Math.toRadians(currentLat);
-//        double lon1Rad = Math.toRadians(currentLon);
-//        double lat2Rad = Math.toRadians(objectLat);
-//        double lon2Rad = Math.toRadians(objectLon);
-//
-//        // 경도 차이
-//        double dLon = lon2Rad - lon1Rad;
-//
-//        // 방위각 계산
-//        double y = Math.sin(dLon) * Math.cos(lat2Rad);
-//        double x = Math.cos(lat1Rad) * Math.sin(lat2Rad) - Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLon);
-//        double azimuthRad = Math.atan2(y, x);
-//
-//        // 라디안에서 도로 변환
-//        double azimuth = Math.toDegrees(azimuthRad);
-//
-//        // 방위각을 0에서 360도 범위로 변환
-//        if (azimuth < 0) {
-//            azimuth += 360;
-//        }
-//
-//        return azimuth;
-//    }
-
-    private float scaler(float distance) {
-        float scale = 2.0f;
-        return scale / distance;
-    }
-
-    private String calcPosition(double distance, double azimuth, double elevation) {
-        // XYZ 좌표 계산
-        double x = distance * Math.cos(elevation) * Math.cos(azimuth);
-        double y = distance * Math.cos(elevation) * Math.sin(azimuth);
-        double z = distance * Math.sin(elevation);
-
-        return x + "," + y + "," + z;
-    }
 
     private void getLocationAndSendToUnity(int modelNumber, int direction) { // NOTE : 나중에 position 별로 터빈 나누기!!!
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -891,30 +1023,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             return;
         }
 
-
         // 물체 위치
         double objectLatitude = currentMarkerPositions[0];
         double objectLongitude = currentMarkerPositions[1];
-
-//        double distance = distanceCalc(currentMyPositions[0], currentMyPositions[1], objectLatitude, objectLongitude);
-//        double azimuth = azimuthCalc(currentMyPositions[0], currentMyPositions[0], objectLatitude, objectLongitude);
-        double elevation = myElevation;
-//        String objPosition = calcPosition(distance, azimuth, elevation);
-        float scale = scaler(direction);
-        launchUnityAppWithData(objectLatitude, objectLongitude, direction, scale, modelNumber, (float) elevation);
+        launchUnityAppWithData(objectLatitude, objectLongitude, direction, modelNumber, (float) myElevation, (float) objElevation);
     }
 
+
     // INFO : Unity에 데이터 전달
-    private void launchUnityAppWithData(double objectLat, double objectLon, float direction, float scale, int modelNumber, float elevation) {
+    private void launchUnityAppWithData(double objectLat, double objectLon, float direction, int modelNumber, float myElevation, float objElevation) {
         Intent intent = new Intent(MapActivity.this, com.example.client.common.UnityPlayerActivity.class);
         intent.putExtra("objectLat", objectLat);
         intent.putExtra("objectLon", objectLon);
         intent.putExtra("direction", direction);
-        intent.putExtra("scale", scale);
         intent.putExtra("number", modelNumber);
-        intent.putExtra("elevation", elevation);
+        intent.putExtra("myElevation", myElevation);
+        intent.putExtra("objElevation", objElevation);
 
         startActivity(intent);
     }
 }
-

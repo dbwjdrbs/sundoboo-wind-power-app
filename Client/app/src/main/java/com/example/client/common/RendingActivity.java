@@ -2,6 +2,7 @@ package com.example.client.common;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.compose.animation.core.StartOffset;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -58,7 +59,7 @@ public class RendingActivity extends AppCompatActivity {
         // NOTE : 카메라와 위치 권한 체크
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             // NOTE : 권한이 없을 경우 권한 요청하는 매서드
             ActivityCompat.requestPermissions(this,
                     new String[]{
@@ -89,34 +90,6 @@ public class RendingActivity extends AppCompatActivity {
     }
 
     private void performActionWithPermissions() {
-        ApiService apiService = RestClient.getClient().create(ApiService.class);
-        ApiHandler apiHandler = new ApiHandler(apiService, this);
-
-        apiHandler.getBusinesses(1, 10, "PAGE_CREATED_AT_DESC", new ApiCallback<List<MappingClass.BusinessResponse>>() {
-            @Override
-            public void onSuccess(List<MappingClass.BusinessResponse> response) {
-                // Log the response
-                for (MappingClass.BusinessResponse business : response) {
-                    Log.d("BusinessResponse", "Business ID: " + business.getBusinessId());
-                    Log.d("BusinessResponse", "Business Title: " + business.getBusinessTitle());
-                    Log.d("BusinessResponse", "Created At: " + business.getCreatedAt());
-                    Log.d("BusinessResponse", "Deleted At: " + business.getDeletedAt());
-                }
-
-                Gson gson = new Gson();
-                String jsonBusinessList = gson.toJson(response);
-
-                Intent intent = new Intent(RendingActivity.this, StartActivity.class);
-                intent.putExtra("businessListJson", jsonBusinessList);
-                startActivity(intent);
-                finish();
-            }
-
-            @Override
-            public void onError(String errorMessage) {
-                Toast.makeText(RendingActivity.this, "Error: " + errorMessage, Toast.LENGTH_LONG).show();
-            }
-        });
-
+        startActivity(new Intent(RendingActivity.this, StartActivity.class));
     }
 }

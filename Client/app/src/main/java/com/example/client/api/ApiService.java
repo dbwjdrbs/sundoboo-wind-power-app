@@ -6,6 +6,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -15,7 +16,7 @@ import retrofit2.http.Query;
 // Retrofit이 APiService 인터페이스를 구현해서 HTTP 요청을 처리 하고 응답을 해당 데이터 타입 으로 변환 해줌
 public interface ApiService {
     @POST("/businesses/registration")
-    Call<Void> createBusiness(@Body MappingClass.BusinessRequest request);
+    Call<MappingClass.BusinessResponse2> createBusiness(@Body MappingClass.BusinessRequest request);
 
     @GET("/businesses/{business-id}")
     Call<MappingClass.BusinessResponse> getBusiness(@Path("business-id") long businessId);
@@ -23,11 +24,26 @@ public interface ApiService {
     @DELETE("/businesses/{business-id}")
     Call<Void> deleteBusiness(@Path("business-id") long businessId);
 
+    @GET("/locations/search/{business-id}")
+    Call<LocationResponseWrapper> getLocations(
+            @Path("business-id") long businessId,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
     @GET("/businesses")
     Call<BusinessResponseWrapper> getBusinesses(
             @Query("page") int page,
             @Query("size") int size,
             @Query("direction") String direction
+    );
+
+    @GET("/businesses")
+    Call<BusinessResponseWrapper> getBusinesses(
+            @Query("page") int page,
+            @Query("size") int size,
+            @Query("direction") String direction,
+            @Query("keyword") String keyword
     );
 
     @GET("/turbines/{turbine-id}")
@@ -37,13 +53,23 @@ public interface ApiService {
     Call<List<MappingClass.TurbineResponse>> getTurbines();
 
     @POST("/scores/registration")
-    Call<MappingClass.BusinessScoreResponse> createBusinessScore(@Body MappingClass.BusinessScorePost request);
+    Call<Void> createBusinessScore(@Body MappingClass.BusinessScorePost request);
 
     @GET("/scores/search/{business-id}")
-    Call<MappingClass.BusinessScoreResponse> getBusinessScore(@Path("business-id") long businessScoreId);
+    Call<MappingClass.BusinessScoreResponsePage> getBusinessScores(
+            @Path("business-id") long businessScoreId,
+            @Query("page") int page,
+            @Query("size") int size
+    );
     @POST("/locations")
     Call<Void> createLocation(@Body MappingClass.LocationPostRequest request);
 
     @DELETE("/locations/business/{business-id}")
     Call<Void> deleteLocationsByBusinessId(@Path("business-id") long businessId);
+
+    @GET("/locations/search/dd")
+    Call<MappingClass.DdResponse> getDD(@Query("latitude") String latitude, @Query("longitude") String longitude);
+
+    @PATCH("/locations")
+    Call<Void> patchLocation(@Body MappingClass.LocationPatchRequest request);
 }

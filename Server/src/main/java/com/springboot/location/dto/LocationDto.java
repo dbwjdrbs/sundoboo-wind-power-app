@@ -73,4 +73,26 @@ public class LocationDto {
             private LocalDateTime modifiedAt;
 
         }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DdGet{
+        private String latitude;
+
+        private String longitude;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class DdResponse{
+        private long locationId;
+
+        private long businessId;
+    }
+
+
 }
