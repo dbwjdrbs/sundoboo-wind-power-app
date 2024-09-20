@@ -101,7 +101,7 @@ public class BusinessServiceMockTest {
 
         //then
         // 비지니스 서비스에 getBusinesses 메서드를 통해 내가 만든 페이지 객체와 비교함
-        assertThat(businessService.getBusinesses(2, 10, "PAGE_CREATED_AT_ASC"), is(page));
+        assertThat(businessService.getBusinesses(0, 10, "PAGE_CREATED_AT_ASC", null), is(page));
 
     }
 
