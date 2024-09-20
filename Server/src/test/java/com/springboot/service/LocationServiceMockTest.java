@@ -51,7 +51,7 @@ public class LocationServiceMockTest {
 
     @DisplayName("post 성공 테스트")
     @Test
-    public void postLocationSuccessTest(){
+    public void postLocationTest(){
 
         //given
         // 비지니스 아이디와 터빈을 갖고 있는 로케이션 객체 생성
@@ -60,19 +60,6 @@ public class LocationServiceMockTest {
         Long businessId = 1L;
         business.setBusinessId(businessId);
         location.setBusiness(business);
-
-        Long turbineId = 1L;
-        Turbine turbine = new Turbine();
-        turbine.setTurbineId(turbineId);
-        location.setTurbine(turbine);
-
-
-        //when
-        // 처음에 비지니스와 터빈이 널인 예외를 통과해야함
-        // 처음안 사실 목 테스트는 테스트 범위를 넘으면 테스트를 통과할 수 없다 그래서 불필요한 목은 사용불가!
-        // 비지니스가 널인 예외를 통과하는건 필요한게 맞지만 비지니스 서비스 코드를 사용하고 있으로 불필요
-//        given(businessRepository.findById(Mockito.anyLong())).willReturn(Optional.of(business));
-        given(turbineRepository.findById(Mockito.anyLong())).willReturn(Optional.of(turbine));
 
         // 서비스 로직에서 찾은 비지니스를 할당하는걸 통과해야함
         given(businessService.verifyExistBusiness(Mockito.anyLong())).willReturn(business);
@@ -82,45 +69,12 @@ public class LocationServiceMockTest {
         assertThat(locationService.postLocation(location), is(location));
     }
 
-
-    @DisplayName("post 실패 테스트 터빈.ver")
-    @Test
-    public void locationPostFailedTest(){
-        //given
-        // 비지니스 아이디와 터빈을 갖고 있는 로케이션 객체 생성
-        // 로케이션에 터빈 아이디와 비지니스 아이디를 갖고 있어야
-        // 서비스 메서드의 null인지 체크하고 예외 던지는 로직을 통과하고 그 다음으로 넘어갈 수 있음
-        Location location = new Location();
-
-        Business business  = new Business();
-        Long businessId = 1L;
-        business.setBusinessId(businessId);
-        location.setBusiness(business);
-
-        Long turbineId = 1L;
-        Turbine turbine = new Turbine();
-        turbine.setTurbineId(turbineId);
-        location.setTurbine(turbine);
-
-        //when
-        // 로케이션 포스트의 터빈 검증이 우선적으로 이루어지므로 터빈만 검증
-        // 터빈 레파지에서 터빈 아이디가 없다면 아무것도 반환하지 않으므로 예외가 던져질것
-        given(turbineRepository.findById(turbineId)).willReturn(Optional.empty());
-
-        // 위 검증코드에서 걸리므로 예외 코드 던져질 것
-        assertThrows(BusinessLogicException.class, () -> locationService.postLocation(location));
-    }
-
     @DisplayName("patch 성공 테스트")
     @Test
-    public void locationPatchSuccessTest(){
+    public void locationPatchTest(){
+//         실제로 정보를 업데이트해서 저장한걸 확인하려면 레파지토리를 써야하기 때문에 목에서 계층 단절하고 테스트하는 의미가 없어짐
+//         따라서 해당 패치 테스트에서는 데이터를 설정한 후 설정한 데이터가 잘 저장되고 저장된 값이 원하는 값인지 비교하기만함
 
-        /**
-         * 생성 이후 업데이트를 검증 해야 함
-         * 하나의 비즈니스를 만들고 일단 비즈니스를 등록 함 -> 완료
-         * 이후에 등록한 비즈니스를 수정하고, 수정 요청(테스트 대상인 로케이션 패치를 통해) 보낸ㅁ
-         * 이후 수정되었는지를 검증하는게 이 테스트의 목적
-         */
         //given
         // 비지니스 아이디와 터빈을 갖고 있는 로케이션 객체 생성
         // 로케이션에 터빈 아이디와 비지니스 아이디를 갖고 있어야 수정 가능
@@ -156,15 +110,14 @@ public class LocationServiceMockTest {
         assertThat(locationService.patchLocation(location).getIsland(), is("Jeju"));
         assertThat(locationService.patchLocation(location).getCity(), is("Seoul"));
 
-        // 해당코드는 왜 있어도 되고 없어도 되는가? 결정적인 로직이 아니라그런가? 그거를 모키토 자체 내에서 거르는건가?
-        // 저장하는 로직은 업데이트하는 메서드에서 중요 로직이 아니기 때문에 필요없다고한다 (우선)
+        // 저장하는 로직은 업데이트하는 메서드에서 중요 로직이 아니기 때문에 필수는 아니라 해당 코드는 없어도 테스트 통과된다
         assertThat(locationRepository.save(location), is(location));
 
     }
 
-    @DisplayName("patch 실패 테스트 1")
+    @DisplayName("patch 실패 테스트_로케이션 없음")
     @Test
-    public void locationPatchFailedTest1(){
+    public void locationPatchTest1(){
 
         //given
         // 비지니스 아이디와 터빈을 갖고 있는 로케이션 객체 생성
@@ -193,9 +146,9 @@ public class LocationServiceMockTest {
         // 위 검증코드에서 걸리므로 예외 코드 던져질 것
         assertThrows(BusinessLogicException.class, () -> locationService.patchLocation(location));
     }
-    @DisplayName("patch 실패 테스트 2")
+    @DisplayName("patch 실패 테스트_비지니스 없음")
     @Test
-    public void locationPatchFailedTest2(){
+    public void locationPatchTest2(){
 
         //given
         // 비지니스 아이디와 터빈을 갖고 있는 로케이션 객체 생성
@@ -224,7 +177,7 @@ public class LocationServiceMockTest {
 
     @DisplayName("findLocations 성공 테스트")
     @Test
-    void findLocationsSuccessTest() {
+    void findLocationsTest1() {
         // given
         // 리스트안에 임의로 로케이션 생성
         List<Location> locations = Arrays.asList(new Location(), new Location());
@@ -246,9 +199,9 @@ public class LocationServiceMockTest {
         verify(locationRepository).findAll(Mockito.any(PageRequest.class));
     }
 
-    @DisplayName("findLocations 실패 테스트 - 빈 페이지")
+    @DisplayName("findLocations 실패 테스트_빈 페이지")
     @Test
-    void findLocationsFailedTest() {
+    void findLocationsTest2() {
         // given
         // 빈페이지 생성
         Page<Location> emptyPage = new PageImpl<>(List.of());
@@ -271,7 +224,7 @@ public class LocationServiceMockTest {
 
     @DisplayName("findLocation 성공 테스트")
     @Test
-    void findLocationSuccessTest() {
+    void findLocationTest1() {
         // given
         // 비지니스 객체 생성하고 아이디 할당
         long businessId = 1L;
@@ -300,9 +253,9 @@ public class LocationServiceMockTest {
         verify(locationRepository).findByBusiness(Mockito.eq(business), Mockito.any(PageRequest.class));
     }
 
-    @DisplayName("findLocation 실패 테스트 - 비즈니스 없음")
+    @DisplayName("findLocation 실패 테스트_비즈니스 없음")
     @Test
-    void findLocationBusinessFailedTest() {
+    void findLocationTest2() {
         // given --> 모키토 설정
         // 예외 검증 위해 businessId 생성
         long businessId = 1L;
@@ -325,9 +278,9 @@ public class LocationServiceMockTest {
     }
 
 
-    @DisplayName("deleteLocation 실패 테스트 - 로케이션 없음")
+    @DisplayName("deleteLocation 실패 테스트_로케이션 없음")
     @Test
-    void deleteLocationNotFailedTest() {
+    void deleteLocationTest() {
         // given
         long locationId = 1L;
         given(locationRepository.findById(locationId)).willReturn(Optional.empty());
