@@ -1,5 +1,6 @@
 package com.example.client.api;
 
+import com.example.client.BuildConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -14,7 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 // API 호출을 위해 사용할 Retrofit 인스턴스 생성 - 직렬화, 역직렬화를 할 수 있는 환경을 설정
 public class RestClient {
-    private static final String BASE_URL = "http://172.30.1.30:8080/";
+    private static final String BASE_URL = "http://" + BuildConfig.base_url + ":8080/";
     private static Retrofit retrofit;
 
     public static Retrofit getClient() {

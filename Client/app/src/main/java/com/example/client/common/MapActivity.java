@@ -8,12 +8,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Address;
@@ -42,10 +42,9 @@ import com.example.client.api.MappingClass;
 import com.example.client.api.RestClient;
 import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
-import com.example.client.util.ElevationGetter;
+import com.example.client.api.ElevationGetter;
 import com.example.client.util.GeoJsonFeatureCollection;
 import com.example.client.util.MessageDialog;
-import com.example.client.util.ProgressDialog;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -64,8 +63,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.gson.Gson;
 
-import org.w3c.dom.Text;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -73,7 +70,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.Executors;
 
 
@@ -89,6 +85,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private double[] currentMyPositions = new double[2];
     private MessageDialog messageDialog = new MessageDialog();
     private List<Marker> markerList = new ArrayList<>();
+    private Marker currentMaker;
     private List<Polygon> polygons = new ArrayList<>();
     private long businessId;
     private long locationId;
@@ -132,6 +129,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     // ================================================================ GoogleMap
+    @SuppressLint("PotentialBehaviorOverride")
     @Override
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;  // GoogleMap 객체를 초기화
@@ -148,7 +146,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     double longitude = Double.valueOf(locaResponse.getLongitude());
 
                     LatLng latLng = new LatLng(latitude, longitude);
-                    initialMarkers(latLng);
+                    initialMarkers(latLng, locaResponse.getTurbineId());
                 }
             }
 
@@ -186,7 +184,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             double longitude = marker.getPosition().longitude;
             currentMarkerPositions[0] = latitude;
             currentMarkerPositions[1] = longitude;
-
+            currentMaker = marker;
             fusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, location -> {
                         if (location != null) {
@@ -258,14 +256,33 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         return polygonOptionsList; // PolygonOptions 리스트 반환
     }
 
+    private BitmapDescriptor setMarkerStyle(long turbineId) {
+        BitmapDescriptor marker1 = BitmapDescriptorFactory.fromResource(R.drawable.marker1);
+        BitmapDescriptor marker2 = BitmapDescriptorFactory.fromResource(R.drawable.marker2);
+        BitmapDescriptor marker3 = BitmapDescriptorFactory.fromResource(R.drawable.marker3);
 
+        switch ((int) turbineId) {
+            case 1 :
+                return marker1;
+            case 2 :
+                return marker2;
+            case 3 :
+                return marker3;
+            default:
+                return marker1;
+        }
+    }
 
-    private void initialMarkers(LatLng latLng) {
-        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // NOTE : 구글 맵 마커 스타일
+    private void changeMarkerStyle(BitmapDescriptor icon, Marker marker) {
+        marker.setIcon(icon);
+    }
+
+    private void initialMarkers(LatLng latLng, long turbineId) {
+        BitmapDescriptor currentMarker = setMarkerStyle(turbineId);
 
         mMarker = mMap.addMarker(new MarkerOptions()
                 .position(latLng)
-                .icon(icon)  // 아이콘 설정
+                .icon(currentMarker)  // 아이콘 설정
                 .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
         // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
         markerList.add(mMarker);
@@ -957,6 +974,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 locationId = response.getData().getLocationId();
                 businessId = response.getData().getBusinessId();
 
+                changeMarkerStyle(setMarkerStyle(position + 1) ,currentMaker);
+
                 if (locationId == 0 || businessId == 0) {
                     Log.e("ApiHandler", "Invalid IDs received: locationId = " + locationId + ", businessId = " + businessId);
                     return; // 유효하지 않은 ID인 경우 조기 종료
@@ -1001,7 +1020,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-
 
         // 물체 위치
         double objectLatitude = currentMarkerPositions[0];

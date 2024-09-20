@@ -3,10 +3,14 @@ package com.example.client.common;
 import static android.content.Intent.getIntent;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.media.MediaScannerConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.example.client.R;
@@ -17,6 +21,11 @@ import com.example.client.api.MappingClass;
 import com.example.client.api.RestClient;
 import com.unity3d.player.UnityPlayer;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 
 
 public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity {
-
     private long locationId;
     private long businessId;
 
@@ -41,15 +49,8 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
         float myElevation = intent.getFloatExtra("myElevation", 0.0f);
         float objElevation = intent.getFloatExtra("objElevation", 0.0f);
 
-        ApiService apiService = RestClient.getClient().create(ApiService.class);
-        ApiHandler apiHandler = new ApiHandler(apiService, this);
-        String stringLat = String.valueOf(objectLat);
-        String stringLon = String.valueOf(objectLon);
-
-
         sendMessageToUnity(String.valueOf(objectLat), String.valueOf(objectLon), String.valueOf(direction),
                 String.valueOf(modelNumber), myElevation, objElevation);
-
     }
 
     private void sendMessageToUnity(String objectLat, String objectLon, String direction, String modelNumber, float myElevation, float objElevation) {
@@ -58,33 +59,9 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
 
         UnityPlayer.UnitySendMessage("AndroidReceiveMessageManager", "ReceiveDataFromAndroidStudio",
                 objectLat + "," + objectLon + "," + direction + "," + modelNumber + "," + maxScale + "," + minScale + "," + myElevation + "," + objElevation);
-    }
 
-    @Override
-    public void onUnityPlayerUnloaded() {
-        super.onUnityPlayerUnloaded();
+        Log.d("잘 넘어가는지 체크", objectLat);
     }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
     private boolean isQuitting = false;
 
     @Override
@@ -94,20 +71,15 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    // UI 업데이트
-                    Toast.makeText(UnityPlayerActivity.this, "Unity Player has quit", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UnityPlayerActivity.this, "AR 확인 서비스가 종료됩니다.", Toast.LENGTH_SHORT).show();
 
-                    // 로그 추가
-                    Log.d("UnityPlayerActivity", "Starting MapActivity in 2 seconds");
-
-                    // 2초 후에 MapActivity로 전환
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             // 현재 액티비티 종료
                             finish();
                         }
-                    }, 2000);
+                    }, 1);
                 }
             });
         }

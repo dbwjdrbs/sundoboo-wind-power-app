@@ -1,7 +1,9 @@
-package com.example.client.util;
+package com.example.client.api;
 
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.example.client.BuildConfig;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -13,7 +15,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class ElevationGetter extends AsyncTask<Void, Void, Double> {
-    private static final String API_KEY = "AIzaSyApnrz4PcqYpJKQPo6Awg934D64vne5a1A";
+    private static final String API_KEY = BuildConfig.elevation_api_key;
     private static final String TAG = "ElevationGetter";
 
     private final double latitude;

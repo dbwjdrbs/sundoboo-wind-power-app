@@ -59,7 +59,7 @@ public class RendingActivity extends AppCompatActivity {
         // NOTE : 카메라와 위치 권한 체크
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
             // NOTE : 권한이 없을 경우 권한 요청하는 매서드
             ActivityCompat.requestPermissions(this,
                     new String[]{
