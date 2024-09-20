@@ -1,5 +1,7 @@
 package com.example.client.common;
 
+import static com.google.gson.internal.$Gson$Types.arrayOf;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.compose.animation.core.StartOffset;
@@ -9,6 +11,7 @@ import androidx.core.content.ContextCompat;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.Log;
@@ -56,26 +59,30 @@ public class RendingActivity extends AppCompatActivity {
 
     // NOTE : 권한 요청 메서드
     private void setPermission() {
-        // NOTE : 카메라와 위치 권한 체크
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
-                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+        ){
             // NOTE : 권한이 없을 경우 권한 요청하는 매서드
             ActivityCompat.requestPermissions(this,
                     new String[]{
                             Manifest.permission.CAMERA,
                             Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
                     },
                     REQUEST_CODE_PERMISSIONS);
         } else {
             // NOTE : 권한이 이미 있는 경우, 다음 작업을 진행 하도록 하는 매서드
             performActionWithPermissions();
         }
+
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
