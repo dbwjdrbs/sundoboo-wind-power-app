@@ -63,6 +63,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.gson.Gson;
 
+import org.w3c.dom.Text;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -70,6 +72,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 
@@ -279,7 +282,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private void initialMarkers(LatLng latLng, long turbineId) {
         BitmapDescriptor currentMarker = setMarkerStyle(turbineId);
-
         mMarker = mMap.addMarker(new MarkerOptions()
                 .position(latLng)
                 .icon(currentMarker)  // 아이콘 설정
