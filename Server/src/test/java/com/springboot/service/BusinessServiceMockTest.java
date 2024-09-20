@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 
-//** 참고 사항 junit 테스트 사용하기 위해 빌드.gradle에서 환경 설정해야함!
+//** 참고 사항 junit 테스트 사용하기 위해 build.gradle 환경 설정하기
 
 @Transactional
 // spring 사용 안하고 junit 모키토 기능을 사용하기 위해 추가하는 에너테이션
@@ -56,16 +56,12 @@ public class BusinessServiceMockTest {
 
         //then ---> 결과를 검증하는 단계
         assertThat(businessService.createBusiness(business), is(business));
-        // 해당 코드와 같은 역할
+        // 해당 코드와 같은 역할(비교)
         // assertEquals(expected, actual);
 
-//        public Business createBusiness(Business business) {
-//            verifyBusinessTitle(business.getBusinessTitle());
-//            return businessRepository.save(business);
-//        }
     }
 
-    // void 타입은 일반적으로 실패 테스트함 참고
+    // deleted에 대한 성공 테스트를 하기 어렵기 때문에 예외가 잘 발생하는지 확인하는 테스트짬
     @DisplayName("deletedBusiness 실패테스트")
     @Test
     public void deletedBusiness(){
@@ -85,13 +81,9 @@ public class BusinessServiceMockTest {
         // 위에서 아무것도 반환안했으니 삭제할게 없어서 예외 던져지는게 성공해서 실패한 상황을 통과한 실패 테스트임
         assertThrows(BusinessLogicException.class, () -> businessService.deleteBusiness(businessId));
 
-        //    public void deleteBusiness(long businessId) {
-//        Business findBusiness = verifyExistBusiness(businessId);
-//        findBusiness.setDeletedAt(LocalDateTime.now());
-//        businessRepository.save(findBusiness);
-//    }
     }
 
+    @DisplayName("getBusinesses 성공테스트")
     @Test
     public void getBusinesses(){
 
@@ -109,28 +101,8 @@ public class BusinessServiceMockTest {
 
         //then
         // 비지니스 서비스에 getBusinesses 메서드를 통해 내가 만든 페이지 객체와 비교함
-        assertThat(businessService.getBusinesses(2, 10, "PAGE_CREATEDAT_ASC"), is(page));
+        assertThat(businessService.getBusinesses(2, 10, "PAGE_CREATED_AT_ASC"), is(page));
 
-//        public Page<Business> getBusinesses(int page, int size, String direction) {
-//            PageDirection enumDirection = PageDirection.valueOf(direction);
-//
-//            Page<Business> businessList;
-//
-//            switch (enumDirection) {
-//                case PAGE_CREATEDAT_ASC:
-//                    businessList = businessRepository.findByDeletedAtIsNull(
-//                            PageRequest.of(page, size, Sort.by("createdAt").ascending()));
-//                    break;
-//                case PAGE_CREATEDAT_DESC:
-//                    businessList = businessRepository.findByDeletedAtIsNull(
-//                            PageRequest.of(page, size, Sort.by("createdAt").descending()));
-//                    break;
-//                default:
-//                    throw new IllegalArgumentException("Invalid direction parameter: " + direction);
-//            }
-//
-//            return businessList;
-//        }
     }
 
 

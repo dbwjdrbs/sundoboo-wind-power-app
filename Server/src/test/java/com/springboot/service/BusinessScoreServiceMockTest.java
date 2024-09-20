@@ -24,9 +24,7 @@ import javax.transaction.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
@@ -64,7 +62,6 @@ public class BusinessScoreServiceMockTest {
 
         // Mock 설정
         given(businessService.verifyExistBusiness(Mockito.anyLong())).willReturn(business);
-        given(businessScoreRepository.findByBusinessScoreTitle(requestBody.getBusinessScoreTitle())).willReturn(Optional.empty());
 
         // 새로운 BusinessScore 객체 생성
         // 테스트 코드에서 BusinessScore 객체와 requestBody DTO 객체를 따로 생성한 이유는
@@ -84,7 +81,7 @@ public class BusinessScoreServiceMockTest {
 
         // when
         // 실제 서비스 메서드를 호출하고 그 결과를 받아옴
-        BusinessScore result = businessScoreService.createBusinessScore(requestBody);
+        BusinessScore result = businessScoreService.createBusinessScore(savedBusinessScore);
 
         // then
         // 검증 진행 널 아님 확인
@@ -98,44 +95,7 @@ public class BusinessScoreServiceMockTest {
         assertEquals("John Doe", result.getObserverName());
         // 재확인 -> 실제로 해당 메서드가 사용 되었는지
         verify(businessService).verifyExistBusiness(requestBody.getBusinessId());
-        verify(businessScoreRepository).findByBusinessScoreTitle(requestBody.getBusinessScoreTitle());
         verify(businessScoreRepository).save(Mockito.any(BusinessScore.class));
-    }
-
-    @DisplayName("post 실패 테스트_타이틀 중복")
-    @Test
-    public void postBusinessScoreTest2() {
-        // given
-        // 비즈니스 스코어 DTO 설정
-        BusinessScoreDto.Post requestBody = new BusinessScoreDto.Post();
-        requestBody.setBusinessId(1L);
-        requestBody.setBusinessScoreTitle("Duplicate Title"); // 중복된 타이틀
-        requestBody.setScoreList1(10);
-        requestBody.setScoreList2(20);
-        requestBody.setScoreList3(30);
-        requestBody.setScoreList4(40);
-        requestBody.setObserverName("John Doe");
-
-        // 비즈니스 객체 생성
-        Business business = new Business();
-        business.setBusinessId(1L);
-
-        // Mock 설정
-        // 비지니스는 존재
-        given(businessService.verifyExistBusiness(Mockito.anyLong())).willReturn(business);
-        // 이미 존재하는 타이틀 예외 걸리게끔 설정
-        given(businessScoreRepository.findByBusinessScoreTitle(requestBody.getBusinessScoreTitle()))
-                .willReturn(Optional.of(new BusinessScore()));
-
-        // when & then
-        // 예외가 던져지는지 확인
-        assertThrows(BusinessLogicException.class, () -> businessScoreService.createBusinessScore(requestBody));
-
-
-        // 추가 검증 (메서드 실제 호출되다가 저장하는 부분에서 호출안됐는지 확인)
-        verify(businessService).verifyExistBusiness(requestBody.getBusinessId());
-        verify(businessScoreRepository).findByBusinessScoreTitle(requestBody.getBusinessScoreTitle());
-        verify(businessScoreRepository, never()).save(Mockito.any(BusinessScore.class)); // save 호출 안됨
     }
 
     @DisplayName("post 실패 테스트_비즈니스 없음")
@@ -159,7 +119,15 @@ public class BusinessScoreServiceMockTest {
 
         // when & then
         // 예외가 던져지는지 확인
-        assertThrows(BusinessLogicException.class, () -> businessScoreService.createBusinessScore(requestBody));
+        // assertThrows 블록 내에서 BusinessScore 객체를 생성 후 안에 Business 객체를 설정하는 과정이 포함
+        // DTO -> 엔티티로 변환하는 과정을 명시적으로 보여주기 위해 BusinessScore 객체를 별도로 생성
+        assertThrows(BusinessLogicException.class, () -> {
+            BusinessScore businessScore = new BusinessScore();
+            Business business = new Business();
+            business.setBusinessId(requestBody.getBusinessId()); // 비즈니스 ID 설정
+            businessScore.setBusiness(business); // 비즈니스 정보 설정
+            businessScoreService.createBusinessScore(businessScore); // 비즈니스 스코어 객체를 인자로 전달
+        });
 
 
         // 추가 검증 (메서드 호출 확인)
@@ -170,7 +138,7 @@ public class BusinessScoreServiceMockTest {
     // 없는 값 들어오면 예외 던지게끔 코드 보완해야함
     @DisplayName("findScore 성공 테스트")
     @Test
-    public void findScoreSuccessTest() {
+    public void findScoreTest() {
         // given
         // 비지니스 객체 생성하고 아이디 할당
         long businessId = 1L;

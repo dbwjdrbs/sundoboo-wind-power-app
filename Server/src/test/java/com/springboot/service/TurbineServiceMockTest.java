@@ -31,14 +31,14 @@ public class TurbineServiceMockTest {
     @Mock
     private TurbineRepository turbineRepository;
 
-    // 목을 주입하는 대상이 꼭 있어야함! InjectMocks 설정안해서 하루를 날렸다.. 꼭 확인하기
+    // 목을 주입하는 대상이 꼭 있어야함! InjectMocks 설정 꼭 확인
     @InjectMocks
     private TurbineService turbineService;
 
 
     @DisplayName("findTurbine 성공 테스트")
     @Test
-    void findTurbineSuccessTest() {
+    void findTurbineTest() {
         // given
         // 터빈 아이디 설정
         long turbineId = 1L;
@@ -63,7 +63,7 @@ public class TurbineServiceMockTest {
     // 실패 원인 분석
     @DisplayName("findTurbines 성공 테스트")
     @Test
-    void findTurbinesSuccessTest() {
+    void findTurbinesTest1() {
         // given
         // 터빈 객체 생성해서 리스트로 만듬
         List<Turbine> turbines = Arrays.asList(new Turbine(), new Turbine());
@@ -85,9 +85,9 @@ public class TurbineServiceMockTest {
         verify(turbineRepository).findAll(Mockito.any(PageRequest.class));
     }
 
-    @DisplayName("findTurbine 실패 테스트 - Turbine이 존재하지 않을 때")
+    @DisplayName("findTurbine 실패 테스트_터빈 없음")
     @Test
-    void findTurbineFailureTest() {
+    void findTurbineTest2() {
         // given
         long turbineId = 1L;
 
