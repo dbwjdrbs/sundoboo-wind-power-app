@@ -8,6 +8,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
@@ -41,9 +42,7 @@ import java.util.Map;
 public class BusinessSelectActivity extends AppCompatActivity implements View.OnClickListener, BusinessSelectItemClickListener {
     private ArrayList<BusinessData> list = new ArrayList<>();
     private MessageDialog messageDialog = new MessageDialog();
-    private BusinessData businessData;
-    private boolean isChecked = false;
-    private String isCurrentViewHolder;
+    private List<BusinessData> businessDatas = new ArrayList<>();
 
     // NOTE : 리사이클러뷰 어뎁터 정의
     BusinessSelectAdapter adapter = new BusinessSelectAdapter(list, this);
@@ -164,14 +163,13 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
 
                                     adapter.addItem(new BusinessData(businessId, title, createdAt));
                                     adapter.notifyDataSetChanged();
-                                    Log.d("완료", "사업생성완료");
                                     messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", BusinessSelectActivity.this);
                                 }
 
                                 @Override
                                 public void onError(String errorMessage) {
                                     // 요청 실패 처리
-                                    messageDialog.simpleErrorDialog(errorMessage, BusinessSelectActivity.this);
+                                    messageDialog.simpleErrorDialog("중복된 사업명 입니다.", BusinessSelectActivity.this);
                                 }
                             });
                         }
@@ -180,18 +178,19 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         }
 
         if (v.getId() == R.id.btn_businessDelete) {
-            if (isChecked) {
+            if (!businessDatas.isEmpty()) {
+                // 삭제시, pos 말고 아이템 비교해서 삭제해야함.
                 MappingClass.DeleteBusiness request = new MappingClass.DeleteBusiness();
-                request.setBusinessId(businessData.getBusinessId());
+                for (BusinessData data : businessDatas) {
+                    request.setBusinessId(data.getBusinessId());
 
-                ApiService apiService = RestClient.getClient().create(ApiService.class);
-                ApiHandler apiHandler = new ApiHandler(apiService, this);
-                apiHandler.deleteBusiness(request.getBusinessId());
+                    ApiService apiService = RestClient.getClient().create(ApiService.class);
+                    ApiHandler apiHandler = new ApiHandler(apiService, this);
+                    apiHandler.deleteBusiness(request.getBusinessId());
 
-                adapter.removeItem(Integer.parseInt(isCurrentViewHolder));
-                isChecked = false;
-                CheckBox checkBox = findViewById(R.id.checkBox);
-                checkBox.setSelected(false);
+                    adapter.removeItem(data.getBusinessId());
+                }
+                businessDatas = new ArrayList<>();
                 messageDialog.simpleCompleteDialog("사업 삭제가 완료되었습니다.", this);
                 adapter.notifyDataSetChanged();
             } else {
@@ -200,16 +199,17 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         }
     }
 
-
     // INFO : 체크박스 이벤트
     @Override
     public void onBusinessItemClick(BusinessData businessData, int pos) {
+        for (BusinessData data : businessDatas) {
+            if (data.getBusinessId() == businessData.getBusinessId()) {
+                this.businessDatas.remove(data);
+            }
+        }
+
         if (businessData != null) {
-            isChecked = true;
-            isCurrentViewHolder = String.valueOf(pos);
-            this.businessData = businessData; // 수정 필요
-        } else {
-            isChecked = false;
+            this.businessDatas.add(businessData);
         }
     }
 }

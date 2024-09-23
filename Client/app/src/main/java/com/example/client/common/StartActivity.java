@@ -27,7 +27,6 @@ import java.util.List;
 public class StartActivity extends AppCompatActivity {
     // NOTE : 뒤로가기 두 번 클릭시 앱 종료  ============================================================
     private long backKeyPressedTime = 0;  // NOTE : 초 저장
-    private String jsonBusinessList = "";
 
     @Override
     public void onBackPressed() {
@@ -40,6 +39,8 @@ public class StartActivity extends AppCompatActivity {
 
         // NOTE :  2초 이내에 뒤로가기 버튼을 한번 더 클릭시 finish()(앱 종료)
         if (System.currentTimeMillis() <= backKeyPressedTime + 2000) {
+            moveTaskToBack(true);
+            finishAndRemoveTask(); // 액티비티 종료 + 태스크 리스트에서 지우기
             android.os.Process.killProcess(android.os.Process.myPid()); // 앱 프로세스 종료
         }
     }

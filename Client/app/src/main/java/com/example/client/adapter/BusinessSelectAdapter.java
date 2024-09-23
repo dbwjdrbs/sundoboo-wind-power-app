@@ -55,8 +55,8 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectVi
         list = resultDatas;
     }
 
-    public void removeItem(int position) {
-        list.remove(position);
+    public void removeItem(long businessId) {
+        list.removeIf(data -> data.getBusinessId() == businessId);
     }
 }
 
@@ -64,7 +64,6 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
     private TextView title;
     private TextView createdAt;
     private CheckBox checkBox;
-    private boolean isChecked = false;
 
     public BusinessSelectViewHolder(@NonNull View itemView, BusinessSelectItemClickListener listener, ArrayList<BusinessData> list) {
         super(itemView);
@@ -73,16 +72,10 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
         checkBox = itemView.findViewById(R.id.checkBox);
 
         checkBox.setOnClickListener(v -> {
-            isChecked = !isChecked;
             int pos = getAdapterPosition();
             if (pos != RecyclerView.NO_POSITION) {
-                if (isChecked) {
                     BusinessData data = new BusinessData(list.get(pos).getBusinessId(), title.getText().toString(), createdAt.getText().toString()); // 수정 필요
                     listener.onBusinessItemClick(data, pos);
-                } else {
-                    listener.onBusinessItemClick(null, 0);
-                }
-
             }
         });
 
@@ -95,6 +88,10 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
                 view.getContext().startActivity(intent);
             }
         });
+    }
+
+    public CheckBox getCheckBox() {
+        return checkBox;
     }
 
     public TextView getTitle() {

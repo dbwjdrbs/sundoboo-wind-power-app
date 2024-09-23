@@ -13,6 +13,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
@@ -63,6 +64,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.gson.Gson;
 
+import org.w3c.dom.Text;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -70,6 +73,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 
@@ -203,6 +207,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 }
             }).execute();
 
+            Toast.makeText(this, "마커 위치 : " + currentMarkerPositions[0] + ", " + currentMarkerPositions[0], Toast.LENGTH_SHORT).show();
+
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
         });
@@ -260,6 +266,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         BitmapDescriptor marker1 = BitmapDescriptorFactory.fromResource(R.drawable.marker1);
         BitmapDescriptor marker2 = BitmapDescriptorFactory.fromResource(R.drawable.marker2);
         BitmapDescriptor marker3 = BitmapDescriptorFactory.fromResource(R.drawable.marker3);
+        BitmapDescriptor defaultMarker = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
 
         switch ((int) turbineId) {
             case 1 :
@@ -269,7 +276,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             case 3 :
                 return marker3;
             default:
-                return marker1;
+                return defaultMarker;
         }
     }
 
@@ -279,7 +286,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private void initialMarkers(LatLng latLng, long turbineId) {
         BitmapDescriptor currentMarker = setMarkerStyle(turbineId);
-
         mMarker = mMap.addMarker(new MarkerOptions()
                 .position(latLng)
                 .icon(currentMarker)  // 아이콘 설정
@@ -336,8 +342,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 //        fix 마커를 생성할 떄 위도 경도 까지 넣어주기로 변경
 //        TODO : setBusinessId 안에 해당 사업을 눌렀을 때 가져온 BusinessId를 매개 변수에 넣어줘야한다.
             MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
-            request.setBusinessId(1);
-            request.setTurbineId(1);
+            request.setBusinessId(businessId);
+            request.setTurbineId(4);
             String latitude = String.valueOf(latLng.latitude);
             String longitude = String.valueOf(latLng.longitude);
             request.setLatitude(latitude);

@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Parcelable;
 import android.util.Log;
 import android.widget.Toast;
@@ -62,7 +63,7 @@ public class RendingActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-        ){
+        ) {
             // NOTE : 권한이 없을 경우 권한 요청하는 매서드
             ActivityCompat.requestPermissions(this,
                     new String[]{
@@ -74,7 +75,6 @@ public class RendingActivity extends AppCompatActivity {
                     },
                     REQUEST_CODE_PERMISSIONS);
         } else {
-            // NOTE : 권한이 이미 있는 경우, 다음 작업을 진행 하도록 하는 매서드
             performActionWithPermissions();
         }
 
