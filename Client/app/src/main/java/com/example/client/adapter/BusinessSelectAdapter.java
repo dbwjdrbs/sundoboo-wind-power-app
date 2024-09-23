@@ -85,6 +85,7 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
                 BusinessData data = new BusinessData(list.get(pos).getBusinessId(), title.getText().toString(), createdAt.getText().toString()); // 수정 필요
                 Intent intent = new Intent(view.getContext(), MapActivity.class);
                 intent.putExtra("businessId", data.getBusinessId());
+                intent.putExtra("businessTitle",data.getTitle());
                 view.getContext().startActivity(intent);
             }
         });
