@@ -45,6 +45,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -209,14 +211,19 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                             } else {
                                 // TODO : SQLite 로직
                                 dbInsert(businessTitle, new Timestamp(System.currentTimeMillis()).toString());
-//                                BusinessData data = dbSelect();
-//
-//                                long businessId = data.getBusinessId();
-//                                String title = data.getTitle();
-//                                String createdAt = data.getCreatedAt();
-//
-//                                adapter.addItem(new BusinessData(businessId, title, createdAt));
-//                                adapter.notifyDataSetChanged();
+                                ArrayList<BusinessData> data = null;
+                                try {
+                                    data = dbSelect();
+                                } catch (ParseException e) {
+                                    throw new RuntimeException(e);
+                                }
+
+                                long businessId = data.get(data.size() - 1).getBusinessId();
+                                String title = data.get(data.size() - 1).getTitle();
+                                String createdAt = data.get(data.size() - 1).getCreatedAt();
+
+                                adapter.addItem(new BusinessData(businessId, title, createdAt));
+                                adapter.notifyDataSetChanged();
                                 messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", BusinessSelectActivity.this);
                             }
                         }
@@ -283,6 +290,9 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
             if (!businessDatas.isEmpty()) {
                 Log.i("비즈니스 데이타", businessDatas.get(0).getTitle());
             }
+
+            Collections.reverse(businessDatas);
+
             return businessDatas;
         }
         return new ArrayList<>(); // 빈 리스트 반환
