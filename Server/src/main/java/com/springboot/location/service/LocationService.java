@@ -41,17 +41,6 @@ public class LocationService {
         if (location.getBusiness() == null ||  location.getBusiness().getBusinessId() == 0) {
             throw new BusinessLogicException(ExceptionCode.BUSINESS_NOT_FOUND); // 적절한 예외를 발생시킴
         }
-//        // Turbine이 null인지 체크하고 예외 던지는 로직
-//        if (location.getTurbine() == null || location.getTurbine().getTurbineId() <= 0) {
-//            throw new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND);
-//        }
-//
-//        // Turbine이 실제 데이터베이스에 존재하는지 확인
-//        Turbine findTurbine = turbineRepository.findById(location.getTurbine().getTurbineId())
-//                .orElseThrow(() -> new BusinessLogicException(ExceptionCode.TURBINE_NOT_FOUND));
-
-//        location.setTurbine(findTurbine); // 실제 Turbine 설정
-
         // 널에 안걸렸다면 찾은 비지니스 아이디를 findBusiness 할당
         Business findBusiness = businessService.verifyExistBusiness(location.getBusiness().getBusinessId());
         location.setLatitude(location.getLatitude());
