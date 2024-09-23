@@ -15,7 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="80dp"
-        app:srcCompat="@drawable/ic_launcher_foreground" />
+        app:srcCompat="@drawable/logo" />
 
     <TextView
         android:id="@+id/titleText"
@@ -25,7 +25,7 @@
         android:textStyle="bold"
         android:textColor="@color/black"
         android:textSize="22dp"
-        android:text="AR 기반 풍력발전기 평가 앱(APP)" />
+        android:text="터빈 인 사이트" />
 
     <Button
         android:id="@+id/btn_start"
