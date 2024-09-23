@@ -1,1 +1,0 @@
-# sundoboo-wind-power-app
