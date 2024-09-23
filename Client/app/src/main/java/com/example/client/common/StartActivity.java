@@ -3,7 +3,6 @@ package com.example.client.common;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -16,8 +15,6 @@ import com.example.client.api.ApiService;
 import com.example.client.api.LocalDateTimeDeserializer;
 import com.example.client.api.MappingClass;
 import com.example.client.api.RestClient;
-import com.example.client.localdb.DBControl;
-import com.example.client.localdb.DBHelper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -87,16 +84,7 @@ public class StartActivity extends AppCompatActivity {
 
                 @Override
                 public void onError(String errorMessage) {
-                    DBHelper dbHelper;
-                    DBControl dbControl;
-
-                    dbHelper = new DBHelper(StartActivity.this, "turbineInsight.db", null, 1);
-
-                    dbControl = new DBControl(dbHelper);
-
-                    Intent intent = new Intent(StartActivity.this, BusinessSelectActivity.class);
-                    startActivity(intent);
-                    finish();
+                    Toast.makeText(StartActivity.this, "Error: " + errorMessage, Toast.LENGTH_LONG).show();
                 }
             });
         });
