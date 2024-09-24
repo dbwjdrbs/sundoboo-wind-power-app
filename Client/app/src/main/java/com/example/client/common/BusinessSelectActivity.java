@@ -80,6 +80,7 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         // Server or ServerLess
         if (jsonBusinessList != null) {
             isOnServer = true;
+            adapter.isOnServer(true);
             // Gson 객체 생성 및 역직렬화 설정
             Gson gson = new GsonBuilder()
                     .create();
@@ -103,6 +104,8 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
             }
         } else {
             isOnServer = false;
+            adapter.isOnServer(false);
+
             dbHelper = new DBHelper(BusinessSelectActivity.this, "turbineInsight.db", null, 1);
             db = new DBControl(dbHelper);
 
@@ -139,24 +142,42 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                 if (keyword.equals("") || keyword == null) {
                     messageDialog.simpleErrorDialog("검색어를 입력해주세요.", this);
                 } else {
-                    ApiService apiService = RestClient.getClient().create(ApiService.class);
-                    ApiHandler apiHandler = new ApiHandler(apiService, this);
-                    apiHandler.getBusinesses(1, 10, "PAGE_CREATED_AT_DESC", keyword, new ApiCallback<List<MappingClass.BusinessResponse>>() {
-                        @Override
-                        public void onSuccess(List<MappingClass.BusinessResponse> response) {
-                            ArrayList<BusinessData> list = new ArrayList<>();
-                            for (MappingClass.BusinessResponse businessResponse : response) {
-                                list.add(new BusinessData(businessResponse.getBusinessId(), businessResponse.getBusinessTitle(), businessResponse.getCreatedAt()));
+                    if (isOnServer) {
+                        ApiService apiService = RestClient.getClient().create(ApiService.class);
+                        ApiHandler apiHandler = new ApiHandler(apiService, this);
+                        apiHandler.getBusinesses(1, 10, "PAGE_CREATED_AT_DESC", keyword, new ApiCallback<List<MappingClass.BusinessResponse>>() {
+                            @Override
+                            public void onSuccess(List<MappingClass.BusinessResponse> response) {
+                                ArrayList<BusinessData> list = new ArrayList<>();
+                                for (MappingClass.BusinessResponse businessResponse : response) {
+                                    list.add(new BusinessData(businessResponse.getBusinessId(), businessResponse.getBusinessTitle(), businessResponse.getCreatedAt()));
+                                }
+                                adapter.searchMode(list);
+                                adapter.notifyDataSetChanged();
                             }
-                            adapter.searchMode(list);
-                            adapter.notifyDataSetChanged();
+
+                            @Override
+                            public void onError(String errorMessage) {
+
+                            }
+                        });
+                    } else {
+                        // INFO : SQLite 검색
+                        ArrayList<BusinessData> responses = null;
+                        try {
+                            responses = dbSelect(keyword);
+                        } catch (ParseException e) {
+                            throw new RuntimeException(e);
                         }
 
-                        @Override
-                        public void onError(String errorMessage) {
-
+                        ArrayList<BusinessData> list = new ArrayList<>();
+                        for (BusinessData businessData : responses) {
+                            list.add(new BusinessData(businessData.getBusinessId(), businessData.getTitle(), businessData.getCreatedAt()));
+                            Log.d("비즈니스 검색", businessData.getTitle());
                         }
-                    });
+                        adapter.searchMode(list);
+                        adapter.notifyDataSetChanged();
+                    }
                 }
             }
             return false;
@@ -188,7 +209,6 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                                 ApiService apiService = RestClient.getClient().create(ApiService.class);
                                 ApiHandler apiHandler = new ApiHandler(apiService, this);
 
-                                // BUG : 리스폰스가 안가져와짐
                                 apiHandler.createBusiness(request, new ApiCallback<MappingClass.BusinessResponse2>() {
                                     @Override
                                     public void onSuccess(MappingClass.BusinessResponse2 response) {
@@ -209,42 +229,66 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                                     }
                                 });
                             } else {
-                                // TODO : SQLite 로직
+                                // INFO : SQLite 로직
                                 dbInsert(businessTitle, new Timestamp(System.currentTimeMillis()).toString());
                                 ArrayList<BusinessData> data = null;
                                 try {
                                     data = dbSelect();
+
                                 } catch (ParseException e) {
                                     throw new RuntimeException(e);
                                 }
-
-                                long businessId = data.get(data.size() - 1).getBusinessId();
-                                String title = data.get(data.size() - 1).getTitle();
-                                String createdAt = data.get(data.size() - 1).getCreatedAt();
+                                long businessId = data.get(0).getBusinessId();
+                                String title = data.get(0).getTitle();
+                                String createdAt = data.get(0).getCreatedAt();
 
                                 adapter.addItem(new BusinessData(businessId, title, createdAt));
                                 adapter.notifyDataSetChanged();
                                 messageDialog.simpleCompleteDialog("사업 등록이 완료되었습니다.", BusinessSelectActivity.this);
                             }
                         }
-                    })
-                    .show();
+                    }).show();
         }
 
         if (v.getId() == R.id.btn_businessDelete) {
             if (!businessDatas.isEmpty()) {
-                // 삭제시, pos 말고 아이템 비교해서 삭제해야함.
-                MappingClass.DeleteBusiness request = new MappingClass.DeleteBusiness();
-                for (BusinessData data : businessDatas) {
-                    request.setBusinessId(data.getBusinessId());
+                if (isOnServer) {
+                    // 삭제시, pos 말고 아이템 비교해서 삭제해야함.
+                    MappingClass.DeleteBusiness request = new MappingClass.DeleteBusiness();
+                    for (BusinessData data : businessDatas) {
+                        request.setBusinessId(data.getBusinessId());
 
-                    ApiService apiService = RestClient.getClient().create(ApiService.class);
-                    ApiHandler apiHandler = new ApiHandler(apiService, this);
-                    apiHandler.deleteBusiness(request.getBusinessId());
+                        ApiService apiService = RestClient.getClient().create(ApiService.class);
+                        ApiHandler apiHandler = new ApiHandler(apiService, this);
+                        apiHandler.deleteBusiness(request.getBusinessId());
 
-                    adapter.removeItem(data.getBusinessId());
+                        adapter.removeItem(data.getBusinessId());
+
+                        List<BusinessData> itemsToRemove = new ArrayList<>();
+                        for (BusinessData item : list) {
+                            if (item.isChecked()) {
+                                itemsToRemove.add(item);
+                            }
+                        }
+                        list.removeAll(itemsToRemove);
+                    }
+                    businessDatas = new ArrayList<>();
+
+                } else {
+                    // TODO : SQLite 로직 추가
+                    for (BusinessData data : businessDatas) {
+                        dbDelete(String.valueOf(data.getBusinessId()));
+                        adapter.removeItem(data.getBusinessId());
+
+                        List<BusinessData> itemsToRemove = new ArrayList<>();
+                        for (BusinessData item : list) {
+                            if (item.isChecked()) {
+                                itemsToRemove.add(item);
+                            }
+                        }
+                        list.removeAll(itemsToRemove);
+                    }
                 }
-                businessDatas = new ArrayList<>();
                 messageDialog.simpleCompleteDialog("사업 삭제가 완료되었습니다.", this);
                 adapter.notifyDataSetChanged();
             } else {
@@ -298,11 +342,46 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
         return new ArrayList<>(); // 빈 리스트 반환
     }
 
+    private ArrayList<BusinessData> dbSelect(String keyword) throws ParseException {
+        List<String[]> selectDatas = db.select("business", keyword, new String[]{"business_id", "business_title", "created_at"});
+        ArrayList<BusinessData> businessDatas = new ArrayList<>();
+
+        if (!selectDatas.isEmpty()) {
+            for (String[] datas : selectDatas) {
+                // 배열의 길이 체크 및 null 검사
+                if (datas.length < 3 || datas[0] == null || datas[1] == null || datas[2] == null) {
+                    Log.e("DB Error", "Invalid data received: " + Arrays.toString(datas));
+                    continue; // 또는 적절한 예외 처리
+                }
+
+                // 데이터 변환 및 추가
+                long id = Long.parseLong(datas[0]);
+                String title = datas[1];
+                String formattedDate = DateConverter.convertTimestampString(datas[2]);
+
+                businessDatas.add(new BusinessData(id, title, formattedDate));
+            }
+
+            if (!businessDatas.isEmpty()) {
+                Log.i("비즈니스 데이타", businessDatas.get(0).getTitle());
+            }
+
+            Collections.reverse(businessDatas);
+
+            return businessDatas;
+        }
+        return new ArrayList<>(); // 빈 리스트 반환
+    }
+
 
     private void dbInsert(String title, String createdAt) {
         ContentValues values = new ContentValues();
         values.put("business_title", title);
         values.put("created_at", createdAt);
         db.insert(values, "business");
+    }
+
+    private void dbDelete(String id) {
+        db.delete("business", id);
     }
 }

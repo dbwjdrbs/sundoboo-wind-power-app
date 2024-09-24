@@ -53,7 +53,7 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
     }
 
     private void sendMessageToUnity(String objectLat, String objectLon, String direction, String modelNumber, float myElevation, float objElevation) {
-        String maxScale = "50";
+        String maxScale = "80";
         String minScale = "5";
 
         UnityPlayer.UnitySendMessage("AndroidReceiveMessageManager", "ReceiveDataFromAndroidStudio",
