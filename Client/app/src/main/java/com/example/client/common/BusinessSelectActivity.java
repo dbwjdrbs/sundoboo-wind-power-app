@@ -288,6 +288,7 @@ public class BusinessSelectActivity extends AppCompatActivity implements View.On
                         }
                         list.removeAll(itemsToRemove);
                     }
+                    businessDatas = new ArrayList<>();
                 }
                 messageDialog.simpleCompleteDialog("사업 삭제가 완료되었습니다.", this);
                 adapter.notifyDataSetChanged();
