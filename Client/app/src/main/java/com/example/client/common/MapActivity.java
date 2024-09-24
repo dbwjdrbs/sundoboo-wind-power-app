@@ -118,6 +118,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private DBControl db;
     private boolean isOnServer;
     private Map<String, Float> fileColorMap = new HashMap<>();
+    private int REQUEST_CODE_OPEN_CSV = 1;
 
     private static final float[] COLORS = {
             BitmapDescriptorFactory.HUE_RED,
@@ -132,9 +133,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     };
 
     private int colorIndex = 0;
-
-    private int REQUEST_CODE_LOAD_CSV = 1;
-
     private String businessTitle;
 
     // INFO : Unity 연동을 위한 것들
@@ -380,7 +378,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         builder.show();
     }
 
-
     private void addMarkerToMap(LatLng latLng) {
         BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // 기본 아이콘 설정
         mMap.addMarker(new MarkerOptions()
@@ -411,72 +408,39 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-
     private void showFilePickerDialog() {
-        // 내부 저장소에서 CSV 파일 찾기
-        File internalDirectory = getFilesDir(); // 내부 저장소 디렉토리
-        File[] internalFiles = internalDirectory.listFiles((dir, name) -> name.endsWith(".csv")); // CSV 파일 필터링
-
-        // 외부 저장소에서 CSV 파일 찾기
-        File externalDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "");
-        File[] externalFiles = externalDirectory.listFiles((dir, name) -> name.endsWith(".csv")); // CSV 파일 필터링
-
-        List<String> fileNames = new ArrayList<>();
-        List<File> allFiles = new ArrayList<>();
-
-        // 내부 저장소 파일 추가
-        if (internalFiles != null) {
-            for (File file : internalFiles) {
-                fileNames.add(file.getName());
-                allFiles.add(file);
-            }
-        }
-
-        // 외부 저장소 파일 추가
-        if (externalFiles != null) {
-            for (File file : externalFiles) {
-                fileNames.add(file.getName());
-                allFiles.add(file);
-            }
-        }
-
-        if (!fileNames.isEmpty()) {
-            new AlertDialog.Builder(this)
-                    .setTitle("CSV 파일 선택")
-                    .setItems(fileNames.toArray(new String[0]), (dialog, which) -> {
-                        // 파일을 선택했을 때
-                        File selectedFile = allFiles.get(which);
-                        loadMarkersFromCSV(selectedFile); // 선택한 파일의 마커를 불러오기
-                    })
-                    .show();
-        } else {
-            messageDialog.simpleErrorDialog("저장된 CSV 파일이 없습니다.", this);
-        }
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("text/csv"); // CSV 파일 형식
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(Intent.createChooser(intent, "Select CSV File"), REQUEST_CODE_OPEN_CSV);
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == RESULT_OK) {
-            if (data != null) {
-                Uri uri = data.getData();
-                if (uri != null) {
-                    // 선택한 파일을 불러오기
-                    String path = uri.getPath();
-                    File file = new File(path);
-                    loadMarkersFromCSV(file);
-                }
+        if (requestCode == REQUEST_CODE_OPEN_CSV && resultCode == RESULT_OK) {
+            Uri uri = data.getData();
+            if (uri != null) {
+                loadMarkersFromCSV(uri); // URI를 통해 CSV 파일 읽기
             }
         }
     }
 
-
-    private void loadMarkersFromCSV(File file) {
+    private void loadMarkersFromCSV(Object file) {
         Float markerColor = COLORS[colorIndex];
         colorIndex = (colorIndex + 1) % COLORS.length;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        BufferedReader reader = null;
+        try {
+            if (file instanceof Uri) {
+                // URI일 경우 (외부 저장소)
+                InputStream inputStream = getContentResolver().openInputStream((Uri) file);
+                reader = new BufferedReader(new InputStreamReader(inputStream));
+            } else if (file instanceof File) {
+                // File일 경우 (내부 저장소)
+                reader = new BufferedReader(new FileReader((File) file));
+            }
+
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] values = line.split(",");
@@ -500,6 +464,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(this, "파일을 읽는 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
@@ -766,8 +739,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         // INFO : CSV 불러오기 버튼
         if (v.getId() == R.id.btn_scoreList) {
-            showFilePickerDialog();
-
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.setType("*/*"); // 모든 파일 형식
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            startActivityForResult(intent, REQUEST_CODE_OPEN_CSV);
         }
 
         // INFO : 규제 지역 버튼
@@ -797,6 +772,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     Arrays.fill(markers, null);
                 } else {
                     dbDelete(businessId);
+                    markerList.clear();
+                    mMarker = null;
+                    isOnClickMarker = false;
+                    String[] markers = {String.valueOf(currentMarkerPositions[0]), String.valueOf(currentMarkerPositions[1])};
+                    Arrays.fill(markers, null);
                 }
 
                 messageDialog.simpleCompleteDialog("마커가 초기화 되었습니다.", this);
