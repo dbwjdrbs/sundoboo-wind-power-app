@@ -29,6 +29,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -362,13 +363,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     private void saveMarkersToCSV(String observerName) {
-        String projectName = businessTitle; // 실제 사업지 이름으로 변경
+        String projectName = businessTitle;
         String dateTime = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.getDefault()).format(new Date());
         String fileName = String.format("%s-%s-%s.csv", dateTime, projectName, observerName);
 
-        File file = new File(getFilesDir(), fileName); // 내부 저장소에 파일 경로 설정
+        // 외부 저장소 경로 설정 (문서 디렉토리)
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), fileName);
 
-        Log.d("Marker List Size", "Size: " + markerList.size()); // 마커 리스트 크기 확인
+        Log.d("Marker List Size", "Size: " + markerList.size());
         try (FileOutputStream fos = new FileOutputStream(file)) {
             StringBuilder csvBuilder = new StringBuilder();
             for (Marker marker : markerList) {
@@ -376,29 +378,49 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 csvBuilder.append(position.latitude).append(",").append(position.longitude).append("\n");
             }
             fos.write(csvBuilder.toString().getBytes());
-            Log.d("File Path", "File saved at: " + file.getAbsolutePath()); // 파일 경로 로그 출력
+            Log.d("File Path", "File saved at: " + file.getAbsolutePath());
             Toast.makeText(this, "마커가 저장되었습니다: " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Log.e("File Save Error", "Error: " + e.getMessage(), e); // 오류 메시지 출력
+            Log.e("File Save Error", "Error: " + e.getMessage(), e);
             Toast.makeText(this, "파일 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
         }
     }
 
+
     private void showFilePickerDialog() {
-        File directory = new File(getFilesDir(), ""); // Internal storage directory
-        File[] files = directory.listFiles((dir, name) -> name.endsWith(".csv")); // Filter CSV files
+        // 내부 저장소에서 CSV 파일 찾기
+        File internalDirectory = getFilesDir(); // 내부 저장소 디렉토리
+        File[] internalFiles = internalDirectory.listFiles((dir, name) -> name.endsWith(".csv")); // CSV 파일 필터링
 
-        if (files != null && files.length > 0) {
-            List<String> fileNames = new ArrayList<>();
-            for (File file : files) {
+        // 외부 저장소에서 CSV 파일 찾기
+        File externalDirectory = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "");
+        File[] externalFiles = externalDirectory.listFiles((dir, name) -> name.endsWith(".csv")); // CSV 파일 필터링
+
+        List<String> fileNames = new ArrayList<>();
+        List<File> allFiles = new ArrayList<>();
+
+        // 내부 저장소 파일 추가
+        if (internalFiles != null) {
+            for (File file : internalFiles) {
                 fileNames.add(file.getName());
+                allFiles.add(file);
             }
+        }
 
+        // 외부 저장소 파일 추가
+        if (externalFiles != null) {
+            for (File file : externalFiles) {
+                fileNames.add(file.getName());
+                allFiles.add(file);
+            }
+        }
+
+        if (!fileNames.isEmpty()) {
             new AlertDialog.Builder(this)
                     .setTitle("CSV 파일 선택")
                     .setItems(fileNames.toArray(new String[0]), (dialog, which) -> {
                         // 파일을 선택했을 때
-                        File selectedFile = files[which];
+                        File selectedFile = allFiles.get(which);
                         loadMarkersFromCSV(selectedFile); // 선택한 파일의 마커를 불러오기
                     })
                     .show();
@@ -407,15 +429,31 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            if (data != null) {
+                Uri uri = data.getData();
+                if (uri != null) {
+                    // 선택한 파일을 불러오기
+                    String path = uri.getPath();
+                    File file = new File(path);
+                    loadMarkersFromCSV(file);
+                }
+            }
+        }
+    }
+
+
     private void loadMarkersFromCSV(File file) {
-        // 색상을 순차적으로 설정
         Float markerColor = COLORS[colorIndex];
-        colorIndex = (colorIndex + 1) % COLORS.length; // 색상 인덱스 증가
+        colorIndex = (colorIndex + 1) % COLORS.length;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // CSV 파일에서 위도, 경도 정보를 읽어오기
                 String[] values = line.split(",");
 
                 if (values.length < 2) {
@@ -424,14 +462,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 }
 
                 try {
-                    // 위도, 경도 추출
                     double latitude = Double.parseDouble(values[0]);
                     double longitude = Double.parseDouble(values[1]);
 
                     LatLng latLng = new LatLng(latitude, longitude);
-                    initialMarkersCsv(latLng, markerColor); // 터빈 ID 없이 마커 추가
+                    initialMarkersCsv(latLng, markerColor);
 
-                    // 디버깅 로그
                     Log.d("Marker Added", "Latitude: " + latitude + ", Longitude: " + longitude);
                 } catch (NumberFormatException e) {
                     Log.e("CSV Format Error", "Error parsing line: " + line);
@@ -442,6 +478,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             Toast.makeText(this, "파일을 읽는 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
         }
     }
+
     private void resetMarkerColorIndex() {
         colorIndex = 0; // 색상 초기화
     }
@@ -456,19 +493,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // 마커 리스트에 추가
         markerList.add(mMarker);
     }
-
-    private void initialMarkers(LatLng latLng) {
-        BitmapDescriptor defaultMarker = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // 기본 마커 색상
-
-        Marker mMarker = mMap.addMarker(new MarkerOptions()
-                .position(latLng)
-                .icon(defaultMarker)  // 기본 아이콘 설정
-                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
-
-        // 마커 리스트에 추가 (필요한 경우)
-        markerList.add(mMarker);
-    }
-
 
     // INFO : 마커 생성 메서드
     private void setMarker(LatLng latLng) {
