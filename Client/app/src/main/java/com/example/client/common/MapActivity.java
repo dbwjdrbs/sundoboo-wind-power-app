@@ -7,17 +7,27 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+
 import android.Manifest;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.net.URI;
+import java.text.SimpleDateFormat;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -65,11 +75,15 @@ import com.google.gson.Gson;
 
 import org.w3c.dom.Text;
 
+import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -93,12 +107,33 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private long businessId;
     private long locationId;
 
+    private Map<String, Float> fileColorMap = new HashMap<>();
+
+    private static final float[] COLORS = {
+            BitmapDescriptorFactory.HUE_RED,
+            BitmapDescriptorFactory.HUE_GREEN,
+            BitmapDescriptorFactory.HUE_YELLOW,
+            BitmapDescriptorFactory.HUE_ORANGE,
+            BitmapDescriptorFactory.HUE_VIOLET,
+            BitmapDescriptorFactory.HUE_AZURE,
+            BitmapDescriptorFactory.HUE_BLUE,
+            BitmapDescriptorFactory.HUE_CYAN,
+            BitmapDescriptorFactory.HUE_ROSE
+    };
+
+    private int colorIndex = 0;
+
+    private int REQUEST_CODE_LOAD_CSV = 1;
+
+    private String businessTitle;
+
     // INFO : Unity 연동을 위한 것들
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private Sensor magnetometer;
     private double myElevation;
     private double objElevation;
+
 
     // ======================================
     @Override
@@ -108,6 +143,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         Intent intent = getIntent();
         businessId = intent.getLongExtra("businessId", 0);
+        businessTitle = intent.getStringExtra("businessTitle");
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
@@ -120,6 +156,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+        TextView tv_name = findViewById(R.id.tv_title);
+        tv_name.setText(businessTitle);
 
         // NOTE : 버튼 온클릭 리스너 선언
         findViewById(R.id.btn_posSelect).setOnClickListener(this);
@@ -206,6 +245,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 }
             }).execute();
 
+            Toast.makeText(this, "마커 위치 : " + currentMarkerPositions[0] + ", " + currentMarkerPositions[0], Toast.LENGTH_SHORT).show();
+
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
         });
@@ -263,6 +304,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         BitmapDescriptor marker1 = BitmapDescriptorFactory.fromResource(R.drawable.marker1);
         BitmapDescriptor marker2 = BitmapDescriptorFactory.fromResource(R.drawable.marker2);
         BitmapDescriptor marker3 = BitmapDescriptorFactory.fromResource(R.drawable.marker3);
+        BitmapDescriptor defaultMarker = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
 
         switch ((int) turbineId) {
             case 1 :
@@ -272,7 +314,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             case 3 :
                 return marker3;
             default:
-                return marker1;
+                return defaultMarker;
         }
     }
 
@@ -289,6 +331,144 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         // NOTE : 클릭한 위치의 위도, 경도 정보를 DB에 저장
         markerList.add(mMarker);
     }
+
+    private void showObserverNameDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("관찰자명을 입력하세요");
+
+        final EditText input = new EditText(this);
+        builder.setView(input);
+
+        builder.setPositiveButton("확인", (dialog, which) -> {
+            String observerName = input.getText().toString();
+            if (!observerName.isEmpty()) {
+                saveMarkersToCSV(observerName);
+                messageDialog.simpleCompleteDialog("저장이 완료되었습니다",MapActivity.this);
+            } else {
+                Toast.makeText(this, "관찰자명은 비워둘 수 없습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("취소", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+
+    private void addMarkerToMap(LatLng latLng) {
+        BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // 기본 아이콘 설정
+        mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .icon(icon)
+                .alpha(0.8f));
+    }
+
+    private void saveMarkersToCSV(String observerName) {
+        String projectName = businessTitle; // 실제 사업지 이름으로 변경
+        String dateTime = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.getDefault()).format(new Date());
+        String fileName = String.format("%s-%s-%s.csv", dateTime, projectName, observerName);
+
+        File file = new File(getFilesDir(), fileName); // 내부 저장소에 파일 경로 설정
+
+        Log.d("Marker List Size", "Size: " + markerList.size()); // 마커 리스트 크기 확인
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            StringBuilder csvBuilder = new StringBuilder();
+            for (Marker marker : markerList) {
+                LatLng position = marker.getPosition();
+                csvBuilder.append(position.latitude).append(",").append(position.longitude).append("\n");
+            }
+            fos.write(csvBuilder.toString().getBytes());
+            Log.d("File Path", "File saved at: " + file.getAbsolutePath()); // 파일 경로 로그 출력
+            Toast.makeText(this, "마커가 저장되었습니다: " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Log.e("File Save Error", "Error: " + e.getMessage(), e); // 오류 메시지 출력
+            Toast.makeText(this, "파일 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void showFilePickerDialog() {
+        File directory = new File(getFilesDir(), ""); // Internal storage directory
+        File[] files = directory.listFiles((dir, name) -> name.endsWith(".csv")); // Filter CSV files
+
+        if (files != null && files.length > 0) {
+            List<String> fileNames = new ArrayList<>();
+            for (File file : files) {
+                fileNames.add(file.getName());
+            }
+
+            new AlertDialog.Builder(this)
+                    .setTitle("CSV 파일 선택")
+                    .setItems(fileNames.toArray(new String[0]), (dialog, which) -> {
+                        // 파일을 선택했을 때
+                        File selectedFile = files[which];
+                        loadMarkersFromCSV(selectedFile); // 선택한 파일의 마커를 불러오기
+                    })
+                    .show();
+        } else {
+            Toast.makeText(this, "저장된 CSV 파일이 없습니다.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void loadMarkersFromCSV(File file) {
+        // 색상을 순차적으로 설정
+        Float markerColor = COLORS[colorIndex];
+        colorIndex = (colorIndex + 1) % COLORS.length; // 색상 인덱스 증가
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // CSV 파일에서 위도, 경도 정보를 읽어오기
+                String[] values = line.split(",");
+
+                if (values.length < 2) {
+                    Log.e("CSV Read Error", "Invalid line: " + line);
+                    continue; // 값이 부족한 경우 건너뛰기
+                }
+
+                try {
+                    // 위도, 경도 추출
+                    double latitude = Double.parseDouble(values[0]);
+                    double longitude = Double.parseDouble(values[1]);
+
+                    LatLng latLng = new LatLng(latitude, longitude);
+                    initialMarkersCsv(latLng, markerColor); // 터빈 ID 없이 마커 추가
+
+                    // 디버깅 로그
+                    Log.d("Marker Added", "Latitude: " + latitude + ", Longitude: " + longitude);
+                } catch (NumberFormatException e) {
+                    Log.e("CSV Format Error", "Error parsing line: " + line);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "파일을 읽는 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void resetMarkerColorIndex() {
+        colorIndex = 0; // 색상 초기화
+    }
+
+
+    private void initialMarkersCsv(LatLng latLng, Float markerColor) {
+        Marker mMarker = mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .icon(BitmapDescriptorFactory.defaultMarker(markerColor))  // 설정된 색상 아이콘
+                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+
+        // 마커 리스트에 추가
+        markerList.add(mMarker);
+    }
+
+    private void initialMarkers(LatLng latLng) {
+        BitmapDescriptor defaultMarker = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE); // 기본 마커 색상
+
+        Marker mMarker = mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .icon(defaultMarker)  // 기본 아이콘 설정
+                .alpha(0.8f)); // 마커의 투명도 설정 (0.0f ~ 1.0f)
+
+        // 마커 리스트에 추가 (필요한 경우)
+        markerList.add(mMarker);
+    }
+
 
     // INFO : 마커 생성 메서드
     private void setMarker(LatLng latLng) {
@@ -338,8 +518,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 //        fix 마커를 생성할 떄 위도 경도 까지 넣어주기로 변경
 //        TODO : setBusinessId 안에 해당 사업을 눌렀을 때 가져온 BusinessId를 매개 변수에 넣어줘야한다.
             MappingClass.LocationPostRequest request = new MappingClass.LocationPostRequest();
-            request.setBusinessId(1);
-            request.setTurbineId(1);
+            request.setBusinessId(businessId);
+            request.setTurbineId(4);
             String latitude = String.valueOf(latLng.latitude);
             String longitude = String.valueOf(latLng.longitude);
             request.setLatitude(latitude);
@@ -495,14 +675,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
 
-        // INFO : 점수 입력 버튼
+        // INFO : CSV 저장 버튼
         if (v.getId() == R.id.btn_scoreInput) {
-            showDialog_scoreInput();
+            showObserverNameDialog();
         }
 
-        // INFO : 점수 목록 버튼
+        // INFO : CSV 불러오기 버튼
         if (v.getId() == R.id.btn_scoreList) {
-            showDialog_scoreList();
+            showFilePickerDialog();
+
         }
 
         // INFO : 규제 지역 버튼

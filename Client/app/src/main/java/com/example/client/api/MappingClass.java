@@ -700,4 +700,20 @@ public class MappingClass {
             this.island = island;
         }
     }
+
+    public static class ErrorResponse {
+        private int status;
+        private String message;
+        private List<Object> fieldErrors;
+        private List<Object> violationErrors;
+
+
+        public int getStatus() {
+            return status;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
 }

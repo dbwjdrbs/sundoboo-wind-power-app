@@ -3,6 +3,7 @@ package com.example.client.common;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -15,6 +16,8 @@ import com.example.client.api.ApiService;
 import com.example.client.api.LocalDateTimeDeserializer;
 import com.example.client.api.MappingClass;
 import com.example.client.api.RestClient;
+import com.example.client.localdb.DBControl;
+import com.example.client.localdb.DBHelper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -27,7 +30,6 @@ import java.util.List;
 public class StartActivity extends AppCompatActivity {
     // NOTE : 뒤로가기 두 번 클릭시 앱 종료  ============================================================
     private long backKeyPressedTime = 0;  // NOTE : 초 저장
-    private String jsonBusinessList = "";
 
     @Override
     public void onBackPressed() {
@@ -40,6 +42,8 @@ public class StartActivity extends AppCompatActivity {
 
         // NOTE :  2초 이내에 뒤로가기 버튼을 한번 더 클릭시 finish()(앱 종료)
         if (System.currentTimeMillis() <= backKeyPressedTime + 2000) {
+            moveTaskToBack(true);
+            finishAndRemoveTask(); // 액티비티 종료 + 태스크 리스트에서 지우기
             android.os.Process.killProcess(android.os.Process.myPid()); // 앱 프로세스 종료
         }
     }
@@ -83,7 +87,16 @@ public class StartActivity extends AppCompatActivity {
 
                 @Override
                 public void onError(String errorMessage) {
-                    Toast.makeText(StartActivity.this, "Error: " + errorMessage, Toast.LENGTH_LONG).show();
+                    DBHelper dbHelper;
+                    DBControl dbControl;
+
+                    dbHelper = new DBHelper(StartActivity.this, "turbineInsight.db", null, 1);
+
+                    dbControl = new DBControl(dbHelper);
+
+                    Intent intent = new Intent(StartActivity.this, BusinessSelectActivity.class);
+                    startActivity(intent);
+                    finish();
                 }
             });
         });

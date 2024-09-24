@@ -41,7 +41,6 @@ public class UnityPlayerActivity extends com.unity3d.player.UnityPlayerActivity 
         super.onCreate(savedInstanceState);
 
         Intent intent = getIntent();
-
         double objectLat = intent.getDoubleExtra("objectLat", 0.0);
         double objectLon = intent.getDoubleExtra("objectLon", 0.0);
         float direction = intent.getFloatExtra("direction", 0.0f);

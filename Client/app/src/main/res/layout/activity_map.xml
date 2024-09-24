@@ -102,7 +102,7 @@
                 android:backgroundTint="#005699"
                 android:drawableStart="@drawable/ic_scoreinput_24"
                 android:paddingStart="10dp"
-                android:text="점수 입력"
+                android:text="CSV 저장"
                 android:textColor="@color/white"
                 android:textStyle="bold" />
 
@@ -115,7 +115,7 @@
                 android:backgroundTint="#005699"
                 android:drawableStart="@drawable/ic_scorelist_24"
                 android:paddingStart="10dp"
-                android:text="점수 목록"
+                android:text="CSV 불러오기"
                 android:textColor="@color/white"
                 android:textStyle="bold" />
         </LinearLayout>
