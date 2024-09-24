@@ -21,6 +21,7 @@ import java.util.ArrayList;
 public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectViewHolder> {
     private ArrayList<BusinessData> list;
     private BusinessSelectItemClickListener listener;
+    private boolean isOnServer;
 
     public BusinessSelectAdapter(ArrayList<BusinessData> list, BusinessSelectItemClickListener listener) {
         this.list = list;
@@ -33,13 +34,19 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectVi
         Context context = parent.getContext();
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View view = inflater.inflate(R.layout.rv_item_business, parent, false);
-        return new BusinessSelectViewHolder(view, listener, list);
+        return new BusinessSelectViewHolder(view, listener, list, isOnServer);
     }
 
     @Override
     public void onBindViewHolder(@NonNull BusinessSelectViewHolder holder, int position) {
+        BusinessData businessData = list.get(position);
+        holder.getCheckBox().setChecked(businessData.isChecked());
+
         holder.getTitle().setText(list.get(position).getTitle());
         holder.getCreatedAt().setText("등록 일자 : " + list.get(position).getCreatedAt());
+        holder.getCheckBox().setOnCheckedChangeListener((buttonView, isChecked) -> {
+            businessData.setChecked(isChecked);
+        });
     }
 
     @Override
@@ -58,6 +65,10 @@ public class BusinessSelectAdapter extends RecyclerView.Adapter<BusinessSelectVi
     public void removeItem(long businessId) {
         list.removeIf(data -> data.getBusinessId() == businessId);
     }
+
+    public void isOnServer(boolean bool) {
+        isOnServer = bool;
+    }
 }
 
 class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
@@ -65,7 +76,7 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
     private TextView createdAt;
     private CheckBox checkBox;
 
-    public BusinessSelectViewHolder(@NonNull View itemView, BusinessSelectItemClickListener listener, ArrayList<BusinessData> list) {
+    public BusinessSelectViewHolder(@NonNull View itemView, BusinessSelectItemClickListener listener, ArrayList<BusinessData> list, boolean isOnServer) {
         super(itemView);
         title = itemView.findViewById(R.id.tv_businessName);
         createdAt = itemView.findViewById(R.id.tv_businessCreatedAt);
@@ -74,8 +85,8 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
         checkBox.setOnClickListener(v -> {
             int pos = getAdapterPosition();
             if (pos != RecyclerView.NO_POSITION) {
-                    BusinessData data = new BusinessData(list.get(pos).getBusinessId(), title.getText().toString(), createdAt.getText().toString()); // 수정 필요
-                    listener.onBusinessItemClick(data, pos);
+                BusinessData data = new BusinessData(list.get(pos).getBusinessId(), title.getText().toString(), createdAt.getText().toString()); // 수정 필요
+                listener.onBusinessItemClick(data, pos);
             }
         });
 
@@ -85,7 +96,8 @@ class BusinessSelectViewHolder extends RecyclerView.ViewHolder {
                 BusinessData data = new BusinessData(list.get(pos).getBusinessId(), title.getText().toString(), createdAt.getText().toString()); // 수정 필요
                 Intent intent = new Intent(view.getContext(), MapActivity.class);
                 intent.putExtra("businessId", data.getBusinessId());
-                intent.putExtra("businessTitle",data.getTitle());
+                intent.putExtra("businessTitle", data.getTitle());
+                intent.putExtra("isOnServer", isOnServer);
                 view.getContext().startActivity(intent);
             }
         });

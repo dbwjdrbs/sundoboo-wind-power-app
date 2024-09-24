@@ -14,10 +14,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.net.URI;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -27,6 +30,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -51,9 +55,12 @@ import com.example.client.api.ApiHandler;
 import com.example.client.api.ApiService;
 import com.example.client.api.MappingClass;
 import com.example.client.api.RestClient;
+import com.example.client.data.LocationData;
 import com.example.client.data.ScoreData;
 import com.example.client.data.TurbinesData;
 import com.example.client.api.ElevationGetter;
+import com.example.client.localdb.DBControl;
+import com.example.client.localdb.DBHelper;
 import com.example.client.util.GeoJsonFeatureCollection;
 import com.example.client.util.MessageDialog;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -107,7 +114,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private List<Polygon> polygons = new ArrayList<>();
     private long businessId;
     private long locationId;
-
+    private DBHelper dbHelper;
+    private DBControl db;
+    private boolean isOnServer;
     private Map<String, Float> fileColorMap = new HashMap<>();
 
     private static final float[] COLORS = {
@@ -145,6 +154,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Intent intent = getIntent();
         businessId = intent.getLongExtra("businessId", 0);
         businessTitle = intent.getStringExtra("businessTitle");
+        isOnServer = intent.getBooleanExtra("isOnServer", false);
+
+        if (!isOnServer) {
+            Log.d("맵", "false");
+            isOnServer = false;
+            dbHelper = new DBHelper(MapActivity.this, "turbineInsight.db", null, 1);
+            db = new DBControl(dbHelper);
+        }
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 
@@ -177,27 +194,39 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onMapReady(final GoogleMap googleMap) {
         mMap = googleMap;  // GoogleMap 객체를 초기화
 
-        initRegulatedArea();
+        setRegulatedArea(loadGeoJson());
 
-        ApiService apiService = RestClient.getClient().create(ApiService.class);
-        ApiHandler apiHandler = new ApiHandler(apiService, this);
-        apiHandler.getLocations(businessId, 1, 30, new ApiCallback<List<MappingClass.LocationResponse>>() {
-            @Override
-            public void onSuccess(List<MappingClass.LocationResponse> response) {
-                for (MappingClass.LocationResponse locaResponse : response) {
-                    double latitude = Double.valueOf(locaResponse.getLatitude());
-                    double longitude = Double.valueOf(locaResponse.getLongitude());
+        if (isOnServer) {
+            ApiService apiService = RestClient.getClient().create(ApiService.class);
+            ApiHandler apiHandler = new ApiHandler(apiService, this);
+            apiHandler.getLocations(businessId, 1, 30, new ApiCallback<List<MappingClass.LocationResponse>>() {
+                @Override
+                public void onSuccess(List<MappingClass.LocationResponse> response) {
+                    for (MappingClass.LocationResponse locaResponse : response) {
+                        double latitude = Double.valueOf(locaResponse.getLatitude());
+                        double longitude = Double.valueOf(locaResponse.getLongitude());
 
-                    LatLng latLng = new LatLng(latitude, longitude);
-                    initialMarkers(latLng, locaResponse.getTurbineId());
+                        LatLng latLng = new LatLng(latitude, longitude);
+                        initialMarkers(latLng, locaResponse.getTurbineId());
+                    }
                 }
-            }
 
-            @Override
-            public void onError(String errorMessage) {
+                @Override
+                public void onError(String errorMessage) {
 
+                }
+            });
+        } else {
+            // INFO : SQLite
+            List<LocationData> locationData = dbSelect();
+            for (LocationData data : locationData) {
+                double latitude = Double.valueOf(data.getLatitude());
+                double longitude = Double.valueOf(data.getLongitude());
+
+                LatLng latLng = new LatLng(latitude, longitude);
+                initialMarkers(latLng, data.getTurbineId());
             }
-        });
+        }
 
         // 위치 권한이 부여된 경우 현재 위치를 지도에 표시
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -246,19 +275,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 }
             }).execute();
 
-            Toast.makeText(this, "마커 위치 : " + currentMarkerPositions[0] + ", " + currentMarkerPositions[0], Toast.LENGTH_SHORT).show();
-
             // NOTE : true -> 비활성화 false -> 기본 동작이 실행됨.
             return false;
         });
     }
 
-    private void initRegulatedArea() {
+    // 규제 지역 설정
+    private void setRegulatedArea(List<PolygonOptions> polygonOptionsList) {
         if (mMap != null) {
             Executors.newSingleThreadExecutor().execute(new Runnable() {
                 @Override
                 public void run() {
-                    List<PolygonOptions> polygonOptionsList = loadGeoJson(); // PolygonOptions 리스트로 변경
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -308,11 +335,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         BitmapDescriptor defaultMarker = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
 
         switch ((int) turbineId) {
-            case 1 :
+            case 1:
                 return marker1;
-            case 2 :
+            case 2:
                 return marker2;
-            case 3 :
+            case 3:
                 return marker3;
             default:
                 return defaultMarker;
@@ -344,9 +371,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             String observerName = input.getText().toString();
             if (!observerName.isEmpty()) {
                 saveMarkersToCSV(observerName);
-                messageDialog.simpleCompleteDialog("저장이 완료되었습니다",MapActivity.this);
+                messageDialog.simpleCompleteDialog("저장이 완료되었습니다", MapActivity.this);
             } else {
-                Toast.makeText(this, "관찰자명은 비워둘 수 없습니다.", Toast.LENGTH_SHORT).show();
+                messageDialog.simpleErrorDialog("관찰자명을 입력해주세요.", this);
             }
         });
         builder.setNegativeButton("취소", (dialog, which) -> dialog.cancel());
@@ -378,11 +405,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 csvBuilder.append(position.latitude).append(",").append(position.longitude).append("\n");
             }
             fos.write(csvBuilder.toString().getBytes());
-            Log.d("File Path", "File saved at: " + file.getAbsolutePath());
-            Toast.makeText(this, "마커가 저장되었습니다: " + file.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+            Log.d("File Path", "File saved at: " + file.getAbsolutePath()); // 파일 경로 로그 출력
         } catch (Exception e) {
-            Log.e("File Save Error", "Error: " + e.getMessage(), e);
-            Toast.makeText(this, "파일 저장 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
+            Log.e("File Save Error", "Error: " + e.getMessage(), e); // 오류 메시지 출력
         }
     }
 
@@ -425,7 +450,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     })
                     .show();
         } else {
-            Toast.makeText(this, "저장된 CSV 파일이 없습니다.", Toast.LENGTH_SHORT).show();
+            messageDialog.simpleErrorDialog("저장된 CSV 파일이 없습니다.", this);
         }
     }
 
@@ -475,7 +500,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         } catch (IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, "파일을 읽는 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -549,21 +573,25 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             request.setLatitude(latitude);
             request.setLongitude(longitude);
 
-            ApiService apiService = RestClient.getClient().create(ApiService.class);
-            ApiHandler apiHandler = new ApiHandler(apiService, this);
+            if (isOnServer) {
+                ApiService apiService = RestClient.getClient().create(ApiService.class);
+                ApiHandler apiHandler = new ApiHandler(apiService, this);
 
-            apiHandler.createLocation(request, new ApiCallback<Void>() {
+                apiHandler.createLocation(request, new ApiCallback<Void>() {
 
-                @Override
-                public void onSuccess(Void response) {
+                    @Override
+                    public void onSuccess(Void response) {
 
-                }
+                    }
 
-                @Override
-                public void onError(String errorMessage) {
+                    @Override
+                    public void onError(String errorMessage) {
 
-                }
-            });
+                    }
+                });
+            } else {
+                dbInsert(latitude, longitude, null, null, new Timestamp(System.currentTimeMillis()).toString());
+            }
 
             messageDialog.simpleCompleteDialog("건설 예정지 등록이 완료되었습니다.", this);
         } else {
@@ -642,12 +670,44 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-    // INFO : GoeJSON 로드 (규제지역)
+    // INFO : 규제 지역 취소
     private void togglePolygonsVisibility() {
         isVisibleRegulatedArea = !isVisibleRegulatedArea;
 
-        for (Polygon polygon : polygons) {
-            polygon.setVisible(isVisibleRegulatedArea);
+        if (isVisibleRegulatedArea) {
+            setRegulatedArea(loadGeoJson());
+        } else {
+            mMap.clear();
+            if (isOnServer) {
+                ApiService apiService = RestClient.getClient().create(ApiService.class);
+                ApiHandler apiHandler = new ApiHandler(apiService, this);
+                apiHandler.getLocations(businessId, 1, 30, new ApiCallback<List<MappingClass.LocationResponse>>() {
+                    @Override
+                    public void onSuccess(List<MappingClass.LocationResponse> response) {
+                        for (MappingClass.LocationResponse locaResponse : response) {
+                            double latitude = Double.valueOf(locaResponse.getLatitude());
+                            double longitude = Double.valueOf(locaResponse.getLongitude());
+
+                            LatLng latLng = new LatLng(latitude, longitude);
+                            initialMarkers(latLng, locaResponse.getTurbineId());
+                        }
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+
+                    }
+                });
+            } else {
+                List<LocationData> locationData = dbSelect();
+                for (LocationData data : locationData) {
+                    double latitude = Double.valueOf(data.getLatitude());
+                    double longitude = Double.valueOf(data.getLongitude());
+
+                    LatLng latLng = new LatLng(latitude, longitude);
+                    initialMarkers(latLng, data.getTurbineId());
+                }
+            }
         }
     }
 
@@ -721,19 +781,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 for (Marker marker : markerList) {
                     marker.remove();
                 }
-//                TODO : 로케이션 삭제 로직 DeleteLocationsByBusinessId() 해당 사업 id에 있는 로케이션들을 삭제
 
-                MappingClass.DeleteLocationsByBusinessId request = new MappingClass.DeleteLocationsByBusinessId();
-                request.setBusinessId(1);
-                ApiService apiService = RestClient.getClient().create(ApiService.class);
-                ApiHandler apiHandler = new ApiHandler(apiService, this);
-                apiHandler.deleteLocationsByBusinessId(request.getBusinessId());
+                if (isOnServer) {
+                    // TODO : 로케이션 삭제 로직 DeleteLocationsByBusinessId() 해당 사업 id에 있는 로케이션들을 삭제
+                    MappingClass.DeleteLocationsByBusinessId request = new MappingClass.DeleteLocationsByBusinessId();
+                    request.setBusinessId(businessId);
+                    ApiService apiService = RestClient.getClient().create(ApiService.class);
+                    ApiHandler apiHandler = new ApiHandler(apiService, this);
+                    apiHandler.deleteLocationsByBusinessId(request.getBusinessId());
 
-                markerList.clear();
-                mMarker = null;
-                isOnClickMarker = false;
-                String[] markers = {String.valueOf(currentMarkerPositions[0]), String.valueOf(currentMarkerPositions[1])};
-                Arrays.fill(markers, null);
+                    markerList.clear();
+                    mMarker = null;
+                    isOnClickMarker = false;
+                    String[] markers = {String.valueOf(currentMarkerPositions[0]), String.valueOf(currentMarkerPositions[1])};
+                    Arrays.fill(markers, null);
+                } else {
+                    dbDelete(businessId);
+                }
 
                 messageDialog.simpleCompleteDialog("마커가 초기화 되었습니다.", this);
             } else {
@@ -1163,56 +1227,61 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     // 0 1 2 3 -> +1해서 넣어 줘야 터빈 아이디가 댐
     @Override
     public void onSelectModel(int position, int direction) {
-        ApiService apiService = RestClient.getClient().create(ApiService.class);
-        ApiHandler apiHandler = new ApiHandler(apiService, this);
         double latitude = currentMarkerPositions[0]; // 0번 인덱스 위도
         double longitude = currentMarkerPositions[1]; // 1번 인덱스 경도
 
         String stringLat = String.valueOf(latitude);
         String stringLon = String.valueOf(longitude);
 
-        apiHandler.getDD(stringLat, stringLon, new ApiCallback<MappingClass.DdResponse>() {
-            @Override
-            public void onSuccess(MappingClass.DdResponse response) {
-                Log.d("ApiHandler", "Response: " + response); // 전체 응답 로그
-                Log.d("ApiHandler", "Location ID: " + response.getData().getLocationId());
-                Log.d("ApiHandler", "Business ID: " + response.getData().getBusinessId());
+        changeMarkerStyle(setMarkerStyle(position + 1), currentMaker);
 
-                locationId = response.getData().getLocationId();
-                businessId = response.getData().getBusinessId();
+        if (isOnServer) {
+            ApiService apiService = RestClient.getClient().create(ApiService.class);
+            ApiHandler apiHandler = new ApiHandler(apiService, this);
+            apiHandler.getDD(stringLat, stringLon, new ApiCallback<MappingClass.DdResponse>() {
+                @Override
+                public void onSuccess(MappingClass.DdResponse response) {
+                    locationId = response.getData().getLocationId();
+                    businessId = response.getData().getBusinessId();
 
-                changeMarkerStyle(setMarkerStyle(position + 1) ,currentMaker);
+                    if (locationId == 0 || businessId == 0) {
+                        Log.e("ApiHandler", "Invalid IDs received: locationId = " + locationId + ", businessId = " + businessId);
+                        return; // 유효하지 않은 ID인 경우 조기 종료
+                    }
 
-                if (locationId == 0 || businessId == 0) {
-                    Log.e("ApiHandler", "Invalid IDs received: locationId = " + locationId + ", businessId = " + businessId);
-                    return; // 유효하지 않은 ID인 경우 조기 종료
+                    MappingClass.LocationPatchRequest request = new MappingClass.LocationPatchRequest();
+                    request.setLocationId(locationId);
+                    request.setBusinessId(businessId);
+                    request.setTurbineId(position + 1); // 터빈 아이디 설정
+
+                    apiHandler.patchLocation(request, new ApiCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void response) {
+                            Log.d("ApiHandler", "Location updated successfully");
+                            getLocationAndSendToUnity(position, direction);
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            Log.e("ApiHandler", "Error: " + errorMessage);
+                        }
+                    });
                 }
 
-                MappingClass.LocationPatchRequest request = new MappingClass.LocationPatchRequest();
-                request.setLocationId(locationId);
-                request.setBusinessId(businessId);
-                request.setTurbineId(position + 1); // 터빈 아이디 설정
-
-                apiHandler.patchLocation(request, new ApiCallback<Void>() {
-                    @Override
-                    public void onSuccess(Void response) {
-                        Log.d("ApiHandler", "Location updated successfully");
-                        getLocationAndSendToUnity(position, direction);
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        Log.e("ApiHandler", "Error: " + errorMessage);
-                    }
-                });
+                @Override
+                public void onError(String errorMessage) {
+                    Log.e("ApiHandler", "Error: " + errorMessage);
+                }
+            });
+        } else {
+            // INFO : SQLite
+            List<LocationData> locationDatas = dbGetDD(latitude, longitude);
+            for (LocationData data : locationDatas) {
+                dbUpdate(position + 1);
             }
+            getLocationAndSendToUnity(position, direction);
+        }
 
-            @Override
-            public void onError(String errorMessage) {
-                Log.e("ApiHandler", "Error: " + errorMessage);
-            }
-        });
-//        getLocationAndSendToUnity(position, direction);
     }
 
 
@@ -1246,5 +1315,36 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         intent.putExtra("objElevation", objElevation);
 
         startActivity(intent);
+    }
+
+    private List<LocationData> dbSelect() {
+        return db.selectByBusinessId("location", businessId);
+    }
+
+    private void dbInsert(String latitude, String longitude, String city, String island, String createdAt) {
+        ContentValues values = new ContentValues();
+        values.put("business_id", businessId);
+        values.put("turbine_id", 4);
+        values.put("latitude", latitude);
+        values.put("longitude", longitude);
+        values.put("city", city);
+        values.put("island", island);
+        values.put("created_at", createdAt);
+
+        db.insert(values, "location");
+    }
+
+    private List<LocationData> dbGetDD(double latitude, double longitude) {
+        return db.selectByCoordinates("location", latitude, longitude);
+    }
+
+    private void dbUpdate(long turbineId) {
+        ContentValues values = new ContentValues();
+        values.put("turbine_id", turbineId);
+        db.update(values, "location", String.valueOf(businessId));
+    }
+
+    private void dbDelete(long businessId) {
+        db.delete("location", String.valueOf(businessId));
     }
 }
