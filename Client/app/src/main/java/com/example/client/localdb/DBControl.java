@@ -195,8 +195,6 @@ public class DBControl {
         return resultList; // LocationData 리스트 반환
     }
 
-
-
     public void insert(ContentValues values, String table) {
         db = helper.getWritableDatabase();
         db.insert(table, null, values);

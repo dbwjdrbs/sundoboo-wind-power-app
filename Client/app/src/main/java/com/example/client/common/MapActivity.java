@@ -797,6 +797,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     Arrays.fill(markers, null);
                 } else {
                     dbDelete(businessId);
+                    markerList.clear();
+                    mMarker = null;
+                    isOnClickMarker = false;
+                    String[] markers = {String.valueOf(currentMarkerPositions[0]), String.valueOf(currentMarkerPositions[1])};
+                    Arrays.fill(markers, null);
                 }
 
                 messageDialog.simpleCompleteDialog("마커가 초기화 되었습니다.", this);
