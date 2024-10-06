@@ -104,7 +104,14 @@
 | 평가시작화면             | ![image](https://github.com/user-attachments/assets/b37d8ad3-8829-4eca-b272-e21a676aff0b) |
 | 사업검색             | ![image](https://github.com/user-attachments/assets/c74e0ba3-a0ce-4f4e-be1c-0bcc8fe5377a)|
 | 메인지도 호출             | ![image](https://github.com/user-attachments/assets/e130b301-9a14-4033-85b8-5a8b0ff86bbe)|
-
+| 지도선택 마커생성            | ![image](https://github.com/user-attachments/assets/e22f76cc-80e3-4007-bc49-bfe6c7f372fe)|
+| 위도경도입력 마커생성            | ![image](https://github.com/user-attachments/assets/ccdf0b8a-7b18-41d6-a664-cb1fbce75f16)|
+| 도분초입력 마커생성            | ![image](https://github.com/user-attachments/assets/8f93d439-a333-4c73-833f-222f196e5428)|
+| 점수입력             | ![image](https://github.com/user-attachments/assets/63cd2633-8f1f-4944-8957-d64aaa23a018)|
+| 점수입력 등록확인            | ![image](https://github.com/user-attachments/assets/6fe68a9c-ae5b-4d12-b75a-8ba51311533a)|
+| AR확인            | ![image](https://github.com/user-attachments/assets/d2b7c0dc-5c87-4970-894a-6635e16d5769)|
+| 풍력발전기 모델선택            |![image](https://github.com/user-attachments/assets/1ed62eb8-53d0-433d-b551-b40a70a1c17a)|
+| 방향각도 입력          |![image](https://github.com/user-attachments/assets/fdbffccc-040f-42cd-ae6c-8f9df9fb7579)|
 
 
 
