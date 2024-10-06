@@ -17,8 +17,6 @@
 ## 👨‍👩‍👧‍👦 팀원 소개
 
 | 유정균 | 김영 | 최서연 |
-| --- | --- | --- |
-| --- | --- | --- |
 |  **@[dbwjdrbs](https://github.com/dbwjdrbs)** | **@[Gizmoring](https://github.com/Gizmoring)** | **@[seoyeon1221](https://github.com/seoyeon1221)** |
 | FE(팀장) | FE/BE | BE |
 
