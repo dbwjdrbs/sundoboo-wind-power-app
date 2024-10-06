@@ -12,7 +12,7 @@
 
 - **프로젝트 명** : 터빈 인사이트(Turbine Insight)
 - **진행 기간** : 24.08.30 ~ 24.09.23
-- **서비스 URL** : [오늘드림🌙](http://dream-high.s3-website.ap-northeast-2.amazonaws.com)
+
 
 ## 👨‍👩‍👧‍👦 팀원 소개
 
@@ -94,7 +94,7 @@
 
 ## 📜 서비스 구현영상
 
-([https://www.notion.so/78baad5aef8d4c1f8808adf5945136d1?pvs=21](https://www.notion.so/READ-ME-7b389d3216f84a4ebc526d4133b36d37))
+(https://www.notion.so/079ae1f3d7d84a208b51ee15cf2ff69b?v=efa4f53a11b0449e92a91c10b781b51e)
 
 ## 🖥 구현 이미지
 
