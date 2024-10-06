@@ -94,24 +94,15 @@
 
 ## 📜 서비스 구현영상
 
-(https://www.notion.so/78baad5aef8d4c1f8808adf5945136d1?pvs=21)
+([https://www.notion.so/78baad5aef8d4c1f8808adf5945136d1?pvs=21](https://www.notion.so/READ-ME-7b389d3216f84a4ebc526d4133b36d37))
 
 ## 🖥 구현 이미지
 
 | 페이지 (기능)         | 이미지                                                                                                                          |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 메인                  | ![메인 페이지](https://github.com/user-attachments/assets/1dadffa7-6570-4b0f-a8c1-eaff280258ec)                 |
-| 해몽하기             | ![해몽하기](https://github.com/user-attachments/assets/4a50d88c-24ab-4e04-bd32-d0c60ad10cf9)                |
-| 회원가입             | ![회원가입](https://github.com/user-attachments/assets/6f312f14-b7fe-437c-8bd3-6df5c40c37eb) |
-| 회원정보수정-프로필 변경      | ![시연영상 프로필 변경](https://github.com/user-attachments/assets/6879b06c-8c1c-40da-bd45-7feb99e15db9)        |
-| 회원정보수정-닉네임 변경    | ![시연영상 닉네임변경](https://github.com/user-attachments/assets/db90bc73-94f9-452d-ab3a-7da8d8f4c3da)           |
-| 회원정보수정-비밀번호 변경 | ![비밀번호 변경](https://github.com/user-attachments/assets/92a20e0d-a953-4398-b633-4552f9729e70) |
-| 결과 공유하기 | ![결과창공유](https://github.com/user-attachments/assets/7a68bc1a-4c2b-4731-9364-88cc655449ee)                |
-| 공유 접속하기        | ![시연영상 공유누른거](https://github.com/user-attachments/assets/e1c5eabc-5662-4a04-9ead-9857ff02dd66)              |
-| 게시글 삭제     | ![게시판삭제](https://github.com/user-attachments/assets/508d59cb-a79b-4ec5-9b3c-7e5252a956db)           |
-| 댓글 등록 | ![시연영상 게시판 좋아요댓글](https://github.com/user-attachments/assets/47fad19c-479a-457e-9b75-5f1257ef1d73)      |
-| 댓글 수정, 삭제 | ![댓글수정](https://github.com/user-attachments/assets/fb9a59d9-cf40-42f2-8568-4e7492a50a8f)       |
-| 회원 탈퇴             | ![회원탈퇴](https://github.com/user-attachments/assets/9d6af278-1c07-4b9a-92a2-53fca0989654)              |
+| 앱시작                 | ![메인 페이지]![image](https://github.com/user-attachments/assets/a323f07c-e52c-449a-8028-47cb73d3bc77)  |
+| 평가시작화면             | ![평가시작화면]![image](https://github.com/user-attachments/assets/b37d8ad3-8829-4eca-b272-e21a676aff0b) |
+
 
 
 
