@@ -16,9 +16,11 @@
 
 ## 👨‍👩‍👧‍👦 팀원 소개
 
-| 유정균 | 김영 | 최서연 |
-|  **@[dbwjdrbs](https://github.com/dbwjdrbs)** | **@[Gizmoring](https://github.com/Gizmoring)** | **@[seoyeon1221](https://github.com/seoyeon1221)** |
-| FE(팀장) | FE/BE | BE |
+| 이름     | GitHub 링크                           | 역할  |
+|----------|--------------------------------------|-------|
+| 유정균   | **@[dbwjdrbs](https://github.com/dbwjdrbs)** | FE (팀장) |
+| 김영진   | **@[Gizmoring](https://github.com/Gizmoring)** | FE/BE |
+| 최서연   | **@[seoyeon1221](https://github.com/seoyeon1221)** | BE |
 
 ## 🔧 기술 스택
 
